@@ -4,6 +4,7 @@
   "main": "index.js",
   "scripts": {
     "start": "ts-node ./src/index.ts",
+    "debug": "node --inspect --require ts-node/register src/index.ts",
     "lint": "eslint . --ext .ts"
   },
   "repository": "git@github.com:vilvai/discord_areena_bot.git",
@@ -11,6 +12,7 @@
   "license": "MIT",
   "private": true,
   "dependencies": {
+    "canvas": "^2.6.1",
     "discord.js": "^12.2.0",
     "dotenv": "^8.2.0"
   },
