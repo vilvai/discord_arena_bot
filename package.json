@@ -3,9 +3,10 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "ts-node ./src/index.ts",
-    "debug": "node --inspect --require ts-node/register src/index.ts",
-    "lint": "eslint . --ext .ts"
+    "start": "ts-node ./src/bot/index.ts",
+    "debug": "node --inspect --require ts-node/register ./src/bot/index.ts",
+    "start:preview": "start http://localhost:8080/ && webpack-dev-server --hot --mode development",
+    "lint": "eslint . --ext .tsx,.ts,.js"
   },
   "repository": "git@github.com:vilvai/discord_areena_bot.git",
   "author": "ville-pc <ville.vainio1@gmail.com>",
@@ -14,17 +15,33 @@
   "dependencies": {
     "canvas": "^2.6.1",
     "discord.js": "^12.2.0",
-    "dotenv": "^8.2.0"
+    "dotenv": "^8.2.0",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1"
   },
   "devDependencies": {
+    "@babel/core": "^7.9.6",
+    "@babel/preset-env": "^7.9.6",
+    "@babel/preset-react": "^7.9.4",
+    "@types/html-webpack-plugin": "^3.2.3",
     "@types/node": "^14.0.1",
+    "@types/react": "^16.9.35",
+    "@types/react-dom": "^16.9.8",
+    "@types/webpack": "^4.41.13",
     "@typescript-eslint/eslint-plugin": "^2.33.0",
     "@typescript-eslint/parser": "^2.33.0",
+    "babel-loader": "^8.1.0",
     "eslint": "^7.0.0",
     "eslint-config-prettier": "^6.11.0",
     "eslint-plugin-prettier": "^3.1.3",
+    "eslint-plugin-react": "^7.20.0",
+    "html-webpack-plugin": "^4.3.0",
     "prettier": "^2.0.5",
+    "ts-loader": "^7.0.4",
     "ts-node": "^8.10.1",
-    "typescript": "^3.9.2"
+    "typescript": "^3.9.2",
+    "webpack": "^4.43.0",
+    "webpack-cli": "^3.3.11",
+    "webpack-dev-server": "^3.11.0"
   }
 }
