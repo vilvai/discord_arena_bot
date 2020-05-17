@@ -1,11 +1,28 @@
+export enum PlayerClass {
+	Spuge = "spuge",
+	Teekkari = "teekkari",
+	Chungus = "chungus",
+	Assassin = "assassin",
+	Fighter = "fighter",
+}
+
 export interface PlayerData {
 	avatarURL: string;
-	x: number;
-	y: number;
+	class: PlayerClass;
 }
 
 export interface GameData {
-	players: {
-		[key: string]: PlayerData;
-	};
+	players: PlayerData[];
 }
+
+/*
+{
+	"players": {
+		"ads": {
+			"avatarURL": "https://vectorified.com/images/royalty-free-icon-14.png",
+			"x": 20,
+			"y": 30
+		}
+	}
+}
+*/

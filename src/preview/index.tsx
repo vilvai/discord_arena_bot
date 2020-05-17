@@ -1,7 +1,6 @@
 import React from "react";
 import { render } from "react-dom";
-
-const App = () => <div>Hello!</div>;
+import PreviewPage from "./PreviewPage";
 
 const rootElement = document.getElementById("root");
-render(<App />, rootElement);
+render(<PreviewPage />, rootElement);

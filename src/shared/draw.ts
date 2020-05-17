@@ -1,23 +1,22 @@
-import { loadImage, CanvasRenderingContext2D } from "canvas";
+import { loadImage } from "canvas";
 
 import { GameData } from "./types";
+import { SCREEN_HEIGHT, SCREEN_WIDTH } from "./constants";
 
-export const drawFrame = async (
+export const drawFrame = (
 	ctx: CanvasRenderingContext2D,
 	gameData: GameData
 ) => {
-	ctx.font = "30px Impact";
-	ctx.rotate(0.1);
-	ctx.fillText("Awesome!", 50, 100);
+	const time = new Date().getTime();
+
+	ctx.fillRect(10, 10, 100, 100);
 
 	const text = ctx.measureText("Awesome!");
 	ctx.strokeStyle = "rgba(0,0,0,0.5)";
 	ctx.beginPath();
-	ctx.lineTo(50, 102);
-	ctx.lineTo(50 + text.width, 102);
+	ctx.lineTo(0, 0);
+	ctx.lineTo(400, 300);
 	ctx.stroke();
-	for (const { avatarURL, x, y } of Object.values(gameData.players)) {
-		const image = await loadImage(avatarURL);
-		ctx.drawImage(image, x, y, 32, 32);
-	}
+	const drawTime = new Date().getTime() - time;
+	console.log(`drawing took ${drawTime}ms`);
 };

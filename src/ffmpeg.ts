@@ -1,33 +1,18 @@
-import Discord from "discord.js";
-import fs from "fs";
 import { createCanvas } from "canvas";
 import ffmpeg from "fluent-ffmpeg";
 import { Readable } from "stream";
+import fs from "fs";
 
-import { SCREEN_WIDTH, SCREEN_HEIGHT, GAME_FPS } from "../shared/constants";
-import { PlayerClass } from "../shared/types";
-import Game from "../shared/game/Game";
+import Game from "./shared/game/Game";
+import { PlayerClass } from "./shared/types";
+import { SCREEN_WIDTH, SCREEN_HEIGHT } from "./shared/constants";
 
-require("dotenv").config();
-
-const client = new Discord.Client();
-
-client.on("ready", () => {
-	console.log(`Logged in as ${client.user.tag}!`);
-});
-
-client.on("message", async (msg) => {
-	if (msg.author.id === client.user.id) return;
-	const avatarURL = msg.author.displayAvatarURL({ format: "png", size: 256 });
+const a = async () => {
 	const canvas = createCanvas(SCREEN_WIDTH, SCREEN_HEIGHT);
 	const ctx = canvas.getContext("2d");
 
 	const gameData = {
 		players: [
-			{
-				avatarURL,
-				class: PlayerClass.Spuge,
-			},
 			{
 				avatarURL:
 					"https://cdn.discordapp.com/avatars/160995903182864384/fa07b1a1db14e12a994d67ce32a887c3.png?size=128",
@@ -51,25 +36,29 @@ client.on("message", async (msg) => {
 		],
 	};
 
-	const command = ffmpeg();
 	const game = new Game(ctx);
 	await game.initializeGame(gameData);
 	game.draw();
 
+	fs.createWriteStream("test.png").write(canvas.toBuffer());
+
 	//const stream = fs.createWriteStream("test.png").write(canvas.toBuffer());
 	//const stream = fs.createWriteStream("test.mp4");
-	const readable = new Readable();
+	/*const readable = new Readable();
 	readable._read = () => {};
 	readable.push(canvas.toBuffer());
-	readable.push(null);
-	command
-		.input(canvas.createPNGStream())
-		.format("mp4")
-		.fps(1)
-		.videoCodec("libx264")
-		.size("400x300")
-		.save("test.mp4");
-	msg.channel.send("", { files: ["test.mp4"] });
-});
+	readable.push(null);*/
+	ffmpeg(fs.createReadStream("test.png"))
+		//.inputFormat("png")
+		.loop(10)
+		//.format("mp4")
+		.duration(100)
+		.fps(10)
+		.outputOptions("-pix_fmt yuv420p")
+		.save("test.mp4")
+		.on("start", (cmd) => console.log(cmd));
+	//.videoCodec("libx264")
+	//.size("400x300")
+};
 
-client.login(process.env.TOKEN);
+a();
