@@ -71,9 +71,8 @@ export default class Game {
 	}
 
 	draw() {
-		this.ctx.clearRect(0, 0, SCREEN_WIDTH * 2, SCREEN_HEIGHT * 2);
+		this.ctx.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 		this.ctx.resetTransform();
-		this.ctx.setTransform(2, 0, 0, 2, 0, 0);
 		this.ctx.imageSmoothingQuality = "high";
 
 		this.drawBackground();

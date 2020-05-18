@@ -9,7 +9,7 @@ import { PlayerClass } from "./shared/types";
 import { SCREEN_WIDTH, SCREEN_HEIGHT, GAME_FPS } from "./shared/constants";
 
 const a = async () => {
-	const canvas = createCanvas(SCREEN_WIDTH * 2, SCREEN_HEIGHT * 2);
+	const canvas = createCanvas(SCREEN_WIDTH, SCREEN_HEIGHT);
 	const ctx = canvas.getContext("2d");
 
 	const gameData = {

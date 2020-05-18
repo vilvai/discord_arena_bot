@@ -2,14 +2,12 @@ import Discord from "discord.js";
 import fs from "fs";
 import { createCanvas } from "canvas";
 import ffmpeg from "fluent-ffmpeg";
-import path from "path";
 import rimraf from "rimraf";
 import { performance } from "perf_hooks";
 
 import { SCREEN_WIDTH, SCREEN_HEIGHT, GAME_FPS } from "../shared/constants";
 import { PlayerClass } from "../shared/types";
 import Game from "../shared/game/Game";
-import { Readable } from "stream";
 
 require("dotenv").config();
 
@@ -22,14 +20,14 @@ client.on("ready", () => {
 client.on("message", async (msg) => {
 	if (msg.author.id === client.user.id) return;
 	const avatarURL = msg.author.displayAvatarURL({ format: "png", size: 256 });
-	const canvas = createCanvas(SCREEN_WIDTH * 2, SCREEN_HEIGHT * 2);
+	const canvas = createCanvas(SCREEN_WIDTH, SCREEN_HEIGHT);
 	const ctx = canvas.getContext("2d");
 
 	const gameData = {
 		players: [
 			{
 				avatarURL,
-				class: PlayerClass.Spuge,
+				class: PlayerClass.Chungus,
 			},
 			{
 				avatarURL:
@@ -63,14 +61,14 @@ client.on("message", async (msg) => {
 
 	const tempDirectory = "temp";
 
-	console.log("game started");
+	let time = performance.now();
 
-	const oldTime = performance.now();
-	let buffer: Buffer = canvas.toBuffer();
-
-	while (i < 1 * GAME_FPS && i < endingTime) {
+	while (i < 20 * GAME_FPS && i < endingTime) {
 		game.draw();
-		buffer = Buffer.concat([buffer, canvas.toBuffer()]);
+		const stream = fs.createWriteStream(
+			`${tempDirectory}/pic${i.toString().padStart(3, "0")}.png`
+		);
+		stream.write(canvas.toBuffer(), () => stream.close());
 		game.update();
 		if (game.isGameOver() && endingTime === Infinity) {
 			endingTime = i + tailTimeSeconds * GAME_FPS;
@@ -78,49 +76,31 @@ client.on("message", async (msg) => {
 		i++;
 	}
 
-	const time = performance.now() - oldTime;
-	console.log("game update & render took " + time + "ms");
-
-	const readable = new Readable();
-	readable._read = () => {};
-	readable.push(buffer);
-	readable.push(null);
-
-	ffmpeg(readable)
-		//.addInput(`./${tempDirectory}/pic%3d.png`)
-		.inputFormat("image2pipe")
+	time = performance.now() - time;
+	console.log(
+		"game update & temp file generation took " + time.toFixed(2) + "ms"
+	);
+	time = performance.now();
+	ffmpeg()
+		.addInput(`./${tempDirectory}/pic%3d.png`)
 		.videoFilters(["fps=30"])
 		.videoCodec("libx264")
 		.outputOptions([
-			"-preset medium",
+			"-preset veryfast",
 			"-crf 18",
 			"-tune film",
 			"-movflags +faststart",
 			"-profile:v high",
-			"-x265-params crf=51:bframes=0",
-			"-pix_fmt yuv420p", // YUV420p color encoding, enforced by Facebook
-			"-colorspace bt709", // BT.709 is closest to sRGB
-			"-color_trc bt709",
-			"-color_primaries bt709",
-			"-vf scale=in_color_matrix=rgb:out_color_matrix=bt709", // Accurate colors
-			"-map 0:v:0",
+			"-pix_fmt yuv420p",
 		])
-		.save("test.mp4")
-		.on("start", console.log)
+		.save("Areena_fight.mp4")
 		.on("end", () => {
-			/*console.log("end");
+			time = performance.now() - time;
+			console.log("ffmpeg render took " + time.toFixed(2) + "ms");
+
 			rimraf("temp/*", (error) => error && console.log(error));
-			console.log("deleted successfully");*/
-
-			/*fs.readdir(tempDirectory, (err, files) => {
-				if (err) throw err;
-
-				for (const file of files) {
-					fs.unlinkSync(path.join(tempDirectory, file));
-				}
-				console.log("deleted successfully");
-			});*/
-			msg.channel.send("", { files: ["test.mp4"] });
+			console.log("deleted temp files successfully");
+			msg.channel.send("", { files: ["Areena_fight.mp4"] });
 		});
 });
 
