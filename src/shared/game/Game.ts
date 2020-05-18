@@ -56,7 +56,7 @@ export default class Game {
 	}
 
 	isGameOver = () =>
-		this.players.filter((player) => !player.isDead()).length > 1;
+		this.players.filter((player) => !player.isDead()).length <= 1;
 
 	createBloodStain = (x: number, y: number, size: number) =>
 		this.bloodStains.push(new Blood(x, y, size));
@@ -71,8 +71,9 @@ export default class Game {
 	}
 
 	draw() {
-		this.ctx.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+		this.ctx.clearRect(0, 0, SCREEN_WIDTH * 2, SCREEN_HEIGHT * 2);
 		this.ctx.resetTransform();
+		this.ctx.setTransform(2, 0, 0, 2, 0, 0);
 		this.ctx.imageSmoothingQuality = "high";
 
 		this.drawBackground();

@@ -1,14 +1,15 @@
 import { createCanvas } from "canvas";
 import ffmpeg from "fluent-ffmpeg";
 import { Readable } from "stream";
-import fs from "fs";
+import fs, { read } from "fs";
+import path from "path";
 
 import Game from "./shared/game/Game";
 import { PlayerClass } from "./shared/types";
-import { SCREEN_WIDTH, SCREEN_HEIGHT } from "./shared/constants";
+import { SCREEN_WIDTH, SCREEN_HEIGHT, GAME_FPS } from "./shared/constants";
 
 const a = async () => {
-	const canvas = createCanvas(SCREEN_WIDTH, SCREEN_HEIGHT);
+	const canvas = createCanvas(SCREEN_WIDTH * 2, SCREEN_HEIGHT * 2);
 	const ctx = canvas.getContext("2d");
 
 	const gameData = {
@@ -35,30 +36,96 @@ const a = async () => {
 			},
 		],
 	};
+	/*
+	let i = 0;
+	let endingTime = Infinity;
+	const game = new Game(ctx);
+	await game.initializeGame(gameData);
 
+	const tailTimeSeconds = 2;
+
+	while (i < 20 * GAME_FPS && i < endingTime) {
+		game.draw();
+		fs.createWriteStream(`temp/pic${i.toString().padStart(3, "0")}.png`).write(
+			canvas.toBuffer()
+		);
+		game.update();
+		if (game.isGameOver() && endingTime === Infinity) {
+			endingTime = i + tailTimeSeconds * GAME_FPS;
+		}
+		i++;
+	}
+
+	ffmpeg()
+		.addInput("./temp/pic%3d.png")
+		.videoFilters(["fps=30"])
+		.videoCodec("libx264")
+		//.videoBitrate(8192)
+		.outputOptions([
+			"-preset veryslow",
+			//"-crf 0",
+			"-tune film",
+			"-movflags +faststart",
+			"-profile:v high",
+			"-x265-params crf=18:bframes=0",
+			"-pix_fmt yuv420p", // YUV420p color encoding, enforced by Facebook
+			"-colorspace bt709", // BT.709 is closest to sRGB
+			"-color_trc bt709",
+			"-color_primaries bt709",
+			"-vf scale=in_color_matrix=rgb:out_color_matrix=bt709", // Accurate colors
+			"-map 0:v:0",
+		])
+		.save("test.mp4")
+		.on("start", (cmd) => console.log(cmd))
+		.on("end", () => {
+			const directory = "temp";
+			
+			fs.readdir(directory, (err, files) => {
+				if (err) throw err;
+
+				for (const file of files) {
+					fs.unlink(path.join(directory, file), (err) => {
+						if (err) throw err;
+					});
+				}
+			});
+		});*/
 	const game = new Game(ctx);
 	await game.initializeGame(gameData);
 	game.draw();
+	console.log(canvas.toBuffer());
+	let buffer: Buffer = canvas.toBuffer();
+	for (let a = 0; a < 100; a++) {
+		buffer = Buffer.concat([buffer, canvas.toBuffer()]);
+	}
 
-	fs.createWriteStream("test.png").write(canvas.toBuffer());
-
-	//const stream = fs.createWriteStream("test.png").write(canvas.toBuffer());
-	//const stream = fs.createWriteStream("test.mp4");
-	/*const readable = new Readable();
+	const readable = new Readable();
 	readable._read = () => {};
-	readable.push(canvas.toBuffer());
-	readable.push(null);*/
-	ffmpeg(fs.createReadStream("test.png"))
-		//.inputFormat("png")
-		.loop(10)
-		//.format("mp4")
-		.duration(100)
-		.fps(10)
-		.outputOptions("-pix_fmt yuv420p")
-		.save("test.mp4")
-		.on("start", (cmd) => console.log(cmd));
-	//.videoCodec("libx264")
-	//.size("400x300")
+	readable.push(buffer);
+	readable.push(null);
+	//fs.createWriteStream("test2.png").write(buffer);
+	//fs.createReadStream("test2.png").on("data", (a) => console.log(a));
+
+	ffmpeg(readable)
+		//.loop(1)
+		.videoFilters(["fps=30"])
+		.videoCodec("libx264")
+		.outputOptions([
+			"-preset medium",
+			"-crf 18",
+			"-tune film",
+			"-movflags +faststart",
+			"-profile:v high",
+			"-x265-params crf=51:bframes=0",
+			"-pix_fmt yuv420p", // YUV420p color encoding, enforced by Facebook
+			"-colorspace bt709", // BT.709 is closest to sRGB
+			"-color_trc bt709",
+			"-color_primaries bt709",
+			"-vf scale=in_color_matrix=rgb:out_color_matrix=bt709", // Accurate colors
+			"-map 0:v:0",
+		])
+		.on("start", console.log)
+		.save("test2.mp4");
 };
 
 a();
