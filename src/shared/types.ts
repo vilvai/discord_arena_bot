@@ -9,6 +9,7 @@ export enum PlayerClass {
 export interface PlayerData {
 	avatarURL: string;
 	class: PlayerClass;
+	name: string;
 }
 
 export interface GameData {

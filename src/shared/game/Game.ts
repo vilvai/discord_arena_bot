@@ -9,6 +9,7 @@ import {
 import Sidebar from "./Sidebar";
 import Chungus from "./playerClasses/Chungus";
 import Blood from "./Blood";
+import Teekkari from "./playerClasses/Teekkari";
 
 export default class Game {
 	constructor(ctx: CanvasRenderingContext2D) {
@@ -42,10 +43,13 @@ export default class Game {
 			let player;
 			switch (playerData.class) {
 				case PlayerClass.Chungus:
-					player = new Chungus(x, y, this.createBloodStain);
+					player = new Chungus(x, y, this.createBloodStain, playerData.name);
+					break;
+				case PlayerClass.Teekkari:
+					player = new Teekkari(x, y, this.createBloodStain, playerData.name);
 					break;
 				default:
-					player = new Player(x, y, this.createBloodStain);
+					player = new Player(x, y, this.createBloodStain, playerData.name);
 					break;
 			}
 			await player.loadAvatar(playerData.avatarURL);
@@ -83,6 +87,7 @@ export default class Game {
 		const deadPlayers = this.players.filter((player) => player.isDead());
 		deadPlayers.forEach((player) => player.draw(this.ctx));
 		alivePlayers.forEach((player) => player.draw(this.ctx));
+		this.players.forEach((player) => player.drawHealthbar(this.ctx));
 	}
 
 	drawBackground() {

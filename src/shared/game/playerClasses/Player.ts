@@ -5,8 +5,10 @@ export default class Player {
 	constructor(
 		x: number,
 		y: number,
-		createBloodStain: (x: number, y: number, size: number) => void
+		createBloodStain: (x: number, y: number, size: number) => void,
+		name: string
 	) {
+		this.name = name;
 		this.avatar = null;
 		this.x = x;
 		this.y = y;
@@ -33,6 +35,7 @@ export default class Player {
 
 	avatarLoaded: boolean;
 	avatar?: CanvasImageSource;
+	name: string;
 	x: number;
 	y: number;
 	radius: number;
@@ -58,33 +61,42 @@ export default class Player {
 		this.avatar = avatar as CanvasImageSource;
 	}
 
+	calculateVector(targetX: number, targetY: number) {
+		const deltaX = targetX - this.x;
+		const deltaY = targetY - this.y;
+		const distance = Math.sqrt(deltaX ** 2 + deltaY ** 2);
+		return { x: deltaX / distance, y: deltaY / distance, distance };
+	}
+
 	onHit(otherPlayer: Player) {
 		const { x: sourceX, y: sourceY, damage } = otherPlayer;
-		this.health -= damage;
-		const deltaX = sourceX - this.x;
-		const deltaY = sourceY - this.y;
-		const distance = Math.sqrt(deltaX ** 2 + deltaY ** 2);
-		this.knockbackXSpeed -= (deltaX / distance) * damage;
-		this.knockbackYSpeed -= (deltaY / distance) * damage;
+		const vector = this.calculateVector(sourceX, sourceY);
+		this.knockbackXSpeed -= vector.x * damage;
+		this.knockbackYSpeed -= vector.y * damage;
 		this.chaseSpeed = 0;
 		this.target = otherPlayer;
-		const size = damage / 2 + Math.random() * 4;
+		const size = damage + Math.random() * 4;
 		this.createBloodStain(this.x, this.y, size);
+		this.health = Math.max(this.health - damage, 0);
 	}
 
 	isDead = () => this.health <= 0;
 
 	update(otherPlayers: Player[]) {
-		if (!this.target || this.target.isDead()) this.setNewTarget(otherPlayers);
-		if (!this.target) return;
 		this.updateKnockback();
-		if (!this.isDead()) {
-			this.moveTowardsTarget();
-			this.checkTargetHit();
-			this.meleeCooldownLeft -= 1;
-		}
+
+		if (!this.isDead()) this.updateAI(otherPlayers);
+
 		this.constrainIntoArena();
 		this.updateBleeding();
+	}
+
+	updateAI(otherPlayers: Player[]) {
+		if (!this.target || this.target.isDead()) this.setNewTarget(otherPlayers);
+		if (!this.target) return;
+		this.moveTowardsTarget();
+		this.checkTargetHit();
+		this.meleeCooldownLeft -= 1;
 	}
 
 	setNewTarget(otherPlayers: Player[]) {
@@ -108,10 +120,8 @@ export default class Player {
 
 	inMeleeRange() {
 		const { x: targetX, y: targetY } = this.target;
-		const deltaX = targetX - this.x;
-		const deltaY = targetY - this.y;
-		const distance = Math.sqrt(deltaX ** 2 + deltaY ** 2);
-		return distance <= this.meleeRange + this.target.radius;
+		const vector = this.calculateVector(targetX, targetY);
+		return vector.distance <= this.meleeRange + this.target.radius;
 	}
 
 	moveTowardsTarget() {
@@ -122,11 +132,9 @@ export default class Player {
 
 		if (!this.inMeleeRange()) {
 			const { x: targetX, y: targetY } = this.target;
-			const deltaX = targetX - this.x;
-			const deltaY = targetY - this.y;
-			const distance = Math.sqrt(deltaX ** 2 + deltaY ** 2);
-			this.x += (deltaX / distance) * this.chaseSpeed;
-			this.y += (deltaY / distance) * this.chaseSpeed;
+			const vector = this.calculateVector(targetX, targetY);
+			this.x += vector.x * this.chaseSpeed;
+			this.y += vector.y * this.chaseSpeed;
 		}
 	}
 
@@ -151,6 +159,15 @@ export default class Player {
 		);
 	}
 
+	isAtEdgeOfArena() {
+		return (
+			this.x <= SIDEBAR_WIDTH + this.radius ||
+			this.x >= SCREEN_WIDTH - this.radius ||
+			this.y <= this.radius ||
+			this.y >= SCREEN_HEIGHT - this.radius
+		);
+	}
+
 	updateBleeding() {
 		if ((1 - this.health / this.maxHealth) * 0.07 > Math.random()) {
 			const size = 6 + Math.random() * 4;
@@ -159,6 +176,10 @@ export default class Player {
 	}
 
 	draw(ctx: CanvasRenderingContext2D) {
+		this.drawAvatar(ctx);
+	}
+
+	drawAvatar(ctx: CanvasRenderingContext2D) {
 		ctx.save();
 		ctx.beginPath();
 		ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
@@ -180,5 +201,26 @@ export default class Player {
 			);
 		}
 		ctx.restore();
+	}
+
+	drawHealthbar(ctx: CanvasRenderingContext2D) {
+		const healthPercent = this.health / this.maxHealth;
+		const healthBarY = 4;
+		const healthBarWidth = 36;
+		const healthBarHeight = 5;
+		ctx.fillStyle = "#A00002";
+		ctx.fillRect(
+			this.x - healthBarWidth / 2,
+			this.y - healthBarY - this.radius - healthBarHeight,
+			healthBarWidth,
+			healthBarHeight
+		);
+		ctx.fillStyle = "#00CC0D";
+		ctx.fillRect(
+			this.x - healthBarWidth / 2,
+			this.y - healthBarY - this.radius - healthBarHeight,
+			healthBarWidth * healthPercent,
+			healthBarHeight
+		);
 	}
 }
