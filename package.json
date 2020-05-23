@@ -6,6 +6,7 @@
     "start": "ts-node ./src/bot/index.ts",
     "debug": "node --inspect --require ts-node/register ./src/bot/index.ts",
     "ffmpeg": "ts-node ./src/ffmpeg.ts",
+    "benchmark": "ts-node ./src/benchmark.ts",
     "start:preview": "start http://localhost:8080/ && webpack-dev-server --hot --mode development",
     "lint": "eslint . --ext .tsx,.ts,.js",
     "test": "jest"
@@ -46,6 +47,7 @@
     "eslint-config-prettier": "^6.11.0",
     "eslint-plugin-prettier": "^3.1.3",
     "eslint-plugin-react": "^7.20.0",
+    "file-loader": "^6.0.0",
     "html-webpack-plugin": "^4.3.0",
     "jest": "^26.0.1",
     "prettier": "^2.0.5",

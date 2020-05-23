@@ -10,6 +10,7 @@ import Sidebar from "./Sidebar";
 import Chungus from "./playerClasses/Chungus";
 import Blood from "./Blood";
 import Teekkari from "./playerClasses/Teekkari";
+import Turret from "./playerClasses/Turret";
 
 export default class Game {
 	constructor(ctx: CanvasRenderingContext2D) {
@@ -20,6 +21,7 @@ export default class Game {
 	players: Player[];
 	bloodStains: Blood[];
 	sidebar: Sidebar;
+	turrets: Turret[];
 
 	static calculatePlayerStartingPosition(numberOfPlayers: number, i: number) {
 		let x = SIDEBAR_WIDTH + (SCREEN_WIDTH - SIDEBAR_WIDTH) / 2;
@@ -46,7 +48,13 @@ export default class Game {
 					player = new Chungus(x, y, this.createBloodStain, playerData.name);
 					break;
 				case PlayerClass.Teekkari:
-					player = new Teekkari(x, y, this.createBloodStain, playerData.name);
+					player = new Teekkari(
+						x,
+						y,
+						this.createBloodStain,
+						playerData.name,
+						this.createTurret
+					);
 					break;
 				default:
 					player = new Player(x, y, this.createBloodStain, playerData.name);
@@ -56,6 +64,7 @@ export default class Game {
 			this.players.push(player);
 		}
 		this.bloodStains = [];
+		this.turrets = [];
 		this.sidebar = new Sidebar();
 	}
 
@@ -65,6 +74,9 @@ export default class Game {
 	createBloodStain = (x: number, y: number, size: number) =>
 		this.bloodStains.push(new Blood(x, y, size));
 
+	createTurret = (x: number, y: number, owner: Player) =>
+		this.turrets.push(new Turret(x, y, owner));
+
 	update() {
 		this.players.forEach((player) => {
 			const otherPlayers = this.players.filter(
@@ -72,22 +84,32 @@ export default class Game {
 			);
 			player.update(otherPlayers);
 		});
+		this.turrets.forEach((turret) => {
+			const otherPlayers = this.players.filter(
+				(player) => player !== turret.owner
+			);
+			turret.update(otherPlayers);
+		});
 	}
 
 	draw() {
 		this.ctx.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 		this.ctx.resetTransform();
 		this.ctx.imageSmoothingQuality = "high";
+		// @ts-ignore textDrawingMode exists on node-canvas
+		if (this.ctx.textDrawingMode) this.ctx.textDrawingMode = "glyph";
 
 		this.drawBackground();
 		this.bloodStains.forEach((bloodStain) => bloodStain.draw(this.ctx));
-		this.sidebar.draw(this.ctx, this.players);
 
 		const alivePlayers = this.players.filter((player) => !player.isDead());
 		const deadPlayers = this.players.filter((player) => player.isDead());
 		deadPlayers.forEach((player) => player.draw(this.ctx));
+		this.turrets.forEach((turret) => turret.draw(this.ctx));
 		alivePlayers.forEach((player) => player.draw(this.ctx));
 		this.players.forEach((player) => player.drawHealthbar(this.ctx));
+
+		this.sidebar.draw(this.ctx, this.players);
 	}
 
 	drawBackground() {

@@ -1,12 +1,12 @@
 import { createCanvas } from "canvas";
 import ffmpeg from "fluent-ffmpeg";
-import { Readable } from "stream";
-import fs, { read } from "fs";
-import path from "path";
+import fs from "fs";
+import { performance } from "perf_hooks";
 
 import Game from "./shared/game/Game";
 import { PlayerClass } from "./shared/types";
 import { SCREEN_WIDTH, SCREEN_HEIGHT, GAME_FPS } from "./shared/constants";
+import rimraf from "rimraf";
 
 const a = async () => {
 	const canvas = createCanvas(SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -40,7 +40,7 @@ const a = async () => {
 			},
 		],
 	};
-	/*
+
 	let i = 0;
 	let endingTime = Infinity;
 	const game = new Game(ctx);
@@ -48,10 +48,21 @@ const a = async () => {
 
 	const tailTimeSeconds = 2;
 
+	const tempDirectory = "temp";
+	fs.mkdirSync(tempDirectory);
+
+	let time = performance.now();
+
 	while (i < 20 * GAME_FPS && i < endingTime) {
 		game.draw();
-		fs.createWriteStream(`temp/pic${i.toString().padStart(3, "0")}.png`).write(
-			canvas.toBuffer()
+		const stream = fs.createWriteStream(
+			`${tempDirectory}/pic${i.toString().padStart(3, "0")}.jpeg`
+		);
+		stream.write(
+			canvas.toBuffer("image/jpeg", {
+				quality: 0.98,
+			}),
+			() => stream.close()
 		);
 		game.update();
 		if (game.isGameOver() && endingTime === Infinity) {
@@ -60,76 +71,32 @@ const a = async () => {
 		i++;
 	}
 
+	time = performance.now() - time;
+	const updateTime = time;
+	console.log(
+		"game update & temp file generation took " + updateTime.toFixed(2) + "ms"
+	);
+
 	ffmpeg()
-		.addInput("./temp/pic%3d.png")
-		.videoFilters(["fps=30"])
-		.videoCodec("libx264")
-		//.videoBitrate(8192)
-		.outputOptions([
-			"-preset veryslow",
-			//"-crf 0",
-			"-tune film",
-			"-movflags +faststart",
-			"-profile:v high",
-			"-x265-params crf=18:bframes=0",
-			"-pix_fmt yuv420p", // YUV420p color encoding, enforced by Facebook
-			"-colorspace bt709", // BT.709 is closest to sRGB
-			"-color_trc bt709",
-			"-color_primaries bt709",
-			"-vf scale=in_color_matrix=rgb:out_color_matrix=bt709", // Accurate colors
-			"-map 0:v:0",
-		])
-		.save("test.mp4")
-		.on("start", (cmd) => console.log(cmd))
-		.on("end", () => {
-			const directory = "temp";
-			
-			fs.readdir(directory, (err, files) => {
-				if (err) throw err;
-
-				for (const file of files) {
-					fs.unlink(path.join(directory, file), (err) => {
-						if (err) throw err;
-					});
-				}
-			});
-		});*/
-	const game = new Game(ctx);
-	await game.initializeGame(gameData);
-	game.draw();
-	console.log(canvas.toBuffer());
-	let buffer: Buffer = canvas.toBuffer();
-	for (let a = 0; a < 100; a++) {
-		buffer = Buffer.concat([buffer, canvas.toBuffer()]);
-	}
-
-	const readable = new Readable();
-	readable._read = () => {};
-	readable.push(buffer);
-	readable.push(null);
-	//fs.createWriteStream("test2.png").write(buffer);
-	//fs.createReadStream("test2.png").on("data", (a) => console.log(a));
-
-	ffmpeg(readable)
-		//.loop(1)
+		.addInput(`./${tempDirectory}/pic%3d.jpeg`)
 		.videoFilters(["fps=30"])
 		.videoCodec("libx264")
 		.outputOptions([
-			"-preset medium",
+			"-preset veryfast",
 			"-crf 18",
 			"-tune film",
 			"-movflags +faststart",
 			"-profile:v high",
-			"-x265-params crf=51:bframes=0",
-			"-pix_fmt yuv420p", // YUV420p color encoding, enforced by Facebook
-			"-colorspace bt709", // BT.709 is closest to sRGB
-			"-color_trc bt709",
-			"-color_primaries bt709",
-			"-vf scale=in_color_matrix=rgb:out_color_matrix=bt709", // Accurate colors
-			"-map 0:v:0",
+			"-pix_fmt yuv420p",
 		])
-		.on("start", console.log)
-		.save("test2.mp4");
+		.save("ffmpeg_test.mp4")
+		.on("end", () => {
+			time = performance.now() - time;
+			const ffmpegTime = time;
+			console.log("ffmpeg render took " + ffmpegTime.toFixed(2) + "ms");
+
+			rimraf(tempDirectory, (error) => error && console.log(error));
+		});
 };
 
 a();

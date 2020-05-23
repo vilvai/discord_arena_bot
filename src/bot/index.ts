@@ -34,7 +34,7 @@ client.on("message", async (msg) => {
 				avatarURL:
 					"https://cdn.discordapp.com/avatars/160995903182864384/fa07b1a1db14e12a994d67ce32a887c3.png?size=128",
 				class: PlayerClass.Teekkari,
-				name: "player1",
+				name: "Cov🅱e🅱e",
 			},
 			{
 				avatarURL:
@@ -65,15 +65,21 @@ client.on("message", async (msg) => {
 	const tailTimeSeconds = 2;
 
 	const tempDirectory = "temp";
+	fs.mkdirSync(tempDirectory);
 
 	let time = performance.now();
 
 	while (i < 20 * GAME_FPS && i < endingTime) {
 		game.draw();
 		const stream = fs.createWriteStream(
-			`${tempDirectory}/pic${i.toString().padStart(3, "0")}.png`
+			`${tempDirectory}/pic${i.toString().padStart(3, "0")}.jpeg`
 		);
-		stream.write(canvas.toBuffer(), () => stream.close());
+		stream.write(
+			canvas.toBuffer("image/jpeg", {
+				quality: 0.98,
+			}),
+			() => stream.close()
+		);
 		game.update();
 		if (game.isGameOver() && endingTime === Infinity) {
 			endingTime = i + tailTimeSeconds * GAME_FPS;
@@ -87,7 +93,7 @@ client.on("message", async (msg) => {
 	);
 	time = performance.now();
 	ffmpeg()
-		.addInput(`./${tempDirectory}/pic%3d.png`)
+		.addInput(`./${tempDirectory}/pic%3d.jpeg`)
 		.videoFilters(["fps=30"])
 		.videoCodec("libx264")
 		.outputOptions([
@@ -103,7 +109,7 @@ client.on("message", async (msg) => {
 			time = performance.now() - time;
 			console.log("ffmpeg render took " + time.toFixed(2) + "ms");
 
-			rimraf("temp/*", (error) => error && console.log(error));
+			rimraf(tempDirectory, (error) => error && console.log(error));
 			console.log("deleted temp files successfully");
 			msg.channel.send("", { files: ["Areena_fight.mp4"] });
 		});

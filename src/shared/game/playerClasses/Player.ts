@@ -1,5 +1,6 @@
 import { loadImage } from "canvas";
 import { SCREEN_WIDTH, SIDEBAR_WIDTH, SCREEN_HEIGHT } from "../../constants";
+import { findRandomAliveTarget, calculateVector } from "./utils";
 
 export default class Player {
 	constructor(
@@ -61,52 +62,38 @@ export default class Player {
 		this.avatar = avatar as CanvasImageSource;
 	}
 
-	calculateVector(targetX: number, targetY: number) {
-		const deltaX = targetX - this.x;
-		const deltaY = targetY - this.y;
-		const distance = Math.sqrt(deltaX ** 2 + deltaY ** 2);
-		return { x: deltaX / distance, y: deltaY / distance, distance };
-	}
-
-	onHit(otherPlayer: Player) {
-		const { x: sourceX, y: sourceY, damage } = otherPlayer;
-		const vector = this.calculateVector(sourceX, sourceY);
+	onHit(sourceX: number, sourceY: number, damage: number) {
+		const vector = calculateVector(this.x, this.y, sourceX, sourceY);
 		this.knockbackXSpeed -= vector.x * damage;
 		this.knockbackYSpeed -= vector.y * damage;
 		this.chaseSpeed = 0;
-		this.target = otherPlayer;
 		const size = damage + Math.random() * 4;
 		this.createBloodStain(this.x, this.y, size);
 		this.health = Math.max(this.health - damage, 0);
 	}
+
+	setTarget = (player: Player) => (this.target = player);
 
 	isDead = () => this.health <= 0;
 
 	update(otherPlayers: Player[]) {
 		this.updateKnockback();
 
-		if (!this.isDead()) this.updateAI(otherPlayers);
+		const alivePlayersLeft = otherPlayers.some((player) => !player.isDead());
+		if (!this.isDead() && alivePlayersLeft) this.updateAI(otherPlayers);
 
 		this.constrainIntoArena();
 		this.updateBleeding();
 	}
 
 	updateAI(otherPlayers: Player[]) {
-		if (!this.target || this.target.isDead()) this.setNewTarget(otherPlayers);
+		if (!this.target || this.target.isDead()) {
+			this.target = findRandomAliveTarget(otherPlayers);
+		}
 		if (!this.target) return;
 		this.moveTowardsTarget();
 		this.checkTargetHit();
 		this.meleeCooldownLeft -= 1;
-	}
-
-	setNewTarget(otherPlayers: Player[]) {
-		const otherAlivePlayers = otherPlayers.filter((player) => !player.isDead());
-		if (otherAlivePlayers.length === 0) {
-			this.target = null;
-			return;
-		}
-		const targetIndex = Math.floor(Math.random() * otherAlivePlayers.length);
-		this.target = otherAlivePlayers[targetIndex];
 	}
 
 	updateKnockback() {
@@ -120,7 +107,7 @@ export default class Player {
 
 	inMeleeRange() {
 		const { x: targetX, y: targetY } = this.target;
-		const vector = this.calculateVector(targetX, targetY);
+		const vector = calculateVector(this.x, this.y, targetX, targetY);
 		return vector.distance <= this.meleeRange + this.target.radius;
 	}
 
@@ -132,7 +119,7 @@ export default class Player {
 
 		if (!this.inMeleeRange()) {
 			const { x: targetX, y: targetY } = this.target;
-			const vector = this.calculateVector(targetX, targetY);
+			const vector = calculateVector(this.x, this.y, targetX, targetY);
 			this.x += vector.x * this.chaseSpeed;
 			this.y += vector.y * this.chaseSpeed;
 		}
@@ -142,7 +129,8 @@ export default class Player {
 		if (this.inMeleeRange()) {
 			this.chaseSpeed = 0;
 			if (this.meleeCooldownLeft <= 0) {
-				this.target.onHit(this);
+				this.target.onHit(this.x, this.y, this.damage);
+				this.target.setTarget(this);
 				this.meleeCooldownLeft = this.meleeCooldown;
 			}
 		}
