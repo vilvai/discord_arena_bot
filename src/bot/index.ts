@@ -94,7 +94,8 @@ client.on("message", async (msg) => {
 	time = performance.now();
 	ffmpeg()
 		.addInput(`./${tempDirectory}/pic%3d.jpeg`)
-		.videoFilters(["fps=30"])
+		.inputFPS(GAME_FPS)
+		.videoFilters([`fps=${GAME_FPS}`])
 		.videoCodec("libx264")
 		.outputOptions([
 			"-preset veryfast",

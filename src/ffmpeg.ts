@@ -79,6 +79,7 @@ const a = async () => {
 
 	ffmpeg()
 		.addInput(`./${tempDirectory}/pic%3d.jpeg`)
+		.inputFPS(30)
 		.videoFilters(["fps=30"])
 		.videoCodec("libx264")
 		.outputOptions([
