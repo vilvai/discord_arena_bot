@@ -1,6 +1,7 @@
-import Player from "./Player";
-import { findRandomAliveTarget, calculateVector } from "./utils";
 import { Image as NodeImage } from "canvas";
+
+import BasePlayer from "./BasePlayer";
+import { findRandomAliveTarget, calculateVector } from "./utils";
 import Bullet from "./Bullet";
 
 let turretImage: HTMLImageElement;
@@ -14,10 +15,10 @@ if (process.env.NODE) {
 }
 
 const TURRET_IMAGE_SIZE = 36;
-export const TURRET_DAMAGE = 4;
+export const TURRET_DAMAGE = 3;
 
 export default class Turret {
-	constructor(x: number, y: number, owner: Player) {
+	constructor(x: number, y: number, owner: BasePlayer) {
 		this.x = x;
 		this.y = y;
 		this.owner = owner;
@@ -29,26 +30,29 @@ export default class Turret {
 
 	x: number;
 	y: number;
-	owner: Player;
+	owner: BasePlayer;
 	shootCooldown: number;
 	shootCooldownLeft: number;
-	target?: Player;
+	target?: BasePlayer;
 	angle: number;
 	bullets: Bullet[];
 
-	update(otherPlayers: Player[]) {
-		if (!this.owner.isDead()) {
-			if (!this.target || this.target.isDead())
-				this.target = findRandomAliveTarget(otherPlayers);
-			if (!this.target) return;
-			this.rotateTowardsTarget();
-			this.shootCooldownLeft -= 1;
-			if (this.shootCooldownLeft === 0) {
-				this.shoot();
-				this.shootCooldownLeft = this.shootCooldown;
-			}
-		}
+	update(otherPlayers: BasePlayer[]) {
+		this.updateTurretLogic(otherPlayers);
 		this.bullets.forEach((bullet) => bullet.update(otherPlayers));
+	}
+
+	updateTurretLogic(otherPlayers: BasePlayer[]) {
+		if (this.owner.isDead()) return;
+		if (!this.target || this.target.isDead())
+			this.target = findRandomAliveTarget(otherPlayers);
+		if (!this.target) return;
+		this.rotateTowardsTarget();
+		this.shootCooldownLeft -= 1;
+		if (this.shootCooldownLeft === 0) {
+			this.shoot();
+			this.shootCooldownLeft = this.shootCooldown;
+		}
 	}
 
 	rotateTowardsTarget() {

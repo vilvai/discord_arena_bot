@@ -1,12 +1,18 @@
 import { loadImage } from "canvas";
 import { SCREEN_WIDTH, SIDEBAR_WIDTH, SCREEN_HEIGHT } from "../../constants";
-import { findRandomAliveTarget, calculateVector } from "./utils";
+import {
+	findRandomAliveTarget,
+	calculateVector,
+	randomizeAttributes,
+} from "./utils";
 
-export default class Player {
+export type CreateBloodStain = (x: number, y: number, size: number) => void;
+
+export default class BasePlayer {
 	constructor(
 		x: number,
 		y: number,
-		createBloodStain: (x: number, y: number, size: number) => void,
+		createBloodStain: CreateBloodStain,
 		name: string
 	) {
 		this.name = name;
@@ -26,12 +32,12 @@ export default class Player {
 		this.meleeCooldown = 30;
 		this.meleeCooldownLeft = 0;
 		this.createBloodStain = createBloodStain;
-		this.randomizeAttributes(
-			this.maxSpeed,
-			this.damage,
-			this.meleeRange,
-			this.meleeCooldown
-		);
+		randomizeAttributes(this, [
+			"maxSpeed",
+			"damage",
+			"meleeRange",
+			"meleeCooldown",
+		]);
 	}
 
 	avatarLoaded: boolean;
@@ -40,7 +46,7 @@ export default class Player {
 	x: number;
 	y: number;
 	radius: number;
-	target?: Player;
+	target?: BasePlayer;
 	chaseSpeed: number;
 	knockbackXSpeed: number;
 	knockbackYSpeed: number;
@@ -52,17 +58,14 @@ export default class Player {
 	meleeRange: number;
 	meleeCooldown: number;
 	meleeCooldownLeft: number;
-	createBloodStain: (x: number, y: number, size: number) => void;
-
-	randomizeAttributes = (...attributes: number[]) =>
-		attributes.forEach((attribute) => (attribute *= Math.random() * 0.2 + 0.9));
+	createBloodStain: CreateBloodStain;
 
 	async loadAvatar(avatarURL: string) {
 		const avatar: unknown = await loadImage(avatarURL);
 		this.avatar = avatar as CanvasImageSource;
 	}
 
-	onHit(sourceX: number, sourceY: number, damage: number) {
+	baseOnHit(sourceX: number, sourceY: number, damage: number) {
 		const vector = calculateVector(this.x, this.y, sourceX, sourceY);
 		this.knockbackXSpeed -= vector.x * damage;
 		this.knockbackYSpeed -= vector.y * damage;
@@ -72,11 +75,15 @@ export default class Player {
 		this.health = Math.max(this.health - damage, 0);
 	}
 
-	setTarget = (player: Player) => (this.target = player);
+	onHit(sourceX: number, sourceY: number, damage: number) {
+		this.baseOnHit(sourceX, sourceY, damage);
+	}
+
+	setTarget = (player: BasePlayer) => (this.target = player);
 
 	isDead = () => this.health <= 0;
 
-	update(otherPlayers: Player[]) {
+	update(otherPlayers: BasePlayer[]) {
 		this.updateKnockback();
 
 		const alivePlayersLeft = otherPlayers.some((player) => !player.isDead());
@@ -86,7 +93,11 @@ export default class Player {
 		this.updateBleeding();
 	}
 
-	updateAI(otherPlayers: Player[]) {
+	updateAI(otherPlayers: BasePlayer[]) {
+		this.baseAI(otherPlayers);
+	}
+
+	baseAI(otherPlayers: BasePlayer[]) {
 		if (!this.target || this.target.isDead()) {
 			this.target = findRandomAliveTarget(otherPlayers);
 		}

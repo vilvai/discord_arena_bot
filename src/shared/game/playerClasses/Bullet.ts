@@ -1,6 +1,6 @@
-import Player from "./Player";
-import { SCREEN_WIDTH, SIDEBAR_WIDTH, SCREEN_HEIGHT } from "../../constants";
+import BasePlayer from "./BasePlayer";
 import { TURRET_DAMAGE } from "./Turret";
+import { isOutsideMap, checkPlayerCollision } from "./utils";
 
 export default class Bullet {
 	constructor(
@@ -21,41 +21,26 @@ export default class Bullet {
 
 	x: number;
 	y: number;
-	owner: Player;
+	owner: BasePlayer;
 	xSpeed: number;
 	ySpeed: number;
 	size: number;
 	onDelete: (bullet: Bullet) => void;
 
-	update(otherPlayers: Player[]) {
+	update(otherPlayers: BasePlayer[]) {
 		this.x += this.xSpeed;
 		this.y += this.ySpeed;
 		this.checkPlayerCollision(otherPlayers);
-		if (this.isOutsideMap()) this.onDelete(this);
+		if (isOutsideMap(this.x, this.y)) this.onDelete(this);
 	}
 
-	checkPlayerCollision(otherPlayers: Player[]) {
-		otherPlayers.forEach((player) => {
-			const { x: playerX, y: playerY } = player;
-			const distance = Math.sqrt(
-				(playerX - this.x) ** 2 + (playerY - this.y) ** 2
-			);
-			if (distance <= player.radius) {
-				player.onHit(this.x, this.y, TURRET_DAMAGE);
-				player.setTarget(this.owner);
-				this.onDelete(this);
-				return;
-			}
-		});
-	}
-
-	isOutsideMap() {
-		return (
-			this.x > SCREEN_WIDTH ||
-			this.x < SIDEBAR_WIDTH ||
-			this.y > SCREEN_HEIGHT ||
-			this.y < 0
-		);
+	checkPlayerCollision(otherPlayers: BasePlayer[]) {
+		const collidedPlayer = checkPlayerCollision(this.x, this.y, otherPlayers);
+		if (collidedPlayer !== null) {
+			collidedPlayer.onHit(this.x, this.y, TURRET_DAMAGE);
+			collidedPlayer.setTarget(this.owner);
+			this.onDelete(this);
+		}
 	}
 
 	draw(ctx: CanvasRenderingContext2D) {

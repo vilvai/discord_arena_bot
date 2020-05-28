@@ -1,10 +1,11 @@
-import Player from "./Player";
+import BasePlayer, { CreateBloodStain } from "./BasePlayer";
+import { randomizeAttributes } from "./utils";
 
-export default class Chungus extends Player {
+export default class Chungus extends BasePlayer {
 	constructor(
 		x: number,
 		y: number,
-		createBloodStain: (x: number, y: number, size: number) => void,
+		createBloodStain: CreateBloodStain,
 		name: string
 	) {
 		super(x, y, createBloodStain, name);
@@ -12,10 +13,6 @@ export default class Chungus extends Player {
 		this.maxSpeed = 1;
 		this.damage = 9;
 		this.meleeCooldown = 60;
-		this.randomizeAttributes(this.maxSpeed, this.damage, this.meleeCooldown);
+		randomizeAttributes(this, ["maxSpeed", "damage", "meleeCooldown"]);
 	}
-
-	/*update(otherPlayers: Player[]) {
-		console.log("chungus update");
-	}*/
 }

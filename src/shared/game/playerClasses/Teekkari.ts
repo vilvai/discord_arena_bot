@@ -1,45 +1,46 @@
-import Player from "./Player";
+import BasePlayer, { CreateBloodStain } from "./BasePlayer";
 import {
 	SCREEN_WIDTH,
 	SIDEBAR_WIDTH,
 	SCREEN_HEIGHT,
 	ARENA_WIDTH,
 } from "../../constants";
-import { calculateVector } from "./utils";
+import { calculateVector, randomizeAttributes } from "./utils";
 
 enum TeekkariState {
 	Moving = "moving",
 	Building = "building",
 }
 
-export default class Teekkari extends Player {
+type CreateTurret = (x: number, y: number, owner: BasePlayer) => void;
+
+export default class Teekkari extends BasePlayer {
 	constructor(
 		x: number,
 		y: number,
-		createBloodStain: (x: number, y: number, size: number) => void,
+		createBloodStain: CreateBloodStain,
 		name: string,
-		createTurret: (x: number, y: number, owner: Player) => void
+		createTurret: CreateTurret
 	) {
 		super(x, y, createBloodStain, name);
 		this.radius = 14;
 		this.acceleration = 0.2;
 
-		this.state = TeekkariState.Moving;
-		this.initialMovingTime = 60;
-		this.movingTimeLeft = this.initialMovingTime;
-		this.initialBuildTime = 90;
-		this.buildTimeLeft = this.initialBuildTime;
-		this.movementTarget = this.getRandomMovementTarget();
+		this.movingTime = 60;
+		this.buildingTime = 70;
 		this.createTurret = createTurret;
+
+		randomizeAttributes(this, ["movingTime", "buildingTime"]);
+
+		this.startMoving();
 	}
 
-	initialMovingTime: number;
-	movingTimeLeft: number;
-	initialBuildTime: number;
-	buildTimeLeft: number;
+	movingTime: number;
+	timeUntilStateChange: number;
+	buildingTime: number;
 	state: TeekkariState;
 	movementTarget: { x: number; y: number };
-	createTurret: (x: number, y: number, owner: Player) => void;
+	createTurret: CreateTurret;
 
 	static isTargetInCenterArea(target: { x: number; y: number }) {
 		const safeZoneProportion = 0.25;
@@ -86,18 +87,19 @@ export default class Teekkari extends Player {
 			default:
 				break;
 		}
+		this.timeUntilStateChange -= 1;
 	}
 
 	startMoving() {
 		this.state = TeekkariState.Moving;
-		this.movingTimeLeft = this.initialMovingTime;
+		this.timeUntilStateChange = this.movingTime;
 		this.movementTarget = this.getRandomMovementTarget();
 		this.chaseSpeed = 0;
 	}
 
 	startBuilding() {
 		this.state = TeekkariState.Building;
-		this.buildTimeLeft = this.initialBuildTime;
+		this.timeUntilStateChange = this.buildingTime;
 	}
 
 	move() {
@@ -111,19 +113,17 @@ export default class Teekkari extends Player {
 		this.x += vector.x * this.chaseSpeed;
 		this.y += vector.y * this.chaseSpeed;
 
-		this.movingTimeLeft -= 1;
-
 		if (
 			vector.distance <= this.chaseSpeed + this.radius ||
-			this.movingTimeLeft <= 0
+			this.timeUntilStateChange <= 0
 		) {
 			this.startBuilding();
 		}
 	}
 
 	build() {
-		this.buildTimeLeft -= 1;
-		if (this.buildTimeLeft <= 0) {
+		if (this.timeUntilStateChange <= 0) {
+			this.buildingTime *= 1.5;
 			this.createTurret(this.x, this.y, this);
 			this.startMoving();
 		}

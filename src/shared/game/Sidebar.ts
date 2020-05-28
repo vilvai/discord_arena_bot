@@ -1,11 +1,13 @@
 import { SIDEBAR_WIDTH, SCREEN_HEIGHT } from "../constants";
-import Player from "./playerClasses/Player";
+import BasePlayer from "./playerClasses/BasePlayer";
 import Chungus from "./playerClasses/Chungus";
 import Teekkari from "./playerClasses/Teekkari";
+import Spuge from "./playerClasses/Spuge";
 
-const getPlayerClassName = (player: Player) => {
+const getPlayerClassName = (player: BasePlayer) => {
 	if (player instanceof Chungus) return "CHUNGUS";
 	if (player instanceof Teekkari) return "TEEKKARI";
+	if (player instanceof Spuge) return "SPUGE";
 	return "FIGHTER";
 };
 
@@ -34,7 +36,7 @@ const iconCenterY = iconRadius + 6;
 const textStartX = iconCenterX + iconRadius + 4;
 
 export default class Sidebar {
-	draw(ctx: CanvasRenderingContext2D, players: Player[]) {
+	draw(ctx: CanvasRenderingContext2D, players: BasePlayer[]) {
 		this.drawBackground(ctx);
 		players.slice(0, 7).forEach((player) => {
 			this.drawPlayer(ctx, player);
@@ -48,13 +50,13 @@ export default class Sidebar {
 		ctx.fillRect(0, 0, SIDEBAR_WIDTH, SCREEN_HEIGHT);
 	}
 
-	drawPlayer(ctx: CanvasRenderingContext2D, player: Player) {
+	drawPlayer(ctx: CanvasRenderingContext2D, player: BasePlayer) {
 		this.drawPlayerIcon(ctx, player);
 		this.drawPlayerName(ctx, player.name);
 		this.drawPlayerClass(ctx, player);
 	}
 
-	drawPlayerIcon(ctx: CanvasRenderingContext2D, player: Player) {
+	drawPlayerIcon(ctx: CanvasRenderingContext2D, player: BasePlayer) {
 		ctx.save();
 		ctx.beginPath();
 		ctx.arc(iconCenterX, iconCenterY, iconRadius, 0, Math.PI * 2);
@@ -94,7 +96,7 @@ export default class Sidebar {
 		ctx.fillText(truncatedName, textStartX, iconCenterY - 4);
 	}
 
-	drawPlayerClass(ctx: CanvasRenderingContext2D, player: Player) {
+	drawPlayerClass(ctx: CanvasRenderingContext2D, player: BasePlayer) {
 		const className = getPlayerClassName(player);
 		ctx.fillStyle = "#bbbbbb";
 		ctx.font = "700 italic 12px Calibri";

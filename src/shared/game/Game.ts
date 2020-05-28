@@ -1,5 +1,5 @@
 import { GameData, PlayerClass } from "../types";
-import Player from "./playerClasses/Player";
+import BasePlayer from "./playerClasses/BasePlayer";
 import {
 	SCREEN_HEIGHT,
 	SIDEBAR_WIDTH,
@@ -11,6 +11,8 @@ import Chungus from "./playerClasses/Chungus";
 import Blood from "./Blood";
 import Teekkari from "./playerClasses/Teekkari";
 import Turret from "./playerClasses/Turret";
+import Spuge from "./playerClasses/Spuge";
+import BeerCan from "./playerClasses/BeerCan";
 
 export default class Game {
 	constructor(ctx: CanvasRenderingContext2D) {
@@ -18,10 +20,11 @@ export default class Game {
 	}
 	gameData: GameData;
 	ctx: CanvasRenderingContext2D;
-	players: Player[];
+	players: BasePlayer[];
 	bloodStains: Blood[];
 	sidebar: Sidebar;
 	turrets: Turret[];
+	beerCans: BeerCan[];
 
 	static calculatePlayerStartingPosition(numberOfPlayers: number, i: number) {
 		let x = SIDEBAR_WIDTH + (SCREEN_WIDTH - SIDEBAR_WIDTH) / 2;
@@ -56,8 +59,17 @@ export default class Game {
 						this.createTurret
 					);
 					break;
+				case PlayerClass.Spuge:
+					player = new Spuge(
+						x,
+						y,
+						this.createBloodStain,
+						playerData.name,
+						this.createBeerCan
+					);
+					break;
 				default:
-					player = new Player(x, y, this.createBloodStain, playerData.name);
+					player = new BasePlayer(x, y, this.createBloodStain, playerData.name);
 					break;
 			}
 			await player.loadAvatar(playerData.avatarURL);
@@ -65,6 +77,7 @@ export default class Game {
 		}
 		this.bloodStains = [];
 		this.turrets = [];
+		this.beerCans = [];
 		this.sidebar = new Sidebar();
 	}
 
@@ -74,8 +87,24 @@ export default class Game {
 	createBloodStain = (x: number, y: number, size: number) =>
 		this.bloodStains.push(new Blood(x, y, size));
 
-	createTurret = (x: number, y: number, owner: Player) =>
+	createTurret = (x: number, y: number, owner: BasePlayer) =>
 		this.turrets.push(new Turret(x, y, owner));
+
+	createBeerCan = (
+		x: number,
+		y: number,
+		xSpeed: number,
+		ySpeed: number,
+		owner: BasePlayer
+	) =>
+		this.beerCans.push(
+			new BeerCan(x, y, xSpeed, ySpeed, owner, this.onDeleteBeerCan)
+		);
+
+	onDeleteBeerCan = (beerCanToBeDeleted: BeerCan) =>
+		(this.beerCans = this.beerCans.filter(
+			(beerCan) => beerCan !== beerCanToBeDeleted
+		));
 
 	update() {
 		this.players.forEach((player) => {
@@ -89,6 +118,12 @@ export default class Game {
 				(player) => player !== turret.owner
 			);
 			turret.update(otherPlayers);
+		});
+		this.beerCans.forEach((beerCan) => {
+			const otherPlayers = this.players.filter(
+				(player) => player !== beerCan.owner
+			);
+			beerCan.update(otherPlayers);
 		});
 	}
 
@@ -108,6 +143,8 @@ export default class Game {
 		this.turrets.forEach((turret) => turret.draw(this.ctx));
 		alivePlayers.forEach((player) => player.draw(this.ctx));
 		this.players.forEach((player) => player.drawHealthbar(this.ctx));
+
+		this.beerCans.forEach((beerCan) => beerCan.draw(this.ctx));
 
 		this.sidebar.draw(this.ctx, this.players);
 	}
