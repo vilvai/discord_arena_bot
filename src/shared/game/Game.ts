@@ -46,7 +46,7 @@ export default class Game {
 				i
 			);
 			let player;
-			switch (playerData.class) {
+			switch (playerData.playerClass) {
 				case PlayerClass.Chungus:
 					player = new Chungus(x, y, this.createBloodStain, playerData.name);
 					break;

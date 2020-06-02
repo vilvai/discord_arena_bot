@@ -8,7 +8,7 @@ export enum PlayerClass {
 
 export interface PlayerData {
 	avatarURL: string;
-	class: PlayerClass;
+	playerClass: PlayerClass;
 	name: string;
 }
 
@@ -17,18 +17,6 @@ export interface GameData {
 }
 
 export interface Target {
-	x: number,
-	y: number
+	x: number;
+	y: number;
 }
-
-/*
-{
-	"players": {
-		"ads": {
-			"avatarURL": "https://vectorified.com/images/royalty-free-icon-14.png",
-			"x": 20,
-			"y": 30
-		}
-	}
-}
-*/

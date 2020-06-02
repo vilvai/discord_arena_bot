@@ -2,8 +2,10 @@ import React, { Component } from "react";
 import styled from "styled-components";
 
 import Game from "../shared/game/Game";
-import { GameData } from "../shared/types";
+import { GameData, PlayerClass } from "../shared/types";
 import { SCREEN_WIDTH, SCREEN_HEIGHT, GAME_FPS } from "../shared/constants";
+import GameDataEditor from "./GameDataEditor";
+import { mockGameData } from "../shared/mocks";
 
 const Container = styled.div`
 	display: flex;
@@ -14,21 +16,30 @@ const Container = styled.div`
 	background-color: #eeeeee;
 `;
 
+const ButtonContainer = styled.div`
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	padding: 8px;
+`;
+
 const Canvas = styled.canvas`
 	box-shadow: 4px 3px 6px 0px rgba(0, 0, 0, 0.35);
 	background-color: white;
 `;
 
-const TextArea = styled.textarea`
-	width: 300px;
-	height: 200px;
-	resize: none;
+const Button = styled.button`
+	width: 100px;
+	&:last-child {
+		margin-left: 8px;
+	}
 `;
 
 interface Props {}
 
 interface State {
-	inputText: string;
+	gameData: GameData;
+	gameLoopTimer?: number;
 }
 
 export default class PreviewPage extends Component<Props, State> {
@@ -36,35 +47,12 @@ export default class PreviewPage extends Component<Props, State> {
 		super(props);
 		this.canvasRef = React.createRef();
 		this.state = {
-			inputText: `{
-"players": [{
-"avatarURL": "https://cdn.discordapp.com/avatars/328204246749020161/7a08d2b1f2f5d168ac50778ecc2fcf93.png?size=128",
-"class": "spuge",
-"name": "Cloudberry Gaison"
-},{
-"avatarURL": "https://cdn.discordapp.com/avatars/160995903182864384/fa07b1a1db14e12a994d67ce32a887c3.png?size=128",
-"class": "teekkari",
-"name": "Cov🅱e🅱e"
-},{
-"avatarURL": "https://cdn.discordapp.com/avatars/162898422892855297/a0a097c92ee1066133a18afaa9515e29.png?size=128",
-"class": "fighter",
-"name": "CRISP"
-},{
-"avatarURL": "https://cdn.discordapp.com/avatars/160785897149693952/69591f533a458a1a820d709ad491bd3e.png?size=128",
-"class": "chungus",
-"name": "illoboll"
-},{
-"avatarURL": "https://cdn.discordapp.com/avatars/160115262538907658/0de78ec90612f30c34f3140257f9fef9.png?size=128",
-"class": "assassin",
-"name": "Imperial Doggo"
-}]
-}`,
+			gameData: mockGameData,
 		};
 	}
 
 	canvasRef: React.RefObject<HTMLCanvasElement>;
 	game?: Game;
-	gameSetTimeout?: number;
 
 	componentDidMount() {
 		if (!this.canvasRef.current) return;
@@ -74,55 +62,64 @@ export default class PreviewPage extends Component<Props, State> {
 		this.handleStartSimulation();
 	}
 
-	async initializeGame(gameData: GameData) {
-		if (!this.game) return;
-		clearTimeout(this.gameSetTimeout);
-		await this.game.initializeGame(gameData);
-		this.game.draw();
-		this.gameLoop();
-	}
-
 	gameLoop() {
 		if (!this.game) return;
-		const time = window.performance.now();
 		this.game.update();
 		this.game.draw();
-		const loopTime = window.performance.now() - time;
-		this.gameSetTimeout = setTimeout(
-			() => this.gameLoop(),
-			1000 / GAME_FPS - loopTime
-		);
 	}
 
-	handleStartSimulation = () => {
-		const { inputText } = this.state;
-		try {
-			const inputObject = JSON.parse(inputText);
-			this.initializeGame(inputObject);
-		} catch {
-			alert("input is not correctly formatted");
-		}
+	handleStartSimulation = async () => {
+		if (!this.game) return;
+		clearInterval(this.state.gameLoopTimer);
+		await this.game.initializeGame(this.state.gameData);
+		this.game.draw();
+		this.setState({
+			gameLoopTimer: setInterval(() => this.gameLoop(), 1000 / GAME_FPS),
+		});
 	};
 
-	handleStopSimulation = () => clearTimeout(this.gameSetTimeout);
+	handlePauseSimulation = () => {
+		clearInterval(this.state.gameLoopTimer);
+		this.setState({
+			gameLoopTimer: undefined,
+		});
+	};
 
-	handleInputChange = (event: any) => {
-		this.setState({ inputText: event.target.value });
+	handleResumeSimulation = () => {
+		this.setState({
+			gameLoopTimer: setInterval(() => this.gameLoop(), 1000 / GAME_FPS),
+		});
+	};
+
+	handleGameDataChange = (gameData: GameData) => {
+		this.setState({ gameData });
 	};
 
 	render() {
 		return (
 			<Container>
-				<TextArea
-					value={this.state.inputText}
-					onChange={this.handleInputChange}
-				/>
-				<button onClick={this.handleStartSimulation}>Start simulation</button>
-				<button onClick={this.handleStopSimulation}>Stop simulation</button>
+				<ButtonContainer>
+					<Button onClick={this.handleStartSimulation}>
+						Restart simulation
+					</Button>
+					{this.state.gameLoopTimer === undefined ? (
+						<Button onClick={this.handleResumeSimulation}>
+							Resume simulation
+						</Button>
+					) : (
+						<Button onClick={this.handlePauseSimulation}>
+							Pause simulation
+						</Button>
+					)}
+				</ButtonContainer>
 				<Canvas
 					width={SCREEN_WIDTH}
 					height={SCREEN_HEIGHT}
 					ref={this.canvasRef}
+				/>
+				<GameDataEditor
+					gameData={this.state.gameData}
+					onChangeGameData={this.handleGameDataChange}
 				/>
 			</Container>
 		);
