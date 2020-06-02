@@ -22,7 +22,7 @@ export default class Turret {
 		this.x = x;
 		this.y = y;
 		this.owner = owner;
-		this.shootCooldown = 20;
+		this.shootCooldown = 25;
 		this.shootCooldownLeft = this.shootCooldown;
 		this.angle = 0;
 		this.bullets = [];
@@ -56,12 +56,15 @@ export default class Turret {
 	}
 
 	rotateTowardsTarget() {
+		if (!this.target) return;
 		const deltaX = this.target.x - this.x;
 		const deltaY = this.target.y - this.y;
 		this.angle = Math.atan2(deltaY, deltaX);
 	}
 
 	shoot() {
+		if (!this.target) return;
+
 		const vector = calculateVector(
 			this.x,
 			this.y,
@@ -69,7 +72,14 @@ export default class Turret {
 			this.target.y
 		);
 		this.bullets.push(
-			new Bullet(this.x, this.y, vector.x, vector.y, this.onBulletDelete)
+			new Bullet(
+				this.x,
+				this.y,
+				vector.x,
+				vector.y,
+				this.onBulletDelete,
+				this.owner
+			)
 		);
 	}
 

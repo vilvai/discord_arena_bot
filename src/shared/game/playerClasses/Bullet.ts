@@ -8,7 +8,8 @@ export default class Bullet {
 		y: number,
 		xDirection: number,
 		yDirection: number,
-		onDelete: (bullet: Bullet) => void
+		onDelete: (bullet: Bullet) => void,
+		owner: BasePlayer
 	) {
 		const bulletSpeed = 8;
 		this.x = x;
@@ -17,6 +18,7 @@ export default class Bullet {
 		this.ySpeed = yDirection * bulletSpeed;
 		this.size = 2;
 		this.onDelete = onDelete;
+		this.owner = owner;
 	}
 
 	x: number;

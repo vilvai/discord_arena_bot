@@ -13,18 +13,18 @@ import Teekkari from "./playerClasses/Teekkari";
 import Turret from "./playerClasses/Turret";
 import Spuge from "./playerClasses/Spuge";
 import BeerCan from "./playerClasses/BeerCan";
+import Assassin from "./playerClasses/Assassin";
 
 export default class Game {
 	constructor(ctx: CanvasRenderingContext2D) {
 		this.ctx = ctx;
 	}
-	gameData: GameData;
 	ctx: CanvasRenderingContext2D;
-	players: BasePlayer[];
-	bloodStains: Blood[];
-	sidebar: Sidebar;
-	turrets: Turret[];
-	beerCans: BeerCan[];
+	players!: BasePlayer[];
+	bloodStains!: Blood[];
+	sidebar!: Sidebar;
+	turrets!: Turret[];
+	beerCans!: BeerCan[];
 
 	static calculatePlayerStartingPosition(numberOfPlayers: number, i: number) {
 		let x = SIDEBAR_WIDTH + (SCREEN_WIDTH - SIDEBAR_WIDTH) / 2;
@@ -68,6 +68,9 @@ export default class Game {
 						this.createBeerCan
 					);
 					break;
+				case PlayerClass.Assassin:
+					player = new Assassin(x, y, this.createBloodStain, playerData.name);
+					break;
 				default:
 					player = new BasePlayer(x, y, this.createBloodStain, playerData.name);
 					break;
@@ -109,7 +112,7 @@ export default class Game {
 	update() {
 		this.players.forEach((player) => {
 			const otherPlayers = this.players.filter(
-				(thatPlayer) => thatPlayer !== player
+				(somePlayer) => somePlayer !== player
 			);
 			player.update(otherPlayers);
 		});

@@ -63,16 +63,19 @@ export default class PreviewPage extends Component<Props, State> {
 	}
 
 	canvasRef: React.RefObject<HTMLCanvasElement>;
-	game: Game;
-	gameSetTimeout: number;
+	game?: Game;
+	gameSetTimeout?: number;
 
 	componentDidMount() {
+		if (!this.canvasRef.current) return;
 		const ctx = this.canvasRef.current.getContext("2d");
+		if (!ctx) return;
 		this.game = new Game(ctx);
 		this.handleStartSimulation();
 	}
 
 	async initializeGame(gameData: GameData) {
+		if (!this.game) return;
 		clearTimeout(this.gameSetTimeout);
 		await this.game.initializeGame(gameData);
 		this.game.draw();
@@ -80,6 +83,7 @@ export default class PreviewPage extends Component<Props, State> {
 	}
 
 	gameLoop() {
+		if (!this.game) return;
 		const time = window.performance.now();
 		this.game.update();
 		this.game.draw();

@@ -14,11 +14,15 @@ require("dotenv").config();
 const client = new Discord.Client();
 
 client.on("ready", () => {
+	if (!client.user) return;
 	console.log(`Logged in as ${client.user.tag}!`);
 });
 
 client.on("message", async (msg) => {
+	if (!client.user) return;
 	if (msg.author.id === client.user.id) return;
+	msg.channel.send("Peli alkaa...");
+
 	const avatarURL = msg.author.displayAvatarURL({ format: "png", size: 256 });
 	const canvas = createCanvas(SCREEN_WIDTH, SCREEN_HEIGHT);
 	const ctx = canvas.getContext("2d");
@@ -45,7 +49,7 @@ client.on("message", async (msg) => {
 			{
 				avatarURL:
 					"https://cdn.discordapp.com/avatars/160785897149693952/69591f533a458a1a820d709ad491bd3e.png?size=128",
-				class: PlayerClass.Chungus,
+				class: PlayerClass.Spuge,
 				name: "player3",
 			},
 			{

@@ -10,7 +10,7 @@ export default class Chungus extends BasePlayer {
 	) {
 		super(x, y, createBloodStain, name);
 		this.radius = 24;
-		this.maxSpeed = 1;
+		this.maxSpeed = 1.5;
 		this.damage = 9;
 		this.meleeCooldown = 60;
 		randomizeAttributes(this, ["maxSpeed", "damage", "meleeCooldown"]);

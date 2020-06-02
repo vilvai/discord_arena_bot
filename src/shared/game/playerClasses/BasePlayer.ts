@@ -16,7 +16,6 @@ export default class BasePlayer {
 		name: string
 	) {
 		this.name = name;
-		this.avatar = null;
 		this.x = x;
 		this.y = y;
 		this.radius = 16;
@@ -40,7 +39,6 @@ export default class BasePlayer {
 		]);
 	}
 
-	avatarLoaded: boolean;
 	avatar?: CanvasImageSource;
 	name: string;
 	x: number;
@@ -65,7 +63,12 @@ export default class BasePlayer {
 		this.avatar = avatar as CanvasImageSource;
 	}
 
-	baseOnHit(sourceX: number, sourceY: number, damage: number) {
+	onHit(
+		sourceX: number,
+		sourceY: number,
+		damage: number,
+		_sourcePlayer?: BasePlayer
+	) {
 		const vector = calculateVector(this.x, this.y, sourceX, sourceY);
 		this.knockbackXSpeed -= vector.x * damage;
 		this.knockbackYSpeed -= vector.y * damage;
@@ -73,10 +76,6 @@ export default class BasePlayer {
 		const size = damage + Math.random() * 4;
 		this.createBloodStain(this.x, this.y, size);
 		this.health = Math.max(this.health - damage, 0);
-	}
-
-	onHit(sourceX: number, sourceY: number, damage: number) {
-		this.baseOnHit(sourceX, sourceY, damage);
 	}
 
 	setTarget = (player: BasePlayer) => (this.target = player);
@@ -94,10 +93,6 @@ export default class BasePlayer {
 	}
 
 	updateAI(otherPlayers: BasePlayer[]) {
-		this.baseAI(otherPlayers);
-	}
-
-	baseAI(otherPlayers: BasePlayer[]) {
 		if (!this.target || this.target.isDead()) {
 			this.target = findRandomAliveTarget(otherPlayers);
 		}
@@ -117,12 +112,14 @@ export default class BasePlayer {
 	}
 
 	inMeleeRange() {
+		if (!this.target) return;
 		const { x: targetX, y: targetY } = this.target;
 		const vector = calculateVector(this.x, this.y, targetX, targetY);
 		return vector.distance <= this.meleeRange + this.target.radius;
 	}
 
 	moveTowardsTarget() {
+		if (!this.target) return;
 		this.chaseSpeed = Math.min(
 			this.maxSpeed,
 			this.chaseSpeed + this.acceleration
@@ -137,10 +134,11 @@ export default class BasePlayer {
 	}
 
 	checkTargetHit() {
+		if (!this.target) return;
 		if (this.inMeleeRange()) {
 			this.chaseSpeed = 0;
 			if (this.meleeCooldownLeft <= 0) {
-				this.target.onHit(this.x, this.y, this.damage);
+				this.target.onHit(this.x, this.y, this.damage, this);
 				this.target.setTarget(this);
 				this.meleeCooldownLeft = this.meleeCooldown;
 			}
@@ -179,6 +177,7 @@ export default class BasePlayer {
 	}
 
 	drawAvatar(ctx: CanvasRenderingContext2D) {
+		if (!this.avatar) return;
 		ctx.save();
 		ctx.beginPath();
 		ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);

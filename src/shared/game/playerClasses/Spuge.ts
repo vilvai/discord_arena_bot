@@ -33,10 +33,10 @@ export default class Spuge extends BasePlayer {
 		createBeerCan: CreateBeerCan
 	) {
 		super(x, y, createBloodStain, name);
-		this.aggroModeCooldown = 120;
+		this.aggroModeCooldown = 150;
 		this.aggroModeCooldownLeft = this.aggroModeCooldown;
 
-		this.movingTime = 60;
+		this.staggeringTime = 60;
 		this.drinkingTime = 30;
 		this.aggroTime = 60;
 		this.maxStaggerSpeed = 1.5;
@@ -47,7 +47,7 @@ export default class Spuge extends BasePlayer {
 		this.meleeCooldown = 7;
 
 		randomizeAttributes(this, [
-			"movingTime",
+			"staggeringTime",
 			"drinkingTime",
 			"aggroTime",
 			"maxStaggerSpeed",
@@ -62,18 +62,23 @@ export default class Spuge extends BasePlayer {
 
 	aggroModeCooldown: number;
 	aggroModeCooldownLeft: number;
-	movingTime: number;
+	staggeringTime: number;
 	drinkingTime: number;
 	aggroTime: number;
-	timeUntilStateChange: number;
+	timeUntilStateChange!: number;
 	maxStaggerSpeed: number;
-	xSpeed: number;
-	ySpeed: number;
-	state: SpugeState;
+	xSpeed!: number;
+	ySpeed!: number;
+	state!: SpugeState;
 	createBeerCan: CreateBeerCan;
 
-	onHit(sourceX: number, sourceY: number, damage: number) {
-		this.baseOnHit(sourceX, sourceY, damage);
+	onHit(
+		sourceX: number,
+		sourceY: number,
+		damage: number,
+		sourcePlayer?: BasePlayer
+	) {
+		super.onHit(sourceX, sourceY, damage, sourcePlayer);
 		if (this.aggroModeCooldownLeft <= 0) this.startAggro();
 	}
 
@@ -98,7 +103,7 @@ export default class Spuge extends BasePlayer {
 	startStaggering() {
 		this.xSpeed = 0;
 		this.ySpeed = 0;
-		this.timeUntilStateChange = this.movingTime;
+		this.timeUntilStateChange = this.staggeringTime;
 		this.state = SpugeState.Staggering;
 	}
 
@@ -143,13 +148,13 @@ export default class Spuge extends BasePlayer {
 	}
 
 	startAggro() {
+		this.aggroModeCooldownLeft = this.aggroModeCooldown;
 		this.timeUntilStateChange = this.aggroTime;
 		this.state = SpugeState.Aggro;
 	}
 
 	aggro(otherPlayers: BasePlayer[]) {
-		this.aggroModeCooldownLeft = this.aggroModeCooldown;
-		this.baseAI(otherPlayers);
+		super.updateAI(otherPlayers);
 		if (this.timeUntilStateChange <= 0) {
 			this.startStaggering();
 		}

@@ -3,11 +3,13 @@ import BasePlayer from "./playerClasses/BasePlayer";
 import Chungus from "./playerClasses/Chungus";
 import Teekkari from "./playerClasses/Teekkari";
 import Spuge from "./playerClasses/Spuge";
+import Assassin from "./playerClasses/Assassin";
 
 const getPlayerClassName = (player: BasePlayer) => {
 	if (player instanceof Chungus) return "CHUNGUS";
 	if (player instanceof Teekkari) return "TEEKKARI";
 	if (player instanceof Spuge) return "SPUGE";
+	if (player instanceof Assassin) return "ASSASSIN";
 	return "FIGHTER";
 };
 
@@ -57,6 +59,7 @@ export default class Sidebar {
 	}
 
 	drawPlayerIcon(ctx: CanvasRenderingContext2D, player: BasePlayer) {
+		if (!player.avatar) return;
 		ctx.save();
 		ctx.beginPath();
 		ctx.arc(iconCenterX, iconCenterY, iconRadius, 0, Math.PI * 2);

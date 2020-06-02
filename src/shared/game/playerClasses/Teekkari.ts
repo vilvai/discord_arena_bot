@@ -6,6 +6,7 @@ import {
 	ARENA_WIDTH,
 } from "../../constants";
 import { calculateVector, randomizeAttributes } from "./utils";
+import { Target } from "../../types";
 
 enum TeekkariState {
 	Moving = "moving",
@@ -26,6 +27,9 @@ export default class Teekkari extends BasePlayer {
 		this.radius = 14;
 		this.acceleration = 0.2;
 
+		this.maxHealth = 20;
+		this.health = this.maxHealth;
+
 		this.movingTime = 60;
 		this.buildingTime = 70;
 		this.createTurret = createTurret;
@@ -36,13 +40,13 @@ export default class Teekkari extends BasePlayer {
 	}
 
 	movingTime: number;
-	timeUntilStateChange: number;
+	timeUntilStateChange!: number;
 	buildingTime: number;
-	state: TeekkariState;
-	movementTarget: { x: number; y: number };
+	state!: TeekkariState;
+	movementTarget!: Target;
 	createTurret: CreateTurret;
 
-	static isTargetInCenterArea(target: { x: number; y: number }) {
+	static isTargetInCenterArea(target: Target) {
 		const safeZoneProportion = 0.25;
 		return (
 			target.x > SIDEBAR_WIDTH + ARENA_WIDTH * safeZoneProportion &&

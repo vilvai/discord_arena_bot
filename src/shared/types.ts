@@ -16,6 +16,11 @@ export interface GameData {
 	players: PlayerData[];
 }
 
+export interface Target {
+	x: number,
+	y: number
+}
+
 /*
 {
 	"players": {
