@@ -1,14 +1,19 @@
 import React from "react";
 import { GameData, PlayerData } from "../shared/types";
 import styled from "styled-components";
+import PlayerDataEditor from "./PlayerDataEditor";
+import { createNewPlayer } from "../shared/mocks";
+import { StyledButton } from "./UIComponents";
 
 const Container = styled.div`
 	display: flex;
-	height: 300px;
-	width: 600px;
 	flex-direction: column;
 	background-color: #fff;
 	margin-top: 16px;
+`;
+
+const AddPlayerButton = styled(StyledButton)`
+	margin: 8px;
 `;
 
 interface Props {
@@ -17,13 +22,34 @@ interface Props {
 }
 
 export default class GameDataEditor extends React.Component<Props> {
-	handleChangePlayerData = (newPlayerData: PlayerData, index: number) => {
+	handleChangePlayerData = (
+		newPlayerData: Partial<PlayerData>,
+		index: number
+	) => {
 		const { gameData, onChangeGameData } = this.props;
 		const newGameData = {
 			...gameData,
 			players: gameData.players.map((oldPlayerData, i) =>
-				i === index ? newPlayerData : oldPlayerData
+				i === index ? { ...oldPlayerData, ...newPlayerData } : oldPlayerData
 			),
+		};
+		onChangeGameData(newGameData);
+	};
+
+	handleAddPlayer = () => {
+		const { gameData, onChangeGameData } = this.props;
+		const newGameData = {
+			...gameData,
+			players: [...gameData.players, createNewPlayer()],
+		};
+		onChangeGameData(newGameData);
+	};
+
+	handleDeletePlayer = (index: number) => {
+		const { gameData, onChangeGameData } = this.props;
+		const newGameData = {
+			...gameData,
+			players: gameData.players.filter((_, i) => i !== index),
 		};
 		onChangeGameData(newGameData);
 	};
@@ -31,37 +57,19 @@ export default class GameDataEditor extends React.Component<Props> {
 	render() {
 		return (
 			<Container>
-				{this.props.gameData.players.map((playerData) => (
-					<Player
+				{this.props.gameData.players.map((playerData, i) => (
+					<PlayerDataEditor
+						key={i}
+						playerIndex={i}
 						onChangePlayerData={this.handleChangePlayerData}
+						onDeletePlayer={this.handleDeletePlayer}
 						{...playerData}
 					/>
 				))}
+				<AddPlayerButton onClick={this.handleAddPlayer}>
+					Add Player
+				</AddPlayerButton>
 			</Container>
 		);
 	}
 }
-
-const PlayerContainer = styled.div`
-	display: flex;
-	width: 100%;
-	height: 50px;
-	border-bottom: 1px solid black;
-	padding: 4px;
-	box-sizing: border-box;
-`;
-
-type PlayerProps = {
-	onChangePlayerData: (newPlayerData: PlayerData, index: number) => void;
-} & PlayerData;
-
-const Player = ({
-	onChangePlayerData,
-	name,
-	avatarURL,
-	playerClass,
-}: PlayerProps) => (
-	<PlayerContainer>
-		<input value={name} />
-	</PlayerContainer>
-);

@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import styled from "styled-components";
 
 import Game from "../shared/game/Game";
-import { GameData, PlayerClass } from "../shared/types";
+import { GameData } from "../shared/types";
 import { SCREEN_WIDTH, SCREEN_HEIGHT, GAME_FPS } from "../shared/constants";
 import GameDataEditor from "./GameDataEditor";
 import { mockGameData } from "../shared/mocks";
@@ -10,10 +10,11 @@ import { mockGameData } from "../shared/mocks";
 const Container = styled.div`
 	display: flex;
 	height: 100vh;
+	padding-top: 40px;
 	flex-direction: column;
-	justify-content: center;
 	align-items: center;
 	background-color: #eeeeee;
+	box-sizing: border-box;
 `;
 
 const ButtonContainer = styled.div`

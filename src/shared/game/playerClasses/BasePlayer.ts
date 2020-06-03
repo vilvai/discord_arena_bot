@@ -25,7 +25,7 @@ export default class BasePlayer {
 		this.maxSpeed = 3;
 		this.acceleration = 0.1;
 		this.damage = 5;
-		this.maxHealth = 25;
+		this.maxHealth = 30;
 		this.health = this.maxHealth;
 		this.meleeRange = this.radius * 1.5;
 		this.meleeCooldown = 30;

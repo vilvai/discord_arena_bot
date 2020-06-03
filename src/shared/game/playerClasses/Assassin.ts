@@ -25,10 +25,11 @@ export default class Assassin extends BasePlayer {
 
 		this.dodgeDamage = 3;
 		this.dodgeCooldown = 150;
-		this.maxHealth = 20;
+		this.maxHealth = 15;
 		this.health = this.maxHealth;
+		this.damage = 4;
 
-		this.assassinationCooldown = 150;
+		this.assassinationCooldown = 180;
 		this.assassinationThreshold = 0.5;
 		this.assassinationVelocity = 12;
 		this.assassinationMinDistance = 100;
@@ -38,6 +39,7 @@ export default class Assassin extends BasePlayer {
 		this.maxStalkingSpeed = 1;
 
 		randomizeAttributes(this, [
+			"damage",
 			"dodgeDamage",
 			"dodgeCooldown",
 			"assassinationCooldown",

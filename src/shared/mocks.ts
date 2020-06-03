@@ -1,4 +1,4 @@
-import { PlayerClass } from "./types";
+import { PlayerClass, PlayerData } from "./types";
 
 export const mockGameData = {
 	players: [
@@ -34,3 +34,34 @@ export const mockGameData = {
 		},
 	],
 };
+
+const getRandomItem = <I>(items: I[]): I =>
+	items[Math.floor(Math.random() * items.length)];
+
+export const createNewPlayer = (): PlayerData => ({
+	name: getRandomItem(randomPlayerNames),
+	playerClass: getRandomItem(Object.values(PlayerClass)),
+	avatarURL: getRandomItem(randomPlayerAvatarURLs),
+});
+
+const randomPlayerNames = [
+	"Kyjb70Grog",
+	"Bumpkin",
+	"Glomerate",
+	"Aardwolf",
+	"Macaronic",
+	"Equinox",
+	"Bourasque",
+	"Catechectics",
+	"AbracMucid",
+	"Threptic",
+	"Ballyhoo",
+	"Spodogenous",
+];
+
+const randomPlayerAvatarURLs = [
+	"https://discord.com/assets/dd4dbc0016779df1378e7812eabaa04d.png",
+	"https://discord.com/assets/322c936a8c8be1b803cd94861bdfa868.png",
+	"https://discord.com/assets/6debd47ed13483642cf09e832ed0bc1b.png",
+	"https://discord.com/assets/0e291f67c9274a1abdddeb3fd919cbaa.png",
+];
