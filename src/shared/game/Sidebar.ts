@@ -37,6 +37,8 @@ const iconCenterX = iconRadius + 6;
 const iconCenterY = iconRadius + 6;
 const textStartX = iconCenterX + iconRadius + 4;
 
+const font = "Sans";
+
 export default class Sidebar {
 	draw(ctx: CanvasRenderingContext2D, players: BasePlayer[]) {
 		this.drawBackground(ctx);
@@ -83,14 +85,14 @@ export default class Sidebar {
 		ctx.restore();
 		if (player.isDead()) {
 			ctx.fillStyle = "#fff";
-			ctx.font = "700 14px Pacifico";
+			ctx.font = `700 14px ${font}`;
 			ctx.fillText("R.I.P", iconCenterX - 12, iconCenterY + 5);
 		}
 	}
 
 	drawPlayerName(ctx: CanvasRenderingContext2D, name: string) {
 		ctx.fillStyle = "#eeeeee";
-		ctx.font = "700 12px Pacifico";
+		ctx.font = `700 12px ${font}`;
 		const truncatedName = truncateText(
 			ctx,
 			name,
@@ -102,7 +104,7 @@ export default class Sidebar {
 	drawPlayerClass(ctx: CanvasRenderingContext2D, player: BasePlayer) {
 		const className = getPlayerClassName(player);
 		ctx.fillStyle = "#bbbbbb";
-		ctx.font = "700 italic 12px Pacifico";
+		ctx.font = `700 12px ${font}`;
 		ctx.fillText(className, textStartX, iconCenterY + 12);
 	}
 }
