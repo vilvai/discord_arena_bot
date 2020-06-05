@@ -135,7 +135,9 @@ export default class Game {
 		this.ctx.resetTransform();
 		this.ctx.imageSmoothingQuality = "high";
 		// @ts-ignore textDrawingMode exists on node-canvas
-		if (this.ctx.textDrawingMode) this.ctx.textDrawingMode = "glyph";
+		if (this.ctx.textDrawingMode) this.ctx.textDrawingMode = "path";
+		// @ts-ignore antialias exists on node-canvas
+		if (this.ctx.antialias) this.ctx.antialias = "subpixel";
 
 		this.drawBackground();
 		this.bloodStains.forEach((bloodStain) => bloodStain.draw(this.ctx));

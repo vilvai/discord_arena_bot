@@ -38,8 +38,8 @@ const iconCenterX = iconRadius + 6;
 const iconCenterY = iconRadius + 6;
 const textStartX = iconCenterX + iconRadius + 4;
 
-const font = IS_RUNNING_ON_NODE ? "Sans-serif" : "Sans-serif";
-const fontSize = IS_RUNNING_ON_NODE ? "10px" : "12px";
+const font = IS_RUNNING_ON_NODE ? "Roboto" : "Roboto";
+const fontSize = IS_RUNNING_ON_NODE ? "12px" : "12px";
 
 export default class Sidebar {
 	draw(ctx: CanvasRenderingContext2D, players: BasePlayer[]) {
@@ -87,7 +87,7 @@ export default class Sidebar {
 		ctx.restore();
 		if (!player.isDead()) {
 			ctx.fillStyle = "#fff";
-			ctx.font = `700 ${fontSize} ${font}`;
+			ctx.font = `bold ${fontSize} ${font}`;
 			const ripText = "R.I.P";
 			const textWidth = ctx.measureText(ripText).width;
 			ctx.fillText(ripText, iconCenterX - textWidth / 2, iconCenterY + 5);
@@ -96,7 +96,7 @@ export default class Sidebar {
 
 	drawPlayerName(ctx: CanvasRenderingContext2D, name: string) {
 		ctx.fillStyle = "#eeeeee";
-		ctx.font = `700 ${fontSize} ${font}`;
+		ctx.font = `bold ${fontSize} ${font}`;
 		const truncatedName = truncateText(
 			ctx,
 			name,
@@ -108,7 +108,7 @@ export default class Sidebar {
 	drawPlayerClass(ctx: CanvasRenderingContext2D, player: BasePlayer) {
 		const className = getPlayerClassName(player);
 		ctx.fillStyle = "#bbbbbb";
-		ctx.font = `700 italic ${fontSize} ${font}`;
+		ctx.font = `italic bold ${fontSize} ${font}`;
 		ctx.fillText(className, textStartX, iconCenterY + 12);
 	}
 }
