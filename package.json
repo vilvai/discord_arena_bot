@@ -12,7 +12,7 @@
   },
   "repository": "git@github.com:vilvai/discord_areena_bot.git",
   "author": "ville-pc <ville.vainio1@gmail.com>",
-  "license": "MIT",
+  "license": "GPLV3",
   "private": true,
   "dependencies": {
     "canvas": "^2.6.1",
