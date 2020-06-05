@@ -1,42 +1,25 @@
 import { PlayerClass, PlayerData } from "./types";
 
-export const mockGameData = {
-	players: [
-		{
-			avatarURL:
-				"https://cdn.discordapp.com/avatars/328204246749020161/7a08d2b1f2f5d168ac50778ecc2fcf93.png?size=128",
-			playerClass: PlayerClass.Chungus,
-			name: "Cloudberry Gaison",
-		},
-		{
-			avatarURL:
-				"https://cdn.discordapp.com/avatars/160995903182864384/fa07b1a1db14e12a994d67ce32a887c3.png?size=128",
-			playerClass: PlayerClass.Teekkari,
-			name: "Cov🅱e🅱e",
-		},
-		{
-			avatarURL:
-				"https://cdn.discordapp.com/avatars/162898422892855297/a0a097c92ee1066133a18afaa9515e29.png?size=128",
-			playerClass: PlayerClass.Fighter,
-			name: "player2",
-		},
-		{
-			avatarURL:
-				"https://cdn.discordapp.com/avatars/160785897149693952/69591f533a458a1a820d709ad491bd3e.png?size=128",
-			playerClass: PlayerClass.Spuge,
-			name: "player3",
-		},
-		{
-			avatarURL:
-				"https://cdn.discordapp.com/avatars/160115262538907658/0de78ec90612f30c34f3140257f9fef9.png?size=128",
-			playerClass: PlayerClass.Assassin,
-			name: "player4",
-		},
-	],
-};
+export const createMockGameData = () => {
+	const playerCount = 5;
+	const players = [];
+	let avatarPool = [...randomPlayerAvatarURLs];
+	let namePool = [...randomPlayerNames];
 
-const getRandomItem = <I>(items: I[]): I =>
-	items[Math.floor(Math.random() * items.length)];
+	for (let i = 0; i < playerCount; i++) {
+		const randomName = getRandomItem(namePool);
+		const randomAvatar = getRandomItem(avatarPool);
+		namePool = namePool.filter((name) => name !== randomName);
+		avatarPool = avatarPool.filter((avatar) => avatar !== randomAvatar);
+		players.push({
+			name: randomName,
+			playerClass: getRandomItem(Object.values(PlayerClass)),
+			avatarURL: randomAvatar,
+		});
+	}
+
+	return { players };
+};
 
 export const createNewPlayer = (): PlayerData => ({
 	name: getRandomItem(randomPlayerNames),
@@ -44,24 +27,57 @@ export const createNewPlayer = (): PlayerData => ({
 	avatarURL: getRandomItem(randomPlayerAvatarURLs),
 });
 
+const getRandomItem = <I>(items: I[]): I =>
+	items[Math.floor(Math.random() * items.length)];
+
 const randomPlayerNames = [
-	"Kyjb70Grog",
-	"Bumpkin",
-	"Glomerate",
 	"Aardwolf",
-	"Macaronic",
-	"Equinox",
-	"Bourasque",
-	"Catechectics",
 	"AbracMucid",
-	"Threptic",
 	"Ballyhoo",
+	"Biltong",
+	"Blatherskite",
+	"Bourasque",
+	"Bumpkin",
+	"Catechectics",
+	"Chimichanga",
+	"Clapboard",
+	"Equinox",
+	"Glomerate",
+	"Gumshoe",
+	"Kyjb70Grog",
+	"Lollapalooza",
+	"Macaronic",
+	"Miffedlien96",
+	"Morassyobg",
+	"Nincompoop",
+	"Piddling",
+	"Pollywog",
+	"Sassafras",
+	"Sousaphone",
 	"Spodogenous",
+	"Succubus",
+	"Svengali",
+	"Threptic",
+	"Umpteenth",
+	"Whorlking420",
+	"Wishywashy",
+	"YamorMammee",
 ];
 
 const randomPlayerAvatarURLs = [
-	"https://discord.com/assets/dd4dbc0016779df1378e7812eabaa04d.png",
-	"https://discord.com/assets/322c936a8c8be1b803cd94861bdfa868.png",
-	"https://discord.com/assets/6debd47ed13483642cf09e832ed0bc1b.png",
-	"https://discord.com/assets/0e291f67c9274a1abdddeb3fd919cbaa.png",
+	"https://i.imgur.com/icWfRgb.png",
+	"https://i.imgur.com/dusE0NZ.jpg",
+	"https://i.imgur.com/hhtLmPS.png",
+	"https://i.imgur.com/5V79CO5.jpg",
+	"https://i.imgur.com/UkoIXoT.png",
+	"https://i.imgur.com/tkzd4lr.png",
+	"https://i.imgur.com/vgU5h3y.jpg",
+	"https://i.imgur.com/vD1ANJZ.jpg",
+	"https://i.imgur.com/rBleq5U.png",
+	"https://i.imgur.com/M2BmdGT.png",
+	"https://i.imgur.com/O7yE9Pr.png",
+	"https://i.imgur.com/W5kBNQK.png",
+	"https://i.imgur.com/nMT0sS2.jpg",
+	"https://i.imgur.com/Aake5He.jpg",
+	"https://i.imgur.com/GAsvHsm.png",
 ];

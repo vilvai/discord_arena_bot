@@ -5,7 +5,7 @@ import { performance } from "perf_hooks";
 import Game from "./shared/game/Game";
 import { SCREEN_WIDTH, SCREEN_HEIGHT, GAME_FPS } from "./shared/constants";
 import rimraf from "rimraf";
-import { mockGameData } from "./shared/mocks";
+import { createMockGameData } from "./shared/mocks";
 
 type FileType = "png" | "jpeg";
 
@@ -29,7 +29,7 @@ const renderGame = async (config: PNGConfig | JPEGConfig) => {
 	let i = 0;
 	let endingTime = Infinity;
 	const game = new Game(ctx);
-	await game.initializeGame(mockGameData);
+	await game.initializeGame(createMockGameData());
 
 	const tailTimeSeconds = 2;
 

@@ -5,7 +5,7 @@ import Game from "../shared/game/Game";
 import { GameData } from "../shared/types";
 import { SCREEN_WIDTH, SCREEN_HEIGHT, GAME_FPS } from "../shared/constants";
 import GameDataEditor from "./GameDataEditor";
-import { mockGameData } from "../shared/mocks";
+import { createMockGameData } from "../shared/mocks";
 
 const Container = styled.div`
 	display: flex;
@@ -48,7 +48,7 @@ export default class PreviewPage extends Component<Props, State> {
 		super(props);
 		this.canvasRef = React.createRef();
 		this.state = {
-			gameData: mockGameData,
+			gameData: createMockGameData(),
 		};
 	}
 

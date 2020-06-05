@@ -8,7 +8,7 @@ import { performance } from "perf_hooks";
 import { SCREEN_WIDTH, SCREEN_HEIGHT, GAME_FPS } from "../shared/constants";
 import { PlayerClass } from "../shared/types";
 import Game from "../shared/game/Game";
-import { mockGameData } from "../shared/mocks";
+import { createMockGameData } from "../shared/mocks";
 
 require("dotenv").config();
 
@@ -27,6 +27,8 @@ client.on("message", async (msg) => {
 	const avatarURL = msg.author.displayAvatarURL({ format: "png", size: 256 });
 	const canvas = createCanvas(SCREEN_WIDTH, SCREEN_HEIGHT);
 	const ctx = canvas.getContext("2d");
+
+	const mockGameData = createMockGameData();
 
 	const gameData = {
 		...mockGameData,

@@ -6,7 +6,7 @@ import { performance } from "perf_hooks";
 import Game from "./shared/game/Game";
 import { SCREEN_WIDTH, SCREEN_HEIGHT, GAME_FPS } from "./shared/constants";
 import rimraf from "rimraf";
-import { mockGameData } from "./shared/mocks";
+import { createMockGameData } from "./shared/mocks";
 
 const a = async () => {
 	const canvas = createCanvas(SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -15,7 +15,7 @@ const a = async () => {
 	let i = 0;
 	let endingTime = Infinity;
 	const game = new Game(ctx);
-	await game.initializeGame(mockGameData);
+	await game.initializeGame(createMockGameData());
 
 	const tailTimeSeconds = 2;
 
