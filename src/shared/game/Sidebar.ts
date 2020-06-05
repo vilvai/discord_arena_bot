@@ -83,14 +83,14 @@ export default class Sidebar {
 		ctx.restore();
 		if (player.isDead()) {
 			ctx.fillStyle = "#fff";
-			ctx.font = "700 14px Calibri";
+			ctx.font = "700 14px Pacifico";
 			ctx.fillText("R.I.P", iconCenterX - 12, iconCenterY + 5);
 		}
 	}
 
 	drawPlayerName(ctx: CanvasRenderingContext2D, name: string) {
 		ctx.fillStyle = "#eeeeee";
-		ctx.font = "700 12px Calibri";
+		ctx.font = "700 12px Pacifico";
 		const truncatedName = truncateText(
 			ctx,
 			name,
@@ -102,7 +102,7 @@ export default class Sidebar {
 	drawPlayerClass(ctx: CanvasRenderingContext2D, player: BasePlayer) {
 		const className = getPlayerClassName(player);
 		ctx.fillStyle = "#bbbbbb";
-		ctx.font = "700 italic 12px Calibri";
+		ctx.font = "700 italic 12px Pacifico";
 		ctx.fillText(className, textStartX, iconCenterY + 12);
 	}
 }
