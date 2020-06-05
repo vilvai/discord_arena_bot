@@ -4,9 +4,8 @@
   "main": "index.js",
   "scripts": {
     "start": "ts-node ./src/bot/index.ts",
-    "debug": "node --inspect --require ts-node/register ./src/bot/index.ts",
-    "ffmpeg": "ts-node ./src/ffmpeg.ts",
-    "benchmark": "ts-node ./src/benchmark.ts",
+    "start:ffmpeg": "ts-node ./src/ffmpeg.ts",
+    "start:benchmark": "ts-node ./src/benchmark.ts",
     "start:preview": "start http://localhost:8080/ && webpack-dev-server --hot --mode development",
     "lint": "eslint . --ext .tsx,.ts,.js",
     "test": "jest"
