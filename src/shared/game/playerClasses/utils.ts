@@ -42,3 +42,5 @@ export const randomizeAttributes = <P extends BasePlayer, A extends keyof P>(
 	attributes.forEach((attribute) => {
 		(player[attribute] as any) *= Math.random() * 0.2 + 0.9;
 	});
+
+export const IS_RUNNING_ON_NODE = !!process.release;

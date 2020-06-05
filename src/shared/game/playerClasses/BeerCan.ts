@@ -1,10 +1,14 @@
 import { Image as NodeImage } from "canvas";
 
 import BasePlayer from "./BasePlayer";
-import { isOutsideMap, checkPlayerCollision } from "./utils";
+import {
+	isOutsideMap,
+	checkPlayerCollision,
+	IS_RUNNING_ON_NODE,
+} from "./utils";
 
 let beerCanImageConstructor: HTMLImageElement;
-if (process.env.NODE) {
+if (IS_RUNNING_ON_NODE) {
 	beerCanImageConstructor = new NodeImage() as any;
 	beerCanImageConstructor.src = "src/assets/karhu.png";
 } else {
