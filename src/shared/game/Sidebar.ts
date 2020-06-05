@@ -4,7 +4,6 @@ import Chungus from "./playerClasses/Chungus";
 import Teekkari from "./playerClasses/Teekkari";
 import Spuge from "./playerClasses/Spuge";
 import Assassin from "./playerClasses/Assassin";
-import { IS_RUNNING_ON_NODE } from "./playerClasses/utils";
 
 const getPlayerClassName = (player: BasePlayer) => {
 	if (player instanceof Chungus) return "CHUNGUS";
@@ -38,8 +37,8 @@ const iconCenterX = iconRadius + 6;
 const iconCenterY = iconRadius + 6;
 const textStartX = iconCenterX + iconRadius + 4;
 
-const font = IS_RUNNING_ON_NODE ? "Roboto" : "Roboto";
-const fontSize = IS_RUNNING_ON_NODE ? "12px" : "12px";
+const font = "Roboto";
+const fontSize = "12px";
 
 export default class Sidebar {
 	draw(ctx: CanvasRenderingContext2D, players: BasePlayer[]) {
@@ -75,7 +74,7 @@ export default class Sidebar {
 			iconRadius * 2,
 			iconRadius * 2
 		);
-		if (!player.isDead()) {
+		if (player.isDead()) {
 			ctx.fillStyle = "rgba(200,0,0,0.5)";
 			ctx.fillRect(
 				iconCenterX - 16,
@@ -85,7 +84,7 @@ export default class Sidebar {
 			);
 		}
 		ctx.restore();
-		if (!player.isDead()) {
+		if (player.isDead()) {
 			ctx.fillStyle = "#fff";
 			ctx.font = `bold ${fontSize} ${font}`;
 			const ripText = "R.I.P";
