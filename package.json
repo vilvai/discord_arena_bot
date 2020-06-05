@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "ts-node ./src/bot/index.ts",
+    "build": "tsc --build tsconfig.json",
+    "start": "node dist/bot/index.js",
+    "start-dev": "ts-node ./src/bot/index.ts",
     "start:ffmpeg": "ts-node ./src/ffmpeg.ts",
     "start:benchmark": "ts-node ./src/benchmark.ts",
     "start:preview": "start http://localhost:8080/ && webpack-dev-server --hot --mode development",
