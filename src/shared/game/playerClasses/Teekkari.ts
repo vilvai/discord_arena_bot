@@ -21,7 +21,7 @@ export default class Teekkari extends BasePlayer {
 		y: number,
 		createBloodStain: CreateBloodStain,
 		name: string,
-		createTurret: CreateTurret
+		private createTurret: CreateTurret
 	) {
 		super(x, y, createBloodStain, name);
 		this.radius = 14;
@@ -32,7 +32,6 @@ export default class Teekkari extends BasePlayer {
 
 		this.movingTime = 60;
 		this.buildingTime = 70;
-		this.createTurret = createTurret;
 
 		randomizeAttributes(this, ["movingTime", "buildingTime"]);
 
@@ -44,7 +43,6 @@ export default class Teekkari extends BasePlayer {
 	buildingTime: number;
 	state!: TeekkariState;
 	movementTarget!: Target;
-	createTurret: CreateTurret;
 
 	static isTargetInCenterArea(target: Target) {
 		const safeZoneProportion = 0.25;

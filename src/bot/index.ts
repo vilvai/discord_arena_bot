@@ -24,7 +24,7 @@ client.on("message", async (msg) => {
 	if (msg.author.id === client.user.id) return;
 	msg.channel.send("Peli alkaa...");
 
-	const avatarURL = msg.author.displayAvatarURL({ format: "png", size: 256 });
+	const avatarURL = msg.author.displayAvatarURL({ format: "png", size: 128 });
 	const canvas = createCanvas(SCREEN_WIDTH, SCREEN_HEIGHT);
 	const ctx = canvas.getContext("2d");
 
@@ -48,13 +48,14 @@ client.on("message", async (msg) => {
 	await game.initializeGame(gameData);
 
 	const tailTimeSeconds = 2;
+	const gameMaxTimeSeconds = 30;
 
 	const tempDirectory = "temp";
 	fs.mkdirSync(tempDirectory);
 
 	let time = performance.now();
 
-	while (i < 20 * GAME_FPS && i < endingTime) {
+	while (i < gameMaxTimeSeconds * GAME_FPS && i < endingTime) {
 		game.draw();
 		const stream = fs.createWriteStream(
 			`${tempDirectory}/pic${i.toString().padStart(3, "0")}.jpeg`

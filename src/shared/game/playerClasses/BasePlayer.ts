@@ -10,14 +10,11 @@ export type CreateBloodStain = (x: number, y: number, size: number) => void;
 
 export default class BasePlayer {
 	constructor(
-		x: number,
-		y: number,
-		createBloodStain: CreateBloodStain,
-		name: string
+		public x: number,
+		public y: number,
+		private createBloodStain: CreateBloodStain,
+		public name: string
 	) {
-		this.name = name;
-		this.x = x;
-		this.y = y;
 		this.radius = 16;
 		this.chaseSpeed = 0;
 		this.knockbackXSpeed = 0;
@@ -30,7 +27,6 @@ export default class BasePlayer {
 		this.meleeRange = this.radius * 1.5;
 		this.meleeCooldown = 30;
 		this.meleeCooldownLeft = 0;
-		this.createBloodStain = createBloodStain;
 		randomizeAttributes(this, [
 			"maxSpeed",
 			"damage",
@@ -40,9 +36,6 @@ export default class BasePlayer {
 	}
 
 	avatar?: CanvasImageSource;
-	name: string;
-	x: number;
-	y: number;
 	radius: number;
 	target?: BasePlayer;
 	chaseSpeed: number;
@@ -56,7 +49,6 @@ export default class BasePlayer {
 	meleeRange: number;
 	meleeCooldown: number;
 	meleeCooldownLeft: number;
-	createBloodStain: CreateBloodStain;
 
 	async loadAvatar(avatarURL: string) {
 		const avatar: unknown = await loadImage(avatarURL);

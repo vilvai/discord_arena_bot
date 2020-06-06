@@ -5,6 +5,7 @@ import {
 	SIDEBAR_WIDTH,
 	SCREEN_WIDTH,
 	PLAYER_STARTING_CIRCLE_RADIUS,
+	GAME_FPS,
 } from "../constants";
 import Sidebar from "./Sidebar";
 import Chungus from "./playerClasses/Chungus";
@@ -14,6 +15,7 @@ import Turret from "./playerClasses/Turret";
 import Spuge from "./playerClasses/Spuge";
 import BeerCan from "./playerClasses/BeerCan";
 import Assassin from "./playerClasses/Assassin";
+import ParticleHandler from "./ParticleHandler";
 
 export default class Game {
 	constructor(ctx: CanvasRenderingContext2D) {
@@ -25,6 +27,7 @@ export default class Game {
 	sidebar!: Sidebar;
 	turrets!: Turret[];
 	beerCans!: BeerCan[];
+	particleHandler!: ParticleHandler;
 
 	static calculatePlayerStartingPosition(numberOfPlayers: number, i: number) {
 		let x = SIDEBAR_WIDTH + (SCREEN_WIDTH - SIDEBAR_WIDTH) / 2;
@@ -69,7 +72,13 @@ export default class Game {
 					);
 					break;
 				case PlayerClass.Assassin:
-					player = new Assassin(x, y, this.createBloodStain, playerData.name);
+					player = new Assassin(
+						x,
+						y,
+						this.createBloodStain,
+						playerData.name,
+						this.createDodgeParticles
+					);
 					break;
 				default:
 					player = new BasePlayer(x, y, this.createBloodStain, playerData.name);
@@ -82,6 +91,7 @@ export default class Game {
 		this.turrets = [];
 		this.beerCans = [];
 		this.sidebar = new Sidebar();
+		this.particleHandler = new ParticleHandler();
 	}
 
 	isGameOver = () =>
@@ -109,6 +119,9 @@ export default class Game {
 			(beerCan) => beerCan !== beerCanToBeDeleted
 		));
 
+	createDodgeParticles = (x: number, y: number) =>
+		this.particleHandler.createDodgeParticles(x, y);
+
 	update() {
 		this.players.forEach((player) => {
 			const otherPlayers = this.players.filter(
@@ -128,6 +141,7 @@ export default class Game {
 			);
 			beerCan.update(otherPlayers);
 		});
+		this.particleHandler.update();
 	}
 
 	draw() {
@@ -139,18 +153,19 @@ export default class Game {
 		// @ts-ignore antialias exists on node-canvas
 		if (this.ctx.antialias) this.ctx.antialias = "subpixel";
 
+		const deadPlayers = this.players.filter((player) => player.isDead());
+		const alivePlayers = this.players.filter((player) => !player.isDead());
+
 		this.drawBackground();
 		this.bloodStains.forEach((bloodStain) => bloodStain.draw(this.ctx));
 
-		const alivePlayers = this.players.filter((player) => !player.isDead());
-		const deadPlayers = this.players.filter((player) => player.isDead());
 		deadPlayers.forEach((player) => player.draw(this.ctx));
 		this.turrets.forEach((turret) => turret.draw(this.ctx));
 		alivePlayers.forEach((player) => player.draw(this.ctx));
-		this.players.forEach((player) => player.drawHealthbar(this.ctx));
-
 		this.beerCans.forEach((beerCan) => beerCan.draw(this.ctx));
+		this.particleHandler.draw(this.ctx);
 
+		this.players.forEach((player) => player.drawHealthbar(this.ctx));
 		this.sidebar.draw(this.ctx, this.players);
 	}
 

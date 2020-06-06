@@ -30,7 +30,7 @@ export default class Spuge extends BasePlayer {
 		y: number,
 		createBloodStain: CreateBloodStain,
 		name: string,
-		createBeerCan: CreateBeerCan
+		private createBeerCan: CreateBeerCan
 	) {
 		super(x, y, createBloodStain, name);
 		this.aggroModeCooldown = 150;
@@ -57,7 +57,6 @@ export default class Spuge extends BasePlayer {
 		]);
 
 		this.startStaggering();
-		this.createBeerCan = createBeerCan;
 	}
 
 	aggroModeCooldown: number;
@@ -70,7 +69,6 @@ export default class Spuge extends BasePlayer {
 	xSpeed!: number;
 	ySpeed!: number;
 	state!: SpugeState;
-	createBeerCan: CreateBeerCan;
 
 	onHit(
 		sourceX: number,

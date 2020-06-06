@@ -44,3 +44,9 @@ export const randomizeAttributes = <P extends BasePlayer, A extends keyof P>(
 	});
 
 export const IS_RUNNING_ON_NODE = !!process.release;
+
+export const randomWholeNumberBetween = (min: number, max: number) =>
+	min + Math.floor(Math.random() * (max - min + 1));
+
+export const randomNumberBetween = (min: number, max: number) =>
+	min + Math.random() * (max - min);

@@ -1,13 +1,5 @@
 export default class Blood {
-	constructor(x: number, y: number, size: number) {
-		this.x = x;
-		this.y = y;
-		this.size = size;
-	}
-
-	x: number;
-	y: number;
-	size: number;
+	constructor(private x: number, private y: number, private size: number) {}
 
 	draw(ctx: CanvasRenderingContext2D) {
 		ctx.fillStyle = "#A50000";

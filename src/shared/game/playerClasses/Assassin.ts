@@ -1,10 +1,6 @@
 import BasePlayer, { CreateBloodStain } from "./BasePlayer";
 import { SCREEN_HEIGHT, SCREEN_WIDTH, SIDEBAR_WIDTH } from "../../constants";
-import {
-	checkPlayerCollision,
-	calculateVector,
-	randomizeAttributes,
-} from "./utils";
+import { calculateVector, randomizeAttributes } from "./utils";
 import { Target } from "../../types";
 
 enum AssassinState {
@@ -19,7 +15,8 @@ export default class Assassin extends BasePlayer {
 		x: number,
 		y: number,
 		createBloodStain: CreateBloodStain,
-		name: string
+		name: string,
+		private createDodgeParticles: (x: number, y: number) => void
 	) {
 		super(x, y, createBloodStain, name);
 
@@ -86,6 +83,7 @@ export default class Assassin extends BasePlayer {
 	}
 
 	dodge() {
+		this.createDodgeParticles(this.x, this.y);
 		this.dodgeCooldownLeft = this.dodgeCooldown;
 		const centerY = SCREEN_HEIGHT / 2;
 		const centerX = (SCREEN_WIDTH + SIDEBAR_WIDTH) / 2;
