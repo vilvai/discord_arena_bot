@@ -2,10 +2,10 @@ import React, { Component } from "react";
 import styled from "styled-components";
 
 import Game from "../shared/game/Game";
-import { GameData } from "../shared/types";
+import { PlayerData } from "../shared/types";
 import { SCREEN_WIDTH, SCREEN_HEIGHT, GAME_FPS } from "../shared/constants";
 import GameDataEditor from "./GameDataEditor";
-import { createMockGameData } from "../shared/mocks";
+import { createUniqueBotPlayers } from "../shared/bots";
 
 const Container = styled.div`
 	display: flex;
@@ -39,7 +39,7 @@ const Button = styled.button`
 interface Props {}
 
 interface State {
-	gameData: GameData;
+	players: PlayerData[];
 	gameLoopTimer?: number;
 }
 
@@ -48,7 +48,7 @@ export default class PreviewPage extends Component<Props, State> {
 		super(props);
 		this.canvasRef = React.createRef();
 		this.state = {
-			gameData: createMockGameData(),
+			players: createUniqueBotPlayers(5),
 		};
 	}
 
@@ -72,7 +72,7 @@ export default class PreviewPage extends Component<Props, State> {
 	handleStartSimulation = async () => {
 		if (!this.game) return;
 		clearInterval(this.state.gameLoopTimer);
-		await this.game.initializeGame(this.state.gameData);
+		await this.game.initializeGame(this.state.players);
 		this.game.draw();
 		this.setState({
 			gameLoopTimer: setInterval(() => this.gameLoop(), 1000 / GAME_FPS),
@@ -92,8 +92,8 @@ export default class PreviewPage extends Component<Props, State> {
 		});
 	};
 
-	handleGameDataChange = (gameData: GameData) => {
-		this.setState({ gameData });
+	handleChangePlayers = (players: PlayerData[]) => {
+		this.setState({ players });
 	};
 
 	render() {
@@ -119,8 +119,8 @@ export default class PreviewPage extends Component<Props, State> {
 					ref={this.canvasRef}
 				/>
 				<GameDataEditor
-					gameData={this.state.gameData}
-					onChangeGameData={this.handleGameDataChange}
+					players={this.state.players}
+					onChangePlayers={this.handleChangePlayers}
 				/>
 			</Container>
 		);

@@ -1,11 +1,10 @@
-import { GameData, PlayerClass } from "../types";
+import { PlayerClass, PlayerData } from "../types";
 import BasePlayer from "./playerClasses/BasePlayer";
 import {
 	SCREEN_HEIGHT,
 	SIDEBAR_WIDTH,
 	SCREEN_WIDTH,
 	PLAYER_STARTING_CIRCLE_RADIUS,
-	GAME_FPS,
 } from "../constants";
 import Sidebar from "./Sidebar";
 import Chungus from "./playerClasses/Chungus";
@@ -41,13 +40,10 @@ export default class Game {
 		return { x, y };
 	}
 
-	async initializeGame(gameData: GameData) {
+	async initializeGame(players: PlayerData[]) {
 		this.players = [];
-		for (const [i, playerData] of gameData.players.entries()) {
-			const { x, y } = Game.calculatePlayerStartingPosition(
-				gameData.players.length,
-				i
-			);
+		for (const [i, playerData] of players.entries()) {
+			const { x, y } = Game.calculatePlayerStartingPosition(players.length, i);
 			let player;
 			switch (playerData.playerClass) {
 				case PlayerClass.Chungus:

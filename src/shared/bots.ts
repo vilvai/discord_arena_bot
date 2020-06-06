@@ -1,12 +1,13 @@
 import { PlayerClass, PlayerData } from "./types";
 
-export const createMockGameData = () => {
-	const playerCount = 5;
+export const createUniqueBotPlayers = (
+	numberOfBotPlayers: number
+): PlayerData[] => {
 	const players = [];
 	let avatarPool = [...randomPlayerAvatarURLs];
 	let namePool = [...randomPlayerNames];
 
-	for (let i = 0; i < playerCount; i++) {
+	for (let i = 0; i < numberOfBotPlayers; i++) {
 		const randomName = getRandomItem(namePool);
 		const randomAvatar = getRandomItem(avatarPool);
 		namePool = namePool.filter((name) => name !== randomName);
@@ -15,17 +16,21 @@ export const createMockGameData = () => {
 			name: randomName,
 			playerClass: getRandomItem(Object.values(PlayerClass)),
 			avatarURL: randomAvatar,
+			id: generateRandomId(),
 		});
 	}
 
-	return { players };
+	return players;
 };
 
-export const createNewPlayer = (): PlayerData => ({
+export const createNewBotPlayer = (): PlayerData => ({
 	name: getRandomItem(randomPlayerNames),
 	playerClass: getRandomItem(Object.values(PlayerClass)),
 	avatarURL: getRandomItem(randomPlayerAvatarURLs),
+	id: generateRandomId(),
 });
+
+const generateRandomId = () => Math.random().toString().slice(2, 10);
 
 const getRandomItem = <I>(items: I[]): I =>
 	items[Math.floor(Math.random() * items.length)];

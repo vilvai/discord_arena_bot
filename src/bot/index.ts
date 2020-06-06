@@ -1,18 +1,29 @@
-import Discord from "discord.js";
-import fs from "fs";
-import { createCanvas } from "canvas";
-import ffmpeg from "fluent-ffmpeg";
-import rimraf from "rimraf";
-import { performance } from "perf_hooks";
+import Discord, { MessageOptions } from "discord.js";
 
-import { SCREEN_WIDTH, SCREEN_HEIGHT, GAME_FPS } from "../shared/constants";
 import { PlayerClass } from "../shared/types";
-import Game from "../shared/game/Game";
-import { createMockGameData } from "../shared/mocks";
+import GameRunner from "./GameRunner";
+import { createUniqueBotPlayers } from "../shared/bots";
 
 require("dotenv").config();
 
 const client = new Discord.Client();
+
+let gameRunner: GameRunner;
+
+const botCommandStartString = "/areena ";
+const acceptedCommands = [
+	{ command: "aloita", args: [], info: "aloita peli" },
+	{ command: "liity", args: [], info: "liity peliin" },
+	{ command: "botti", args: [], info: "lisää botti peliin" },
+	{
+		command: "class",
+		args: Object.values(PlayerClass).map((playerClass) =>
+			playerClass.toString()
+		),
+		info: "vaihda oma class",
+	},
+	{ command: "info", args: [], info: "näytä komennot" },
+];
 
 client.on("ready", () => {
 	if (!client.user) return;
@@ -22,84 +33,98 @@ client.on("ready", () => {
 client.on("message", async (msg) => {
 	if (!client.user) return;
 	if (msg.author.id === client.user.id) return;
-	msg.channel.send("Peli alkaa...");
 
-	const avatarURL = msg.author.displayAvatarURL({ format: "png", size: 128 });
-	const canvas = createCanvas(SCREEN_WIDTH, SCREEN_HEIGHT);
-	const ctx = canvas.getContext("2d");
+	const command = parseAndValidateCommand(msg.toString());
 
-	const mockGameData = createMockGameData();
-
-	const gameData = {
-		...mockGameData,
-		players: [
-			...mockGameData.players,
-			{
-				avatarURL,
-				playerClass: PlayerClass.Chungus,
-				name: msg.author.username,
-			},
-		],
-	};
-
-	let i = 0;
-	let endingTime = Infinity;
-	const game = new Game(ctx);
-	await game.initializeGame(gameData);
-
-	const tailTimeSeconds = 2;
-	const gameMaxTimeSeconds = 30;
-
-	const tempDirectory = "temp";
-	fs.mkdirSync(tempDirectory);
-
-	let time = performance.now();
-
-	while (i < gameMaxTimeSeconds * GAME_FPS && i < endingTime) {
-		game.draw();
-		const stream = fs.createWriteStream(
-			`${tempDirectory}/pic${i.toString().padStart(3, "0")}.jpeg`
-		);
-		stream.write(
-			canvas.toBuffer("image/jpeg", {
-				quality: 0.98,
-			}),
-			() => stream.close()
-		);
-		game.update();
-		if (game.isGameOver() && endingTime === Infinity) {
-			endingTime = i + tailTimeSeconds * GAME_FPS;
-		}
-		i++;
+	if (command === null) {
+		sendUnknownCommandText(msg);
+		return;
+	} else {
+		executeCommand(msg, command);
 	}
-
-	time = performance.now() - time;
-	console.log(
-		"game update & temp file generation took " + time.toFixed(2) + "ms"
-	);
-	time = performance.now();
-	ffmpeg()
-		.addInput(`./${tempDirectory}/pic%3d.jpeg`)
-		.inputFPS(GAME_FPS)
-		.videoFilters([`fps=${GAME_FPS}`])
-		.videoCodec("libx264")
-		.outputOptions([
-			"-preset veryfast",
-			"-crf 18",
-			"-tune film",
-			"-movflags +faststart",
-			"-profile:v high",
-			"-pix_fmt yuv420p",
-		])
-		.save("Areena_fight.mp4")
-		.on("end", () => {
-			time = performance.now() - time;
-			console.log("ffmpeg render took " + time.toFixed(2) + "ms");
-
-			rimraf(tempDirectory, (error) => error && console.log(error));
-			console.log("deleted temp files successfully");
-			msg.channel.send("", { files: ["Areena_fight.mp4"] });
-		});
 });
 
 client.login(process.env.TOKEN);
+
+const parseAndValidateCommand = (rawText: string): string[] | null => {
+	if (!rawText.startsWith(botCommandStartString)) {
+		return null;
+	}
+
+	const possibleCommand = rawText.split(botCommandStartString)[1];
+	if (!possibleCommand) {
+		return null;
+	}
+
+	const commandWithArgs = possibleCommand.split(" ");
+	if (
+		acceptedCommands.some(
+			(command) =>
+				command.command === commandWithArgs[0] &&
+				(command.args.length === 0 || command.args.includes(commandWithArgs[1]))
+		)
+	) {
+		return commandWithArgs;
+	} else {
+		return null;
+	}
+};
+
+type SendMessageFunction = (message: string, options?: MessageOptions) => void;
+
+const sendUnknownCommandText = (msg: Discord.Message) => {
+	const fullAcceptedCommands = acceptedCommands.map((command) => {
+		let fullCommandInfo = `${botCommandStartString}${command.command}`;
+		if (command.args.length > 0) {
+			fullCommandInfo += ` [${command.args.join(" | ")}]`;
+		}
+		fullCommandInfo += ` *(${command.info})*`;
+		return fullCommandInfo;
+	});
+
+	const botResponse = `Tuntematon komento. Tunnetut komennot:\n${fullAcceptedCommands.join(
+		"\n"
+	)}`;
+	msg.channel.send(botResponse);
+};
+
+const executeCommand = async (msg: Discord.Message, command: string[]) => {
+	switch (command[0]) {
+		case "aloita":
+			break;
+		case "liity":
+			break;
+		case "botti":
+			break;
+		case "class":
+			break;
+		case "info":
+			break;
+		default:
+			break;
+	}
+	msg.channel.send("Peli alkaa...");
+
+	gameRunner = new GameRunner();
+
+	const avatarURL = msg.author.displayAvatarURL({
+		format: "png",
+		size: 128,
+	});
+
+	gameRunner.addPlayer({
+		avatarURL,
+		playerClass: PlayerClass.Chungus,
+		name: msg.author.username,
+		id: msg.author.id,
+	});
+
+	createUniqueBotPlayers(4).forEach((botPlayer) =>
+		gameRunner.addPlayer(botPlayer)
+	);
+	await gameRunner.initializeGame();
+
+	await gameRunner.runGame();
+
+	msg.channel.send("", { files: ["Areena_fight.mp4"] });
+};

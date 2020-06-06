@@ -4,3 +4,5 @@ export const SIDEBAR_WIDTH = 120;
 export const ARENA_WIDTH = SCREEN_WIDTH - SIDEBAR_WIDTH;
 export const GAME_FPS = 30;
 export const PLAYER_STARTING_CIRCLE_RADIUS = 110;
+
+export const TEMP_FILE_DIRECTORY = "temp";

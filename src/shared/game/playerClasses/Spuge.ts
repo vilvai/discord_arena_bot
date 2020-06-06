@@ -160,31 +160,35 @@ export default class Spuge extends BasePlayer {
 
 	draw(ctx: CanvasRenderingContext2D) {
 		if (this.state === SpugeState.Aggro && !this.isDead()) {
-			const oldX = this.x;
-			const oldY = this.y;
-			this.x = oldX + Math.round(Math.random() * 4) - 2;
-			this.y = oldY + Math.round(Math.random() * 4) - 2;
-			this.drawAvatar(ctx);
-			ctx.save();
-			ctx.beginPath();
-			ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-			ctx.clip();
-			ctx.fillStyle = "rgba(200,0,0,0.5)";
-			ctx.fillRect(
-				this.x - this.radius,
-				this.y - this.radius,
-				this.radius * 2,
-				this.radius * 2
-			);
-			ctx.restore();
-			this.x = oldX;
-			this.y = oldY;
+			this.drawRagingAvatar(ctx);
 		} else {
 			this.drawAvatar(ctx);
 		}
 		if (this.state === SpugeState.Drinking) {
 			this.drawBeerCan(ctx);
 		}
+	}
+
+	drawRagingAvatar(ctx: CanvasRenderingContext2D) {
+		const oldX = this.x;
+		const oldY = this.y;
+		this.x = oldX + Math.round(Math.random() * 4) - 2;
+		this.y = oldY + Math.round(Math.random() * 4) - 2;
+		this.drawAvatar(ctx);
+		ctx.save();
+		ctx.beginPath();
+		ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+		ctx.clip();
+		ctx.fillStyle = "rgba(200,0,0,0.5)";
+		ctx.fillRect(
+			this.x - this.radius,
+			this.y - this.radius,
+			this.radius * 2,
+			this.radius * 2
+		);
+		ctx.restore();
+		this.x = oldX;
+		this.y = oldY;
 	}
 
 	drawBeerCan(ctx: CanvasRenderingContext2D) {

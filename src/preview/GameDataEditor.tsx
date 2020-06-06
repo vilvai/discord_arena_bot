@@ -1,8 +1,8 @@
 import React from "react";
-import { GameData, PlayerData } from "../shared/types";
+import { PlayerData } from "../shared/types";
 import styled from "styled-components";
 import PlayerDataEditor from "./PlayerDataEditor";
-import { createNewPlayer } from "../shared/mocks";
+import { createNewBotPlayer } from "../shared/bots";
 import { StyledButton } from "./UIComponents";
 
 const Container = styled.div`
@@ -17,8 +17,8 @@ const AddPlayerButton = styled(StyledButton)`
 `;
 
 interface Props {
-	gameData: GameData;
-	onChangeGameData: (gameData: GameData) => void;
+	players: PlayerData[];
+	onChangePlayers: (players: PlayerData[]) => void;
 }
 
 export default class GameDataEditor extends React.Component<Props> {
@@ -26,40 +26,31 @@ export default class GameDataEditor extends React.Component<Props> {
 		newPlayerData: Partial<PlayerData>,
 		index: number
 	) => {
-		const { gameData, onChangeGameData } = this.props;
-		const newGameData = {
-			...gameData,
-			players: gameData.players.map((oldPlayerData, i) =>
-				i === index ? { ...oldPlayerData, ...newPlayerData } : oldPlayerData
-			),
-		};
-		onChangeGameData(newGameData);
+		const { players, onChangePlayers } = this.props;
+		const newPlayers = players.map((oldPlayerData, i) =>
+			i === index ? { ...oldPlayerData, ...newPlayerData } : oldPlayerData
+		);
+		onChangePlayers(newPlayers);
 	};
 
 	handleAddPlayer = () => {
-		const { gameData, onChangeGameData } = this.props;
-		const newGameData = {
-			...gameData,
-			players: [...gameData.players, createNewPlayer()],
-		};
-		onChangeGameData(newGameData);
+		const { players, onChangePlayers } = this.props;
+		const newPlayers = [...players, createNewBotPlayer()];
+		onChangePlayers(newPlayers);
 	};
 
 	handleDeletePlayer = (index: number) => {
-		const { gameData, onChangeGameData } = this.props;
-		const newGameData = {
-			...gameData,
-			players: gameData.players.filter((_, i) => i !== index),
-		};
-		onChangeGameData(newGameData);
+		const { players, onChangePlayers } = this.props;
+		const newPlayers = players.filter((_, i) => i !== index);
+		onChangePlayers(newPlayers);
 	};
 
 	render() {
 		return (
 			<Container>
-				{this.props.gameData.players.map((playerData, i) => (
+				{this.props.players.map((playerData, i) => (
 					<PlayerDataEditor
-						key={i}
+						key={playerData.id}
 						playerIndex={i}
 						onChangePlayerData={this.handleChangePlayerData}
 						onDeletePlayer={this.handleDeletePlayer}

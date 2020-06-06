@@ -10,10 +10,7 @@ export interface PlayerData {
 	avatarURL: string;
 	playerClass: PlayerClass;
 	name: string;
-}
-
-export interface GameData {
-	players: PlayerData[];
+	id: string;
 }
 
 export interface Target {
