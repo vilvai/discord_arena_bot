@@ -17,3 +17,7 @@ export interface Target {
 	x: number;
 	y: number;
 }
+
+export interface PlayerClassesById {
+	[playerId: string]: PlayerClass;
+}

@@ -11,29 +11,65 @@ import {
 	GAME_FPS,
 	TEMP_FILE_DIRECTORY,
 } from "../shared/constants";
-import { PlayerData } from "../shared/types";
+import { PlayerData, PlayerClassesById, PlayerClass } from "../shared/types";
+
+type PlayerWithoutClass = Omit<PlayerData, "playerClass">;
+const defaultClass = PlayerClass.Fighter;
 
 export default class GameRunner {
 	constructor() {
-		this.players = [];
+		this.playersInGame = [];
 		this.canvas = createCanvas(SCREEN_WIDTH, SCREEN_HEIGHT);
+		this.playerClassesById = {};
+	}
+
+	initializeGame() {
+		this.playersInGame = [];
 		const ctx = this.canvas.getContext("2d");
 		this.game = new Game(ctx);
 	}
 
-	game: Game;
+	game?: Game;
 	canvas: Canvas;
-	players: PlayerData[];
+	playersInGame: PlayerWithoutClass[];
+	playerClassesById: PlayerClassesById;
 
-	addPlayer(player: PlayerData) {
-		this.players.push(player);
+	getPlayerCount() {
+		return this.playersInGame.length;
 	}
 
-	initializeGame = async () => {
-		await this.game.initializeGame(this.players);
-	};
+	playerInGame(id: string) {
+		return this.playersInGame.some((player) => player.id === id);
+	}
+
+	addPlayer(player: PlayerWithoutClass) {
+		this.playersInGame.push(player);
+	}
+
+	setPlayerClass(playerId: string, playerClass: PlayerClass) {
+		this.playerClassesById[playerId] = playerClass;
+	}
+
+	getCurrentPlayersWithClasses() {
+		return this.playersInGame
+			.map(
+				(player) =>
+					`${player.name} – ${
+						this.playerClassesById[player.id] || defaultClass
+					}`
+			)
+			.join("\n");
+	}
 
 	runGame = async () => {
+		if (!this.game) return;
+		const players = this.playersInGame.map((player) => ({
+			...player,
+			playerClass: this.playerClassesById[player.id] || defaultClass,
+		}));
+
+		await this.game.initializeGame(players);
+
 		let i = 0;
 		let endingTime = Infinity;
 

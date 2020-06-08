@@ -24,7 +24,7 @@ export const createUniqueBotPlayers = (
 };
 
 export const createNewBotPlayer = (): PlayerData => ({
-	name: getRandomItem(randomPlayerNames),
+	name: `${getRandomItem(randomPlayerNames)}(BOT)`,
 	playerClass: getRandomItem(Object.values(PlayerClass)),
 	avatarURL: getRandomItem(randomPlayerAvatarURLs),
 	id: generateRandomId(),

@@ -1,1 +1,2 @@
-worker: yarn start
+worker: yarn start-bot
+web: yarn start-preview
