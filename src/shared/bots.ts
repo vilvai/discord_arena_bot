@@ -8,7 +8,7 @@ export const createUniqueBotPlayers = (
 	let namePool = [...randomPlayerNames];
 
 	for (let i = 0; i < numberOfBotPlayers; i++) {
-		const randomName = getRandomItem(namePool);
+		const randomName = botifyName(getRandomItem(namePool));
 		const randomAvatar = getRandomItem(avatarPool);
 		namePool = namePool.filter((name) => name !== randomName);
 		avatarPool = avatarPool.filter((avatar) => avatar !== randomAvatar);
@@ -23,8 +23,10 @@ export const createUniqueBotPlayers = (
 	return players;
 };
 
+const botifyName = (name: string) => `${name}(BOT)`;
+
 export const createNewBotPlayer = (): PlayerData => ({
-	name: `${getRandomItem(randomPlayerNames)}(BOT)`,
+	name: botifyName(getRandomItem(randomPlayerNames)),
 	playerClass: getRandomItem(Object.values(PlayerClass)),
 	avatarURL: getRandomItem(randomPlayerAvatarURLs),
 	id: generateRandomId(),

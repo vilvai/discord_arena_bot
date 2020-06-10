@@ -10,7 +10,7 @@ const HeaderContainer = styled.div`
 	padding-right: 96px;
 	box-sizing: border-box;
 	box-shadow: 0px 3px 8px 0px rgba(0, 0, 0, 0.35);
-	background-color: #686868;
+	background-color: #2a2a2a;
 `;
 
 const Logo = styled.img`
@@ -26,7 +26,7 @@ const AreenaBotText = styled.div`
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	color: #f7f7f7;
+	color: #bbbbbb;
 	font-weight: 400;
 `;
 
