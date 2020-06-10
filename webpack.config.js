@@ -10,7 +10,7 @@ const config = {
 		filename: "bundle.js",
 	},
 	resolve: {
-		extensions: [".ts", ".tsx", ".js"],
+		extensions: [".ts", ".tsx", ".js", ".css"],
 	},
 	module: {
 		rules: [
@@ -19,7 +19,6 @@ const config = {
 				use: "babel-loader",
 				exclude: /node_modules/,
 			},
-			// all files with a `.ts` or `.tsx` extension will be handled by `ts-loader`
 			{ test: /\.tsx?$/, loader: "ts-loader", exclude: /node_modules/ },
 			{
 				test: /\.(png|jpe?g|gif)$/i,
@@ -28,6 +27,16 @@ const config = {
 						loader: "file-loader",
 					},
 				],
+			},
+			{
+				test: /\.(eot|svg|ttf|woff|woff2)$/,
+				use: {
+					loader: "url-loader",
+				},
+			},
+			{
+				test: /\.css$/i,
+				use: ["style-loader", "css-loader"],
 			},
 		],
 	},

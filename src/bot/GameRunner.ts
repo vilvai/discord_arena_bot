@@ -12,9 +12,11 @@ import {
 	TEMP_FILE_DIRECTORY,
 } from "../shared/constants";
 import { PlayerData, PlayerClassesById, PlayerClass } from "../shared/types";
+import { loadFonts } from "./loadFonts";
 
 type PlayerWithoutClass = Omit<PlayerData, "playerClass">;
 const defaultClass = PlayerClass.Fighter;
+loadFonts();
 
 export default class GameRunner {
 	constructor() {

@@ -14,11 +14,11 @@ const sharedStyle = css`
 
 export const StyledButton = styled.button`
 	${sharedStyle}
-	background-color: #eee;
+	background-color: #f3f3f3;
 	cursor: pointer;
 
 	&:hover {
-		background-color: #ddd;
+		background-color: #e4e4e4;
 	}
 `;
 

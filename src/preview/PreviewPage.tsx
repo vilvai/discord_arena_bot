@@ -6,11 +6,12 @@ import { PlayerData } from "../shared/types";
 import { SCREEN_WIDTH, SCREEN_HEIGHT, GAME_FPS } from "../shared/constants";
 import GameDataEditor from "./GameDataEditor";
 import { createUniqueBotPlayers } from "../shared/bots";
+import { StyledButton } from "./UIComponents";
+import Header from "./Header";
 
 const Container = styled.div`
 	display: flex;
 	height: 100vh;
-	padding-top: 40px;
 	flex-direction: column;
 	align-items: center;
 	background-color: #eeeeee;
@@ -26,11 +27,12 @@ const ButtonContainer = styled.div`
 
 const Canvas = styled.canvas`
 	box-shadow: 4px 3px 6px 0px rgba(0, 0, 0, 0.35);
+	margin-top: 32px;
 	background-color: white;
 `;
 
-const Button = styled.button`
-	width: 100px;
+const Button = styled(StyledButton)`
+	width: 200px;
 	&:last-child {
 		margin-left: 8px;
 	}
@@ -99,6 +101,12 @@ export default class PreviewPage extends Component<Props, State> {
 	render() {
 		return (
 			<Container>
+				<Header />
+				<Canvas
+					width={SCREEN_WIDTH}
+					height={SCREEN_HEIGHT}
+					ref={this.canvasRef}
+				/>
 				<ButtonContainer>
 					<Button onClick={this.handleStartSimulation}>
 						Restart simulation
@@ -113,11 +121,6 @@ export default class PreviewPage extends Component<Props, State> {
 						</Button>
 					)}
 				</ButtonContainer>
-				<Canvas
-					width={SCREEN_WIDTH}
-					height={SCREEN_HEIGHT}
-					ref={this.canvasRef}
-				/>
 				<GameDataEditor
 					players={this.state.players}
 					onChangePlayers={this.handleChangePlayers}

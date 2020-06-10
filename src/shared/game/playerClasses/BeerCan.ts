@@ -21,7 +21,7 @@ export const beerCanImage = beerCanImageConstructor;
 
 export const BEER_CAN_IMAGE_WIDTH = 14;
 export const BEER_CAN_IMAGE_HEIGHT = 24;
-export const CAN_DAMAGE = 5;
+export const BEER_CAN_DAMAGE = 3;
 
 export default class BeerCan {
 	constructor(
@@ -61,7 +61,7 @@ export default class BeerCan {
 	checkPlayerCollision(otherPlayers: BasePlayer[]) {
 		const collidedPlayer = checkPlayerCollision(this.x, this.y, otherPlayers);
 		if (collidedPlayer !== null) {
-			collidedPlayer.onHit(this.x, this.y, CAN_DAMAGE);
+			collidedPlayer.onHit(this.x, this.y, BEER_CAN_DAMAGE);
 			this.onDelete(this);
 		}
 	}

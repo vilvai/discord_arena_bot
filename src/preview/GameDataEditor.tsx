@@ -9,7 +9,6 @@ const Container = styled.div`
 	display: flex;
 	flex-direction: column;
 	background-color: #fff;
-	margin-top: 16px;
 `;
 
 const AddPlayerButton = styled(StyledButton)`

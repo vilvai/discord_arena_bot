@@ -36,9 +36,9 @@ export default class Spuge extends BasePlayer {
 		this.aggroModeCooldown = 150;
 		this.aggroModeCooldownLeft = this.aggroModeCooldown;
 
-		this.staggeringTime = 60;
+		this.staggeringTime = 70;
 		this.drinkingTime = 30;
-		this.aggroTime = 60;
+		this.aggroTime = 50;
 		this.maxStaggerSpeed = 1.5;
 
 		this.maxSpeed = 3;
@@ -132,7 +132,7 @@ export default class Spuge extends BasePlayer {
 
 	drink(otherPlayers: BasePlayer[]) {
 		if (this.timeUntilStateChange <= 0) {
-			this.health = Math.min(this.maxHealth, this.health + 5);
+			this.health = Math.min(this.maxHealth, this.health + 3);
 			this.throwCan(otherPlayers);
 			this.startStaggering();
 		}

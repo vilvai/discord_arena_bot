@@ -1,0 +1,33 @@
+@font-face {
+  font-family: RobotoX;
+  src: url(fonts/Roboto-Regular.tff) format("tff");
+  font-weight: 400;
+}
+@font-face {
+  font-family: RobotoX;
+  src: url(fonts/Roboto-Italic.tff) format("tff");
+  font-weight: 400;
+  font-style: italic;
+}
+@font-face {
+  font-family: RobotoX;
+  src: url(fonts/Roboto-Medium.tff) format("tff");
+  font-weight: 500;
+}
+@font-face {
+  font-family: RobotoX;
+  src: url(fonts/Roboto-MediumItalic.tff) format("tff");
+  font-weight: 500;
+  font-style: italic;
+}
+@font-face {
+  font-family: RobotoX;
+  src: url(fonts/Roboto-Bold.tff) format("tff");
+  font-weight: 700;
+}
+@font-face {
+  font-family: RobotoX;
+  src: url(fonts/Roboto-BoldItalic.tff) format("tff");
+  font-weight: 700;
+  font-style: italic;
+}

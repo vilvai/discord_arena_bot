@@ -59,7 +59,7 @@ client.on("message", async (msg) => {
 		return;
 	}
 
-	const messageWithoutMention = msg.content.replace(/<@!\d+>\ +/, "");
+	const messageWithoutMention = msg.content.replace(/<@!\d+> +/, "");
 
 	const command = parseAndValidateCommand(messageWithoutMention);
 
