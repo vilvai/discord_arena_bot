@@ -14,11 +14,27 @@ const getPlayerClassName = (player: BasePlayer) => {
 	return "FIGHTER";
 };
 
+const truncatedStrings: { [key: string]: string } = {};
+
+const memoizedTruncateText = (
+	ctx: CanvasRenderingContext2D,
+	text: string,
+	maxWidth: number
+): string => {
+	if (truncatedStrings[text]) {
+		return truncatedStrings[text];
+	} else {
+		const truncatedString = truncateText(ctx, text, maxWidth);
+		truncatedStrings[text] = truncatedString;
+		return truncatedString;
+	}
+};
+
 const truncateText = (
 	ctx: CanvasRenderingContext2D,
 	text: string,
 	maxWidth: number
-) => {
+): string => {
 	let width = ctx.measureText(text).width;
 	if (width <= maxWidth) return text;
 
@@ -97,7 +113,7 @@ export default class Sidebar {
 	drawPlayerName(ctx: CanvasRenderingContext2D, name: string) {
 		ctx.fillStyle = "#eeeeee";
 		ctx.font = `${fontWeight} 12px ${fontFamily}`;
-		const truncatedName = truncateText(
+		const truncatedName = memoizedTruncateText(
 			ctx,
 			name,
 			SIDEBAR_WIDTH - textStartX - 4
