@@ -1,8 +1,12 @@
 import fs from "fs";
 import ffmpeg from "fluent-ffmpeg";
 import rimraf from "rimraf";
-import { performance } from "perf_hooks";
-import { createCanvas, Canvas } from "canvas";
+import {
+	createCanvas,
+	Canvas,
+	PngConfig as CanvasPngConfig,
+	JpegConfig as CanvasJpegConfig,
+} from "canvas";
 
 import Game from "../shared/game/Game";
 import {
@@ -11,8 +15,15 @@ import {
 	GAME_FPS,
 	TEMP_FILE_DIRECTORY,
 } from "../shared/constants";
-import { PlayerData, PlayerClassesById, PlayerClass } from "../shared/types";
+import {
+	PlayerData,
+	PlayerClassesById,
+	PlayerClass,
+	PNGConfig,
+	JPEGConfig,
+} from "../shared/types";
 import { loadFonts } from "./loadFonts";
+import { startTimer, logTimer } from "../shared/timer";
 
 type PlayerWithoutClass = Omit<PlayerData, "playerClass">;
 const defaultClass = PlayerClass.Fighter;
@@ -65,33 +76,47 @@ export default class GameRunner {
 
 	runGame = async () => {
 		if (!this.game) return;
+		await this.initializePlayers();
+
+		const timerAction = "Game update, draw and temp file generation";
+		startTimer(timerAction);
+
+		this.runGameLoop(TEMP_FILE_DIRECTORY, ["image/jpeg", { quality: 0.98 }]);
+
+		logTimer(timerAction);
+	};
+
+	initializePlayers = async () => {
+		if (!this.game) return;
 		const players = this.playersInGame.map((player) => ({
 			...player,
 			playerClass: this.playerClassesById[player.id] || defaultClass,
 		}));
 
 		await this.game.initializeGame(players);
+	};
 
+	runGameLoop = (
+		tempDirectory: string,
+		toBufferArgs:
+			| ["image/png", CanvasPngConfig]
+			| ["image/jpeg", CanvasJpegConfig]
+	) => {
+		if (!this.game) return;
+		fs.mkdirSync(tempDirectory);
 		let i = 0;
 		let endingTime = Infinity;
 
 		const tailTimeSeconds = 2;
 		const gameMaxTimeSeconds = 30;
-
-		fs.mkdirSync(TEMP_FILE_DIRECTORY);
-
-		let time = performance.now();
-
 		while (i < gameMaxTimeSeconds * GAME_FPS && i < endingTime) {
 			this.game.draw();
 			const stream = fs.createWriteStream(
-				`${TEMP_FILE_DIRECTORY}/pic${i.toString().padStart(3, "0")}.jpeg`
+				`${tempDirectory}/pic${i.toString().padStart(3, "0")}.jpeg`
 			);
-			stream.write(
-				this.canvas.toBuffer("image/jpeg", {
-					quality: 0.98,
-				}),
-				() => stream.close()
+			const [fileType, config]: [any, any] = toBufferArgs;
+			stream.write(this.canvas.toBuffer(fileType, config), () =>
+				stream.close()
 			);
 			this.game.update();
 			if (this.game.isGameOver() && endingTime === Infinity) {
@@ -99,20 +124,14 @@ export default class GameRunner {
 			}
 			i++;
 		}
-
-		time = performance.now() - time;
-		console.log(
-			"game update & temp file generation took " + time.toFixed(2) + "ms"
-		);
-
-		await this.renderVideo();
 	};
 
-	renderVideo = async () =>
+	renderVideo = async (tempDirectory: string) =>
 		new Promise((resolve) => {
-			let time = performance.now();
+			const timerAction = "FFMpeg render";
+			startTimer(timerAction);
 			ffmpeg()
-				.addInput(`./${TEMP_FILE_DIRECTORY}/pic%3d.jpeg`)
+				.addInput(`./${tempDirectory}/pic%3d.jpeg`)
 				.inputFPS(GAME_FPS)
 				.videoFilters([`fps=${GAME_FPS}`])
 				.videoCodec("libx264")
@@ -126,10 +145,8 @@ export default class GameRunner {
 				])
 				.save("Areena_fight.mp4")
 				.on("end", () => {
-					time = performance.now() - time;
-					console.log("ffmpeg render took " + time.toFixed(2) + "ms");
-
-					rimraf(TEMP_FILE_DIRECTORY, (error) => error && console.log(error));
+					logTimer(timerAction);
+					rimraf(tempDirectory, (error) => error && console.log(error));
 					console.log("deleted temp files successfully");
 					resolve();
 				});

@@ -158,6 +158,7 @@ export default class BasePlayer {
 	}
 
 	updateBleeding() {
+		if (!this.isDead()) return;
 		if ((1 - this.health / this.maxHealth) * 0.07 > Math.random()) {
 			const size = 6 + Math.random() * 4;
 			this.createBloodStain(this.x, this.y, size);

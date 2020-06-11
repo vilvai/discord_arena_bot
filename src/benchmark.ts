@@ -1,103 +1,76 @@
-import { createCanvas, PngConfig as CanvasPngConfig, PngConfig } from "canvas";
+import { createCanvas, PngConfig as CanvasPngConfig } from "canvas";
 import fs from "fs";
 import { performance } from "perf_hooks";
 
-import Game from "./shared/game/Game";
-import { SCREEN_WIDTH, SCREEN_HEIGHT, GAME_FPS } from "./shared/constants";
 import rimraf from "rimraf";
 import { createUniqueBotPlayers } from "./shared/bots";
+import GameRunner from "./bot/GameRunner";
+import { PNGConfig, JPEGConfig } from "./shared/types";
 
-type FileType = "png" | "jpeg";
-
-interface PNGConfig {
-	fileType: "png";
-	compressionLevel: CanvasPngConfig["compressionLevel"];
-	filters: CanvasPngConfig["filters"];
-}
-
-interface JPEGConfig {
-	fileType: "jpeg";
-	quality: number;
-	progressive: boolean;
-	chromaSubsampling: boolean;
-}
+const gameRunner = new GameRunner();
 
 const renderGame = async (config: PNGConfig | JPEGConfig) => {
-	const canvas = createCanvas(SCREEN_WIDTH, SCREEN_HEIGHT);
-	const ctx = canvas.getContext("2d");
+	gameRunner.initializeGame();
 
-	let i = 0;
-	let endingTime = Infinity;
-	const game = new Game(ctx);
-	await game.initializeGame(createUniqueBotPlayers(5));
+	createUniqueBotPlayers(5).forEach(({ playerClass, ...botPlayer }) => {
+		gameRunner.addPlayer(botPlayer);
+		gameRunner.setPlayerClass(botPlayer.id, playerClass);
+	});
 
-	const tailTimeSeconds = 2;
+	let customTempDirectory: string;
+	let customToBufferArgs;
 
-	let tempDirectory: string;
 	if (config.fileType === "png") {
 		const { fileType, filters, compressionLevel } = config;
-		tempDirectory = `temp-${fileType}-f${filters}-c${compressionLevel}`;
-	} else {
-		const { fileType, quality, progressive, chromaSubsampling } = config;
-		tempDirectory = `temp-${fileType}-q${quality}-p${progressive}-c${chromaSubsampling}`;
-	}
-
-	fs.mkdirSync(tempDirectory);
-
-	let time = performance.now();
-
-	while (i < 20 * GAME_FPS && i < endingTime) {
-		game.draw();
-		const writeStream = fs.createWriteStream(
-			`${tempDirectory}/pic${i.toString().padStart(3, "0")}.${config.fileType}`
-		);
-		let buffer: Buffer;
-		if (config.fileType === "png") {
-			const { filters, compressionLevel } = config;
-			buffer = canvas.toBuffer("image/png", {
+		customTempDirectory = `temp-${fileType}-f${filters}-c${compressionLevel}`;
+		customToBufferArgs = [
+			"image/png",
+			{
 				compressionLevel,
 				filters,
-			});
-		} else {
-			const { quality, progressive, chromaSubsampling } = config;
-			buffer = canvas.toBuffer("image/jpeg", {
+			},
+		];
+	} else {
+		const { fileType, quality, progressive, chromaSubsampling } = config;
+		customTempDirectory = `temp-${fileType}-q${quality}-p${progressive}-c${chromaSubsampling}`;
+		customToBufferArgs = [
+			"image/jpeg",
+			{
 				quality,
 				progressive,
 				chromaSubsampling,
-			});
-		}
-
-		writeStream.write(buffer, () => writeStream.close());
-		game.update();
-		if (game.isGameOver() && endingTime === Infinity) {
-			endingTime = i + tailTimeSeconds * GAME_FPS;
-		}
-		i++;
+			},
+		];
 	}
 
-	time = performance.now() - time;
-	const updateTime = time;
+	await gameRunner.initializePlayers();
+
+	const updateTimeStart = performance.now();
+	gameRunner.runGameLoop(customTempDirectory, customToBufferArgs as any);
+	const updateTime = performance.now() - updateTimeStart;
 
 	setTimeout(() => {
-		const tempDirectorySize = fs
-			.readdirSync(tempDirectory)
-			.reduce(
-				(acc, fileName) =>
-					acc + fs.statSync(`${tempDirectory}/${fileName}`).size,
-				0
-			);
+		const tempFiles = fs.readdirSync(customTempDirectory);
+		const tempDirectorySize = tempFiles.reduce(
+			(acc, fileName) =>
+				acc + fs.statSync(`${customTempDirectory}/${fileName}`).size,
+			0
+		);
+
+		const frameCount = tempFiles.length;
 
 		console.log({
-			frames: i,
+			frameCount,
 			...config,
-			timePerFrame: (updateTime / i).toFixed(2) + "ms",
-			sizePerFrame: (tempDirectorySize / 1024 / i).toFixed(2) + "kB",
+			timePerFrame: (updateTime / frameCount).toFixed(2) + "ms",
+			sizePerFrame: (tempDirectorySize / 1024 / frameCount).toFixed(2) + "kB",
 		});
 
-		//rimraf(`${tempDirectory}`, (error) => error && console.log(error));
+		rimraf(`${customTempDirectory}`, (error) => error && console.log(error));
 	}, 100);
 };
 
+type FileType = "png" | "jpeg";
 const benchmarkCompressionLevels = async (fileType: FileType | "all") => {
 	if (fileType === "png" || fileType === "all") {
 		const canvas = createCanvas(0, 0);
@@ -110,7 +83,7 @@ const benchmarkCompressionLevels = async (fileType: FileType | "all") => {
 			) {
 				await renderGame({
 					fileType: "png",
-					compressionLevel: compressionLevel as PngConfig["compressionLevel"],
+					compressionLevel: compressionLevel as CanvasPngConfig["compressionLevel"],
 					filters,
 				});
 			}

@@ -4,6 +4,7 @@ import { PlayerClass } from "../shared/types";
 import GameRunner from "./GameRunner";
 import { createNewBotPlayer } from "../shared/bots";
 import { GAME_COUNTDOWN_SECONDS } from "../shared/constants";
+import { startTimer, logTimer } from "../shared/timer";
 
 require("dotenv").config();
 
@@ -22,9 +23,9 @@ let countDownLeft = 0;
 
 let botMention = "";
 const acceptedCommands = [
-	{ command: "aloita", info: "aloita peli" },
-	{ command: "liity", info: "liity peliin" },
-	{ command: "botti", info: "lisää botti peliin" },
+	{ command: "aloita", info: "aloita taistelu" },
+	{ command: "liity", info: "liity taisteluun" },
+	{ command: "botti", info: "lisää botti taisteluun" },
 	{ command: "class", info: "vaihda oma class" },
 	{ command: "info", info: "näytä komennot" },
 ];
@@ -53,6 +54,7 @@ client.on("message", async (msg) => {
 	const mentionedUsers = msg.mentions.users;
 	if (
 		!client.user ||
+		msg.channel.type !== "text" ||
 		mentionedUsers.size !== 1 ||
 		mentionedUsers.first()!.id !== client.user.id
 	) {
@@ -104,12 +106,12 @@ const executeCommand = async (
 				botState = BotState.Countdown;
 				countDownLeft = GAME_COUNTDOWN_SECONDS;
 				await msg.channel.send(
-					`Peli alkaa ${countDownLeft} sekunnin kuluttua. Liittykää peliin komennolla ${botMention} liity`
+					`Taistelu alkaa ${countDownLeft} sekunnin kuluttua. Liittykää taisteluun komennolla ${botMention} liity`
 				);
 				setTimeout(() => countDown(msg), 1000);
 			} else {
 				await msg.channel.send(
-					`Peli on jo käynnissä. Liity peliin komennolla ${botMention} liity.`
+					`Taistelu on jo alkamassa. Liity taisteluun komennolla ${botMention} liity.`
 				);
 			}
 			break;
@@ -125,7 +127,7 @@ const executeCommand = async (
 				}
 				case BotState.Ready: {
 					await msg.channel.send(
-						`Ei käynnissä olevaa peliä. Aloita peli komennolla ${botMention} aloita`
+						`Ei käynnissä olevaa taistelua. Aloita taistelu komennolla ${botMention} aloita`
 					);
 					break;
 				}
@@ -146,7 +148,7 @@ const executeCommand = async (
 				}
 				case BotState.Ready: {
 					await msg.channel.send(
-						`Ei käynnissä olevaa peliä. Aloita peli komennolla ${botMention} aloita`
+						`Ei käynnissä olevaa taistelua. Aloita taistelu komennolla ${botMention} aloita`
 					);
 					break;
 				}
@@ -201,20 +203,25 @@ const countDown = async (msg: Discord.Message) => {
 		return;
 	}
 	if (countDownLeft % 10 === 0 || countDownLeft === 5) {
-		await msg.channel.send(`Peli alkaa ${countDownLeft} sekunnin kuluttua.`);
+		await msg.channel.send(
+			`Taistelu alkaa ${countDownLeft} sekunnin kuluttua.`
+		);
 	}
 	setTimeout(() => countDown(msg), 1000);
 };
 
 const runGame = async (msg: Discord.Message) => {
+	await deleteBotMessages(msg);
 	if (gameRunner.getPlayerCount() > 1) {
 		botState = BotState.Rendering;
-		await msg.channel.send("Peli alkaa...");
+		await msg.channel.send(
+			`Taistelu alkaa. Osallistujat:\n${gameRunner.getCurrentPlayersWithClasses()}`
+		);
 		await gameRunner.runGame();
 		await msg.channel.send("", { files: ["Areena_fight.mp4"] });
 	} else {
 		await msg.channel.send(
-			`Pelissä oli liian vähän osallistujia. Aloita uusi peli komennolla ${botMention} aloita`
+			`Taistelussa oli liian vähän osallistujia. Aloita uusi taistelu komennolla ${botMention} aloita`
 		);
 	}
 	botState = BotState.Ready;
@@ -224,3 +231,18 @@ const printPlayersInGame = async (msg: Discord.Message) =>
 	await msg.channel.send(
 		`Osallistujat:\n${gameRunner.getCurrentPlayersWithClasses()}\nVaihda class komennolla ${botMention} class ${acceptedClassesAsString}`
 	);
+
+const deleteBotMessages = async (msg: Discord.Message) => {
+	startTimer("Fetching messages");
+	const messages = await msg.channel.messages.fetch({ limit: 100 });
+	logTimer("Fetching messages");
+	const messagesToDelete = messages.filter((message) => {
+		if (!client || !client.user) return false;
+		return (
+			message.author.id === client.user.id || message.mentions.has(client.user)
+		);
+	});
+	startTimer("Deleting messages");
+	await msg.channel.bulkDelete(messagesToDelete);
+	logTimer("Deleting messages");
+};

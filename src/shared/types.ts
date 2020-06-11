@@ -1,3 +1,5 @@
+import { PngConfig as CanvasPngConfig } from "canvas";
+
 export enum PlayerClass {
 	Spuge = "spuge",
 	Teekkari = "teekkari",
@@ -20,4 +22,17 @@ export interface Target {
 
 export interface PlayerClassesById {
 	[playerId: string]: PlayerClass;
+}
+
+export interface PNGConfig {
+	fileType: "png";
+	compressionLevel: CanvasPngConfig["compressionLevel"];
+	filters: CanvasPngConfig["filters"];
+}
+
+export interface JPEGConfig {
+	fileType: "jpeg";
+	quality: number;
+	progressive: boolean;
+	chromaSubsampling: boolean;
 }
