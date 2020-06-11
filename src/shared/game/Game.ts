@@ -118,6 +118,12 @@ export default class Game {
 	createDodgeParticles = (x: number, y: number) =>
 		this.particleHandler.createDodgeParticles(x, y);
 
+	getWinnerName = () => {
+		const alivePlayers = this.players.filter((player) => !player.isDead());
+		if (alivePlayers.length === 1) return alivePlayers[0].name;
+		else return null;
+	};
+
 	update() {
 		this.players.forEach((player) => {
 			const otherPlayers = this.players.filter(

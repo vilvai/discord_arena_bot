@@ -36,3 +36,12 @@ export interface JPEGConfig {
 	progressive: boolean;
 	chromaSubsampling: boolean;
 }
+
+export enum GameEndReason {
+	PlayerWon = "playerWon",
+	TimeUp = "timeUp",
+}
+
+export type GameEndData =
+	| { gameEndReason: GameEndReason.TimeUp }
+	| { gameEndReason: GameEndReason.PlayerWon; winnerName: string | null };

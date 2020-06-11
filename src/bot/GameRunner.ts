@@ -19,8 +19,8 @@ import {
 	PlayerData,
 	PlayerClassesById,
 	PlayerClass,
-	PNGConfig,
-	JPEGConfig,
+	GameEndReason,
+	GameEndData,
 } from "../shared/types";
 import { loadFonts } from "./loadFonts";
 import { startTimer, logTimer } from "../shared/timer";
@@ -81,9 +81,14 @@ export default class GameRunner {
 		const timerAction = "Game update, draw and temp file generation";
 		startTimer(timerAction);
 
-		this.runGameLoop(TEMP_FILE_DIRECTORY, ["image/jpeg", { quality: 0.98 }]);
+		const gameEndData = this.runGameLoop(TEMP_FILE_DIRECTORY, [
+			"image/jpeg",
+			{ quality: 0.98 },
+		]);
 
 		logTimer(timerAction);
+		await this.renderVideo(TEMP_FILE_DIRECTORY);
+		return gameEndData;
 	};
 
 	initializePlayers = async () => {
@@ -103,6 +108,9 @@ export default class GameRunner {
 			| ["image/jpeg", CanvasJpegConfig]
 	) => {
 		if (!this.game) return;
+		let gameEndData: GameEndData = {
+			gameEndReason: GameEndReason.TimeUp,
+		};
 		fs.mkdirSync(tempDirectory);
 		let i = 0;
 		let endingTime = Infinity;
@@ -121,9 +129,14 @@ export default class GameRunner {
 			this.game.update();
 			if (this.game.isGameOver() && endingTime === Infinity) {
 				endingTime = i + tailTimeSeconds * GAME_FPS;
+				gameEndData = {
+					gameEndReason: GameEndReason.PlayerWon,
+					winnerName: this.game.getWinnerName(),
+				};
 			}
 			i++;
 		}
+		return gameEndData;
 	};
 
 	renderVideo = async (tempDirectory: string) =>

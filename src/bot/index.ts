@@ -1,6 +1,6 @@
 import Discord from "discord.js";
 
-import { PlayerClass } from "../shared/types";
+import { PlayerClass, GameEndReason, GameEndData } from "../shared/types";
 import GameRunner from "./GameRunner";
 import { createNewBotPlayer } from "../shared/bots";
 import { GAME_COUNTDOWN_SECONDS } from "../shared/constants";
@@ -13,13 +13,14 @@ const client = new Discord.Client();
 const gameRunner: GameRunner = new GameRunner();
 
 enum BotState {
-	Ready = "ready",
+	Waiting = "waiting",
 	Countdown = "countdown",
 	Rendering = "rendering",
 }
 
-let botState: BotState = BotState.Ready;
+let botState: BotState = BotState.Waiting;
 let countDownLeft = 0;
+let currentParticipantMessage: Discord.Message;
 
 let botMention = "";
 const acceptedCommands = [
@@ -35,18 +36,24 @@ const acceptedClasses = Object.values(PlayerClass).map((playerClass) =>
 );
 const acceptedClassesAsString = `[${acceptedClasses.join(" | ")}]`;
 
-const acceptedCommandsAsString = acceptedCommands.map((command) => {
-	let fullCommandInfo = `${botMention} ${command.command}`;
-	if (command.command === "class") {
-		fullCommandInfo += ` ${acceptedClassesAsString}`;
-	}
-	fullCommandInfo += ` *(${command.info})*`;
-	return fullCommandInfo;
-});
+let acceptedCommandsAsString = "";
+const setAcceptedCommandsAsString = () => {
+	acceptedCommandsAsString = acceptedCommands
+		.map((command) => {
+			let fullCommandInfo = `${botMention} ${command.command}`;
+			if (command.command === "class") {
+				fullCommandInfo += ` ${acceptedClassesAsString}`;
+			}
+			fullCommandInfo += ` *(${command.info})*`;
+			return fullCommandInfo;
+		})
+		.join("\n");
+};
 
 client.on("ready", () => {
 	if (!client.user) return;
 	botMention = `@${client.user.username}`;
+	setAcceptedCommandsAsString();
 	console.log(`Logged in as ${client.user.tag}!`);
 });
 
@@ -62,7 +69,6 @@ client.on("message", async (msg) => {
 	}
 
 	const messageWithoutMention = msg.content.replace(/<@!?\d+> +/, "");
-
 	const command = parseAndValidateCommand(messageWithoutMention);
 
 	if (command === null) {
@@ -76,20 +82,11 @@ client.login(process.env.TOKEN);
 
 const parseAndValidateCommand = (rawText: string): string[] | null => {
 	const commandWithArgs = rawText.split(" ");
-	if (
-		acceptedCommands.some((command) => command.command === commandWithArgs[0])
-	) {
-		return commandWithArgs;
-	} else {
-		return null;
-	}
-};
-
-const sendUnknownCommandText = async (msg: Discord.Message) => {
-	const botResponse = `Tuntematon komento. Tunnetut komennot:\n${acceptedCommandsAsString.join(
-		"\n"
-	)}`;
-	await msg.channel.send(botResponse);
+	return acceptedCommands.some(
+		(command) => command.command === commandWithArgs[0]
+	)
+		? commandWithArgs
+		: null;
 };
 
 const executeCommand = async (
@@ -100,7 +97,7 @@ const executeCommand = async (
 
 	switch (command) {
 		case "aloita": {
-			if (botState === BotState.Ready) {
+			if (botState === BotState.Waiting) {
 				gameRunner.initializeGame();
 				addPlayerToGame(msg);
 				botState = BotState.Countdown;
@@ -114,28 +111,23 @@ const executeCommand = async (
 					`Taistelu on jo alkamassa. Liity taisteluun komennolla ${botMention} liity.`
 				);
 			}
-			break;
+			return;
 		}
 		case "liity": {
 			switch (botState) {
 				case BotState.Countdown: {
-					if (!gameRunner.playerInGame(msg.author.id)) {
-						addPlayerToGame(msg);
-					}
-					await printPlayersInGame(msg);
-					break;
+					if (!gameRunner.playerInGame(msg.author.id)) addPlayerToGame(msg);
+					await sendPlayersInGameText(msg);
+					return;
 				}
-				case BotState.Ready: {
-					await msg.channel.send(
-						`Ei käynnissä olevaa taistelua. Aloita taistelu komennolla ${botMention} aloita`
-					);
-					break;
+				case BotState.Waiting: {
+					await sendNoGameInProgressText(msg);
+					return;
 				}
 				default: {
-					break;
+					return;
 				}
 			}
-			break;
 		}
 		case "botti": {
 			switch (botState) {
@@ -143,20 +135,17 @@ const executeCommand = async (
 					const { playerClass, ...botPlayer } = createNewBotPlayer();
 					gameRunner.addPlayer(botPlayer);
 					gameRunner.setPlayerClass(botPlayer.id, playerClass);
-					await printPlayersInGame(msg);
-					break;
+					await sendPlayersInGameText(msg);
+					return;
 				}
-				case BotState.Ready: {
-					await msg.channel.send(
-						`Ei käynnissä olevaa taistelua. Aloita taistelu komennolla ${botMention} aloita`
-					);
-					break;
+				case BotState.Waiting: {
+					await sendNoGameInProgressText(msg);
+					return;
 				}
 				default: {
-					break;
+					return;
 				}
 			}
-			break;
 		}
 		case "class": {
 			const possibleClass = commandWithArgs[1];
@@ -171,14 +160,14 @@ const executeCommand = async (
 					`Valittavat classit: ${acceptedClassesAsString}`
 				);
 			}
-			break;
+			return;
 		}
 		case "info": {
 			await msg.channel.send(acceptedCommandsAsString);
-			break;
+			return;
 		}
 		default: {
-			break;
+			return;
 		}
 	}
 };
@@ -212,24 +201,57 @@ const countDown = async (msg: Discord.Message) => {
 
 const runGame = async (msg: Discord.Message) => {
 	await deleteBotMessages(msg);
-	if (gameRunner.getPlayerCount() > 1) {
-		botState = BotState.Rendering;
-		await msg.channel.send(
-			`Taistelu alkaa. Osallistujat:\n${gameRunner.getCurrentPlayersWithClasses()}`
-		);
-		await gameRunner.runGame();
-		await msg.channel.send("", { files: ["Areena_fight.mp4"] });
-	} else {
+
+	if (gameRunner.getPlayerCount() <= 1) {
 		await msg.channel.send(
 			`Taistelussa oli liian vähän osallistujia. Aloita uusi taistelu komennolla ${botMention} aloita`
 		);
+	} else {
+		botState = BotState.Rendering;
+		const gameStartMessage = await msg.channel.send(
+			`Taistelu alkaa. Osallistujat:\n${gameRunner.getCurrentPlayersWithClasses()}`
+		);
+		const gameEndData = await gameRunner.runGame();
+		if (gameStartMessage.deletable) gameStartMessage.delete();
+		if (!gameEndData) return;
+
+		const gameEndText = getGameEndText(gameEndData);
+		await msg.channel.send(gameEndText, { files: ["Areena_fight.mp4"] });
 	}
-	botState = BotState.Ready;
+	botState = BotState.Waiting;
 };
 
-const printPlayersInGame = async (msg: Discord.Message) =>
-	await msg.channel.send(
+const getGameEndText = (gameEndData: GameEndData) => {
+	let gameEndText = "";
+	if (gameEndData.gameEndReason === GameEndReason.TimeUp) {
+		gameEndText = "Taistelu päättyi koska aika loppui kesken";
+	} else {
+		const winnerName = gameEndData.winnerName;
+		const winnerText = winnerName
+			? `${winnerName} voitti!`
+			: "Kukaan ei voittanut";
+		gameEndText = `Taistelu päättyi. ${winnerText}`;
+	}
+	return gameEndText;
+};
+
+const sendPlayersInGameText = async (msg: Discord.Message) => {
+	if (currentParticipantMessage && currentParticipantMessage.deletable) {
+		currentParticipantMessage.delete();
+	}
+	currentParticipantMessage = await msg.channel.send(
 		`Osallistujat:\n${gameRunner.getCurrentPlayersWithClasses()}\nVaihda class komennolla ${botMention} class ${acceptedClassesAsString}`
+	);
+};
+
+const sendUnknownCommandText = async (msg: Discord.Message) =>
+	await msg.channel.send(
+		`Tuntematon komento. Tunnetut komennot:\n${acceptedCommandsAsString}`
+	);
+
+const sendNoGameInProgressText = async (msg: Discord.Message) =>
+	await msg.channel.send(
+		`Ei käynnissä olevaa taistelua. Aloita taistelu komennolla ${botMention} aloita`
 	);
 
 const deleteBotMessages = async (msg: Discord.Message) => {
