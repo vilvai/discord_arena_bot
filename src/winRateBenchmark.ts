@@ -35,11 +35,9 @@ const playerClassToClassName = {
 	[PlayerClass.Teekkari]: "TEEKKARI",
 };
 
-const runGames = async () => {
-	const numberOfGames = 10;
-	const playerCount = 5;
+const runGames = async (numberOfGames: number, numberOfPlayers: number) => {
 	for (let i = 0; i < numberOfGames; i++) {
-		const randomPlayers = createUniqueBotPlayers(playerCount);
+		const randomPlayers = createUniqueBotPlayers(numberOfPlayers);
 		const winner = await runGame(randomPlayers);
 
 		randomPlayers.forEach((player) => {
@@ -47,7 +45,7 @@ const runGames = async () => {
 				dataByClass[playerClassToClassName[player.playerClass]] = {
 					wins: 0,
 					games: 0,
-					winRate: "0%",
+					winRate: "0",
 				};
 			}
 			dataByClass[playerClassToClassName[player.playerClass]].games += 1;
@@ -61,16 +59,32 @@ const runGames = async () => {
 	Object.values(dataByClass).forEach((classData) => {
 		classData.winRate = `${((classData.wins / classData.games) * 100).toFixed(
 			2
-		)}%`;
+		)}`;
 	});
 
-	console.log(`Ran ${numberOfGames} games with ${playerCount} players`);
+	console.log(`Ran ${numberOfGames} games with ${numberOfPlayers} players`);
 
-	Object.entries(dataByClass).forEach(([playerClass, classData]) => {
+	const dataByClassEntries = Object.entries(dataByClass).sort(
+		(firstElement, secondElement) =>
+			Number(secondElement[1].winRate) - Number(firstElement[1].winRate)
+	);
+
+	dataByClassEntries.forEach(([playerClass, classData]) => {
 		console.log(
-			`${playerClass}:     \t Winrate: ${classData.winRate}\tWins: ${classData.wins}\t Games: ${classData.games}`
+			`${playerClass}:     \tWinrate: ${classData.winRate}%    \tWins: ${classData.wins}     \tGames: ${classData.games}`
 		);
 	});
 };
 
-runGames();
+const scriptArguments = process.argv.slice(2);
+
+const numberOfGames =
+	scriptArguments[0] && Number(scriptArguments[0])
+		? Number(scriptArguments[0])
+		: 1000;
+const numberOfPlayers =
+	scriptArguments[1] && Number(scriptArguments[1])
+		? Number(scriptArguments[1])
+		: 5;
+
+runGames(numberOfGames, numberOfPlayers);

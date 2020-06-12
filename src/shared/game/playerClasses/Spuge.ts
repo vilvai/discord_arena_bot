@@ -33,10 +33,10 @@ export default class Spuge extends BasePlayer {
 		private createBeerCan: CreateBeerCan
 	) {
 		super(x, y, createBloodStain, name);
-		this.aggroModeCooldown = 150;
+		this.aggroModeCooldown = 170;
 		this.aggroModeCooldownLeft = this.aggroModeCooldown;
 
-		this.staggeringTime = 70;
+		this.staggeringTime = 90;
 		this.drinkingTime = 30;
 		this.aggroTime = 50;
 		this.maxStaggerSpeed = 1.5;
