@@ -149,11 +149,8 @@ export default class Game {
 	draw() {
 		this.ctx.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 		this.ctx.resetTransform();
-		//this.ctx.imageSmoothingQuality = "high";
 		// @ts-ignore textDrawingMode exists on node-canvas
 		if (this.ctx.textDrawingMode) this.ctx.textDrawingMode = "path";
-		// @ts-ignore antialias exists on node-canvas
-		//if (this.ctx.antialias) this.ctx.antialias = "subpixel";
 
 		const deadPlayers = this.players.filter((player) => player.isDead());
 		const alivePlayers = this.players.filter((player) => !player.isDead());

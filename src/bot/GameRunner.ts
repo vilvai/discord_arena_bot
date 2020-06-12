@@ -111,6 +111,7 @@ export default class GameRunner {
 		let gameEndData: GameEndData = {
 			gameEndReason: GameEndReason.TimeUp,
 		};
+		rimraf.sync(tempDirectory);
 		fs.mkdirSync(tempDirectory);
 		let i = 0;
 		let endingTime = Infinity;

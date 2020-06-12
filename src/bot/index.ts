@@ -50,6 +50,8 @@ const setAcceptedCommandsAsString = () => {
 		.join("\n");
 };
 
+client.login(process.env.TOKEN);
+
 client.on("ready", () => {
 	if (!client.user) return;
 	botMention = `@${client.user.username}`;
@@ -58,17 +60,11 @@ client.on("ready", () => {
 });
 
 client.on("message", async (msg) => {
-	const mentionedUsers = msg.mentions.users;
-	if (
-		!client.user ||
-		msg.channel.type !== "text" ||
-		mentionedUsers.size !== 1 ||
-		mentionedUsers.first()!.id !== client.user.id
-	) {
+	if (!client.user || msg.channel.type !== "text" || !messageMentionsBot(msg)) {
 		return;
 	}
 
-	const messageWithoutMention = msg.content.replace(/<@!?\d+> +/, "");
+	const messageWithoutMention = msg.content.replace(/<@.*> +/, "");
 	const command = parseAndValidateCommand(messageWithoutMention);
 
 	if (command === null) {
@@ -78,7 +74,17 @@ client.on("message", async (msg) => {
 	}
 });
 
-client.login(process.env.TOKEN);
+const messageMentionsBot = (msg: Discord.Message): boolean => {
+	if (!client.user) return false;
+	const mentionedUsers = msg.mentions.users;
+	const mentionedRoles = msg.mentions.roles;
+	const mentionsBotUser =
+		mentionedUsers.size === 1 && mentionedUsers.first()!.id === client.user.id;
+	const mentionsBotRole =
+		mentionedRoles.size === 1 &&
+		mentionedRoles.first()!.members.has(client.user.id);
+	return mentionsBotUser || mentionsBotRole;
+};
 
 const parseAndValidateCommand = (rawText: string): string[] | null => {
 	const commandWithArgs = rawText.split(" ");
@@ -209,7 +215,7 @@ const runGame = async (msg: Discord.Message) => {
 	} else {
 		botState = BotState.Rendering;
 		const gameStartMessage = await msg.channel.send(
-			`Taistelu alkaa. Osallistujat:\n${gameRunner.getCurrentPlayersWithClasses()}`
+			`**Taistelu alkaa. Osallistujat:**\n${gameRunner.getCurrentPlayersWithClasses()}`
 		);
 		const gameEndData = await gameRunner.runGame();
 		if (gameStartMessage.deletable) gameStartMessage.delete();
@@ -240,7 +246,7 @@ const sendPlayersInGameText = async (msg: Discord.Message) => {
 		currentParticipantMessage.delete();
 	}
 	currentParticipantMessage = await msg.channel.send(
-		`Osallistujat:\n${gameRunner.getCurrentPlayersWithClasses()}\nVaihda class komennolla ${botMention} class ${acceptedClassesAsString}`
+		`**Osallistujat:**\n${gameRunner.getCurrentPlayersWithClasses()}\n\nVaihda class komennolla ${botMention} class ${acceptedClassesAsString}`
 	);
 };
 
@@ -259,10 +265,8 @@ const deleteBotMessages = async (msg: Discord.Message) => {
 	const messages = await msg.channel.messages.fetch({ limit: 100 });
 	logTimer("Fetching messages");
 	const messagesToDelete = messages.filter((message) => {
-		if (!client || !client.user) return false;
-		return (
-			message.author.id === client.user.id || message.mentions.has(client.user)
-		);
+		if (!client.user) return false;
+		return message.author.id === client.user.id || messageMentionsBot(message);
 	});
 	startTimer("Deleting messages");
 	await msg.channel.bulkDelete(messagesToDelete);
