@@ -9,7 +9,7 @@
     "start-preview": "node server.js",
     "start-bot-dev": "ts-node ./src/bot/index.ts",
     "start-preview-dev": "start http://localhost:8080/ && webpack-dev-server --hot --mode development",
-    "run-ffmpeg": "ts-node ./src/ffmpeg.ts",
+    "run-benchmark-win-rate": "ts-node ./src/winRateBenchmark.ts",
     "run-benchmark": "ts-node ./src/benchmark.ts",
     "lint": "eslint . --ext .tsx,.ts,.js",
     "test": "jest",

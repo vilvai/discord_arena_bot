@@ -1,6 +1,6 @@
 import BasePlayer from "./BasePlayer";
-import { TURRET_DAMAGE } from "./Turret";
-import { isOutsideMap, checkPlayerCollision } from "./utils";
+import { isOutsideMap, checkPlayerCollision } from "../utils";
+import { TURRET_DAMAGE } from "../../constants";
 
 export default class Bullet {
 	constructor(

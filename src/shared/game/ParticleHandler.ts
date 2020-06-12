@@ -1,8 +1,5 @@
 import Particle from "./Particle";
-import {
-	randomWholeNumberBetween,
-	randomNumberBetween,
-} from "./playerClasses/utils";
+import { randomWholeNumberBetween, randomNumberBetween } from "./utils";
 import { GAME_FPS } from "../constants";
 
 export default class ParticleHandler {

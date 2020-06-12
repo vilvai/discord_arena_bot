@@ -4,7 +4,7 @@ import {
 	findRandomAliveTarget,
 	calculateVector,
 	randomizeAttributes,
-} from "./utils";
+} from "../utils";
 
 export type CreateBloodStain = (x: number, y: number, size: number) => void;
 

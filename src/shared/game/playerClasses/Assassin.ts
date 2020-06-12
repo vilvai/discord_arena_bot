@@ -1,6 +1,6 @@
 import BasePlayer, { CreateBloodStain } from "./BasePlayer";
 import { SCREEN_HEIGHT, SCREEN_WIDTH, SIDEBAR_WIDTH } from "../../constants";
-import { calculateVector, randomizeAttributes } from "./utils";
+import { calculateVector, randomizeAttributes } from "../utils";
 import { Target } from "../../types";
 
 enum AssassinState {

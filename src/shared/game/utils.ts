@@ -1,5 +1,5 @@
-import BasePlayer from "./BasePlayer";
-import { SCREEN_WIDTH, SIDEBAR_WIDTH, SCREEN_HEIGHT } from "../../constants";
+import BasePlayer from "./playerClasses/BasePlayer";
+import { SCREEN_WIDTH, SIDEBAR_WIDTH, SCREEN_HEIGHT } from "../constants";
 
 export const findRandomAliveTarget = (players: BasePlayer[]): BasePlayer => {
 	const alivePlayers = players.filter((player) => !player.isDead());
@@ -42,8 +42,6 @@ export const randomizeAttributes = <P extends BasePlayer, A extends keyof P>(
 	attributes.forEach((attribute) => {
 		(player[attribute] as any) *= Math.random() * 0.2 + 0.9;
 	});
-
-export const IS_RUNNING_ON_NODE = !!process.release;
 
 export const randomWholeNumberBetween = (min: number, max: number) =>
 	min + Math.floor(Math.random() * (max - min + 1));

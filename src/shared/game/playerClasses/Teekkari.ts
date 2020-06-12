@@ -5,7 +5,7 @@ import {
 	SCREEN_HEIGHT,
 	ARENA_WIDTH,
 } from "../../constants";
-import { calculateVector, randomizeAttributes } from "./utils";
+import { calculateVector, randomizeAttributes } from "../utils";
 import { Target } from "../../types";
 
 enum TeekkariState {

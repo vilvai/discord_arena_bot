@@ -130,9 +130,10 @@ export default class GameRunner {
 			this.game.update();
 			if (this.game.isGameOver() && endingTime === Infinity) {
 				endingTime = i + tailTimeSeconds * GAME_FPS;
+				const winner = this.game.getWinner();
 				gameEndData = {
 					gameEndReason: GameEndReason.PlayerWon,
-					winnerName: this.game.getWinnerName(),
+					winnerName: winner ? winner.name : null,
 				};
 			}
 			i++;

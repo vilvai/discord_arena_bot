@@ -1,18 +1,6 @@
-import { SIDEBAR_WIDTH, SCREEN_HEIGHT } from "../constants";
+import { SIDEBAR_WIDTH, SCREEN_HEIGHT, IS_RUNNING_ON_NODE } from "../constants";
 import BasePlayer from "./playerClasses/BasePlayer";
-import Chungus from "./playerClasses/Chungus";
-import Teekkari from "./playerClasses/Teekkari";
-import Spuge from "./playerClasses/Spuge";
-import Assassin from "./playerClasses/Assassin";
-import { IS_RUNNING_ON_NODE } from "./playerClasses/utils";
-
-const getPlayerClassName = (player: BasePlayer) => {
-	if (player instanceof Chungus) return "CHUNGUS";
-	if (player instanceof Teekkari) return "TEEKKARI";
-	if (player instanceof Spuge) return "SPUGE";
-	if (player instanceof Assassin) return "ASSASSIN";
-	return "FIGHTER";
-};
+import { getPlayerClassName } from "./playerClasses/getPlayerClassName";
 
 const truncatedStrings: { [key: string]: string } = {};
 

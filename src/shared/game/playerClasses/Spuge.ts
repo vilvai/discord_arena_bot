@@ -3,12 +3,12 @@ import {
 	calculateVector,
 	findRandomAliveTarget,
 	randomizeAttributes,
-} from "./utils";
+} from "../utils";
 import {
 	beerCanImage,
 	BEER_CAN_IMAGE_WIDTH,
 	BEER_CAN_IMAGE_HEIGHT,
-} from "./BeerCan";
+} from "../images";
 
 enum SpugeState {
 	Staggering = "stagger",

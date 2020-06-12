@@ -7,3 +7,7 @@ export const PLAYER_STARTING_CIRCLE_RADIUS = 110;
 
 export const TEMP_FILE_DIRECTORY = "temp";
 export const GAME_COUNTDOWN_SECONDS = 30;
+export const IS_RUNNING_ON_NODE = !!process.release;
+
+export const TURRET_DAMAGE = 3;
+export const BEER_CAN_DAMAGE = 3;

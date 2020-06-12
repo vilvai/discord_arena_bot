@@ -1,5 +1,5 @@
 import BasePlayer, { CreateBloodStain } from "./BasePlayer";
-import { randomizeAttributes } from "./utils";
+import { randomizeAttributes } from "../utils";
 
 export default class Chungus extends BasePlayer {
 	constructor(

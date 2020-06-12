@@ -1,21 +1,7 @@
-import { Image as NodeImage } from "canvas";
-
 import BasePlayer from "./BasePlayer";
-import { findRandomAliveTarget, calculateVector } from "./utils";
+import { findRandomAliveTarget, calculateVector } from "../utils";
 import Bullet from "./Bullet";
-
-let turretImage: HTMLImageElement;
-if (process.env.NODE) {
-	turretImage = new NodeImage() as any;
-	turretImage.src = "src/assets/turret.png";
-} else {
-	turretImage = new Image();
-	const turretSrc = require("../../../assets/turret.png").default;
-	turretImage.src = turretSrc;
-}
-
-const TURRET_IMAGE_SIZE = 36;
-export const TURRET_DAMAGE = 3;
+import { turretImage, TURRET_IMAGE_SIZE } from "../images";
 
 export default class Turret {
 	constructor(x: number, y: number, owner: BasePlayer) {

@@ -1,27 +1,11 @@
-import { Image as NodeImage } from "canvas";
-
 import BasePlayer from "./BasePlayer";
+import { isOutsideMap, checkPlayerCollision } from "../utils";
+import { BEER_CAN_DAMAGE } from "../../constants";
 import {
-	isOutsideMap,
-	checkPlayerCollision,
-	IS_RUNNING_ON_NODE,
-} from "./utils";
-
-let beerCanImageConstructor: HTMLImageElement;
-if (IS_RUNNING_ON_NODE) {
-	beerCanImageConstructor = new NodeImage() as any;
-	beerCanImageConstructor.src = "src/assets/karhu.png";
-} else {
-	beerCanImageConstructor = new Image();
-	const turretSrc = require("../../../assets/karhu.png").default;
-	beerCanImageConstructor.src = turretSrc;
-}
-
-export const beerCanImage = beerCanImageConstructor;
-
-export const BEER_CAN_IMAGE_WIDTH = 14;
-export const BEER_CAN_IMAGE_HEIGHT = 24;
-export const BEER_CAN_DAMAGE = 3;
+	beerCanImage,
+	BEER_CAN_IMAGE_WIDTH,
+	BEER_CAN_IMAGE_HEIGHT,
+} from "../images";
 
 export default class BeerCan {
 	constructor(
