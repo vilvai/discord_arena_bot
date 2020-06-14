@@ -209,9 +209,7 @@ const runGame = async (msg: Discord.Message) => {
 	await deleteBotMessages(msg);
 
 	if (gameRunner.getPlayerCount() <= 1) {
-		await msg.channel.send(
-			`Taistelussa oli liian vähän osallistujia. Aloita uusi taistelu komennolla ${botMention} aloita`
-		);
+		await msg.channel.send("Taistelussa oli liian vähän osallistujia.");
 	} else {
 		botState = BotState.Rendering;
 		const gameStartMessage = await msg.channel.send(
@@ -224,6 +222,9 @@ const runGame = async (msg: Discord.Message) => {
 		const gameEndText = getGameEndText(gameEndData);
 		await msg.channel.send(gameEndText, { files: ["Areena_fight.mp4"] });
 	}
+	await msg.channel.send(
+		`Aloita uusi taistelu komennolla ${botMention} aloita`
+	);
 	botState = BotState.Waiting;
 };
 
