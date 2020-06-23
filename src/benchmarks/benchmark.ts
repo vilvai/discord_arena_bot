@@ -3,9 +3,9 @@ import fs from "fs";
 import { performance } from "perf_hooks";
 
 import rimraf from "rimraf";
-import { createUniqueBotPlayers } from "./shared/bots";
-import GameRunner from "./bot/GameRunner";
-import { PNGConfig, JPEGConfig } from "./shared/types";
+import { createUniqueBotPlayers } from "../shared/bots";
+import GameRunner from "../bot/GameRunner";
+import { PNGConfig, JPEGConfig } from "../shared/types";
 
 const gameRunner = new GameRunner();
 
