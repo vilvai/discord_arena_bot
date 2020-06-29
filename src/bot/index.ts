@@ -138,10 +138,16 @@ const executeCommand = async (
 		case "botti": {
 			switch (botState) {
 				case BotState.Countdown: {
-					const { playerClass, ...botPlayer } = createNewBotPlayer();
-					gameRunner.addPlayer(botPlayer);
-					gameRunner.setPlayerClass(botPlayer.id, playerClass);
-					await sendPlayersInGameText(msg);
+					if (gameRunner.getPlayerCount() <= 10) {
+						const { playerClass, ...botPlayer } = createNewBotPlayer();
+						gameRunner.addPlayer(botPlayer);
+						gameRunner.setPlayerClass(botPlayer.id, playerClass);
+						await sendPlayersInGameText(msg);
+					} else {
+						await msg.channel.send(
+							"Pelissä on yli 10 pelaajaa. Et voi lisätä enempää botteja."
+						);
+					}
 					return;
 				}
 				case BotState.Waiting: {
