@@ -26,26 +26,26 @@ export const messageMentionsBot = (
 };
 
 interface Messages {
-	gameStartsIn: (countdownLeft: number) => string;
-	gameStarting: (playersWithClasses: string) => string;
-	gameEndedOutOfTime: () => string;
-	gameEndedPlayerWon: (winnerName: string) => string;
-	gameEndedNobodyWon: () => string;
+	fightStartsIn: (countdownLeft: number) => string;
+	fightStarting: (playersWithClasses: string) => string;
+	fightEndedOutOfTime: () => string;
+	fightEndedPlayerWon: (winnerName: string) => string;
+	fightEndedNobodyWon: () => string;
 	notEnoughPlayers: () => string;
-	startNewGame: () => string;
-	noGameInProgress: () => string;
-	gameAlreadyStarting: () => string;
+	startNewFight: () => string;
+	noFightInProgress: () => string;
+	fightAlreadyStarting: () => string;
 	maxPlayerCountWithBotsReached: () => string;
 	selectableClasses: () => string;
 	classSelected: (userName: string, selectedClass: string) => string;
 	unknownCommand: () => string;
-	playersInGame: (playersWithClasses: string) => string;
+	playersInFight: (playersWithClasses: string) => string;
 	changeClassWith: () => string;
 }
 
-export interface MessagesByLanguage {
-	finnish: Messages;
-}
+export type Language = "finnish" | "english";
+
+type MessagesByLanguage = { [L in Language]: Messages };
 
 export const constructGameEndText = (
 	language: keyof MessagesByLanguage,
@@ -53,32 +53,32 @@ export const constructGameEndText = (
 ) => {
 	let gameEndText = "";
 	if (gameEndData.gameEndReason === GameEndReason.TimeUp) {
-		gameEndText = MESSAGES[language].gameEndedOutOfTime();
+		gameEndText = MESSAGES[language].fightEndedOutOfTime();
 	} else {
 		const winnerName = gameEndData.winnerName;
 		gameEndText = winnerName
-			? MESSAGES[language].gameEndedPlayerWon(winnerName)
-			: MESSAGES[language].gameEndedNobodyWon();
+			? MESSAGES[language].fightEndedPlayerWon(winnerName)
+			: MESSAGES[language].fightEndedNobodyWon();
 	}
 	return gameEndText;
 };
 
 export const MESSAGES: MessagesByLanguage = {
 	finnish: {
-		gameStartsIn: (countdownLeft: number) =>
+		fightStartsIn: (countdownLeft: number) =>
 			`Taistelu alkaa ${countdownLeft} sekunnin kuluttua.`,
-		gameStarting: (playersWithClasses: string) =>
-			`**Taistelu alkaa.** ${MESSAGES.finnish.playersInGame(
+		fightStarting: (playersWithClasses: string) =>
+			`**Taistelu alkaa.** ${MESSAGES.finnish.playersInFight(
 				playersWithClasses
 			)}`,
-		gameEndedOutOfTime: () => "Taistelu päättyi koska aika loppui kesken",
-		gameEndedPlayerWon: (winnerName: string) =>
+		fightEndedOutOfTime: () => "Taistelu päättyi koska aika loppui kesken",
+		fightEndedPlayerWon: (winnerName: string) =>
 			`Taistelu päättyi. ${winnerName} voitti!`,
-		gameEndedNobodyWon: () => "Taistelu päättyi ilman voittajaa.",
+		fightEndedNobodyWon: () => "Taistelu päättyi ilman voittajaa.",
 		notEnoughPlayers: () => "Taistelussa oli liian vähän osallistujia.",
-		startNewGame: () => `Aloita uusi taistelu komennolla ${botMention} aloita`,
-		noGameInProgress: () => "Ei käynnissä olevaa taistelua.",
-		gameAlreadyStarting: () =>
+		startNewFight: () => `Aloita uusi taistelu komennolla ${botMention} aloita`,
+		noFightInProgress: () => "Ei käynnissä olevaa taistelua.",
+		fightAlreadyStarting: () =>
 			`Taistelu on jo alkamassa. Liity taisteluun komennolla ${botMention} liity.`,
 		maxPlayerCountWithBotsReached: () =>
 			`Pelissä on yli ${MAX_PLAYER_COUNT_WITH_BOTS} pelaajaa. Et voi lisätä enempää botteja.`,
@@ -87,9 +87,37 @@ export const MESSAGES: MessagesByLanguage = {
 			`${userName} on nyt ${selectedClass}.`,
 		unknownCommand: () =>
 			`Tuntematon komento. Tunnetut komennot:\n${acceptedCommandsAsString()}`,
-		playersInGame: (playersWithClasses: string) =>
+		playersInFight: (playersWithClasses: string) =>
 			`**Osallistujat:**\n${playersWithClasses}`,
 		changeClassWith: () =>
 			`Vaihda class komennolla ${botMention} class ${acceptedClassesAsString}`,
+	},
+	english: {
+		fightStartsIn: (countdownLeft: number) =>
+			`Fight starts in ${countdownLeft} seconds.`,
+		fightStarting: (playersWithClasses: string) =>
+			`**Fight is starting.** ${MESSAGES.english.playersInFight(
+				playersWithClasses
+			)}`,
+		fightEndedOutOfTime: () => "Fight ended because time ran out",
+		fightEndedPlayerWon: (winnerName: string) =>
+			`Fight ended. ${winnerName} won!`,
+		fightEndedNobodyWon: () => "Fight ended without a winner.",
+		notEnoughPlayers: () => "Not enough players in the fight.",
+		startNewFight: () => `Start a new fight with ${botMention} aloita`,
+		noFightInProgress: () => "No fight in progress.",
+		fightAlreadyStarting: () =>
+			`Fight is already starting. Join the fight with ${botMention} liity.`,
+		maxPlayerCountWithBotsReached: () =>
+			`Max player count reached (${MAX_PLAYER_COUNT_WITH_BOTS}). You can't add more bots.`,
+		selectableClasses: () => `Selectable classes: ${acceptedClassesAsString}`,
+		classSelected: (userName: string, selectedClass: string) =>
+			`${userName} is now ${selectedClass}.`,
+		unknownCommand: () =>
+			`Unknown command. Accepted commands:\n${acceptedCommandsAsString()}`,
+		playersInFight: (playersWithClasses: string) =>
+			`**Participants:**\n${playersWithClasses}`,
+		changeClassWith: () =>
+			`Change your class with ${botMention} class ${acceptedClassesAsString}`,
 	},
 };

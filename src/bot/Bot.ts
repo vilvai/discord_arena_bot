@@ -19,7 +19,7 @@ import {
 import {
 	messageMentionsBot,
 	MESSAGES,
-	MessagesByLanguage,
+	Language,
 	constructGameEndText,
 } from "./messages";
 
@@ -41,7 +41,7 @@ export default class Bot {
 	state: BotState;
 	countdownLeft: number;
 	currentParticipantsMessage?: Discord.Message;
-	language: keyof MessagesByLanguage;
+	language: Language;
 
 	handleMessage = async (msg: Discord.Message) => {
 		const messageWithoutMentions = msg.content.replace(/<@.*> +/, "");
@@ -67,7 +67,9 @@ export default class Bot {
 					this.countdownLeft = GAME_COUNTDOWN_SECONDS;
 					await this.countdown(msg.channel);
 				} else {
-					await msg.channel.send(MESSAGES[this.language].gameAlreadyStarting());
+					await msg.channel.send(
+						MESSAGES[this.language].fightAlreadyStarting()
+					);
 				}
 				return;
 			}
@@ -160,7 +162,7 @@ export default class Bot {
 		}
 		if (this.countdownLeft % 10 === 0 || this.countdownLeft === 5) {
 			await channel.send(
-				MESSAGES[this.language].gameStartsIn(this.countdownLeft)
+				MESSAGES[this.language].fightStartsIn(this.countdownLeft)
 			);
 		}
 		this.countdownLeft -= 1;
@@ -176,7 +178,7 @@ export default class Bot {
 			this.state = BotState.Rendering;
 
 			const gameStartMessage = await channel.send(
-				MESSAGES[this.language].gameStarting(
+				MESSAGES[this.language].fightStarting(
 					this.gameRunner.getCurrentPlayersWithClasses()
 				)
 			);
@@ -197,7 +199,7 @@ export default class Bot {
 				files: [`./${outputDirectory}/${RENDER_FILE_NAME}.mp4`],
 			});
 		}
-		await channel.send(MESSAGES[this.language].startNewGame());
+		await channel.send(MESSAGES[this.language].startNewFight());
 		this.state = BotState.Waiting;
 	};
 
@@ -209,7 +211,7 @@ export default class Bot {
 			this.currentParticipantsMessage.delete();
 		}
 		this.currentParticipantsMessage = await channel.send(
-			`${MESSAGES[this.language].playersInGame(
+			`${MESSAGES[this.language].playersInFight(
 				this.gameRunner.getCurrentPlayersWithClasses()
 			)}\n\n${MESSAGES[this.language].changeClassWith()}`
 		);
@@ -217,9 +219,9 @@ export default class Bot {
 
 	sendNoGameInProgressText = async (channel: Discord.TextChannel) =>
 		await channel.send(
-			`${MESSAGES[this.language].noGameInProgress()} ${MESSAGES[
+			`${MESSAGES[this.language].noFightInProgress()} ${MESSAGES[
 				this.language
-			].startNewGame()}`
+			].startNewFight()}`
 		);
 
 	deleteBotMessages = async (channel: Discord.TextChannel) => {

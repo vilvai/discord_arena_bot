@@ -45,8 +45,14 @@ const renderGame = async (config: PNGConfig | JPEGConfig) => {
 
 	await gameRunner.initializePlayers();
 
+	if (!gameRunner.game) return;
+
 	const updateTimeStart = performance.now();
-	gameRunner.runGameLoop(customTempDirectory, customToBufferArgs as any);
+	gameRunner.runGameLoop(
+		gameRunner.game,
+		customTempDirectory,
+		customToBufferArgs as any
+	);
 	const updateTime = performance.now() - updateTimeStart;
 
 	setTimeout(() => {
