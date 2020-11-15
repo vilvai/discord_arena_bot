@@ -26,7 +26,7 @@ export const messageMentionsBot = (
 };
 
 interface Messages {
-	gameStartsIn: (countDownLeft: number) => string;
+	gameStartsIn: (countdownLeft: number) => string;
 	gameStarting: (playersWithClasses: string) => string;
 	gameEndedOutOfTime: () => string;
 	gameEndedPlayerWon: (winnerName: string) => string;

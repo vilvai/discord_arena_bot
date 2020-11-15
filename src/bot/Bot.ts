@@ -23,7 +23,7 @@ import {
 	constructGameEndText,
 } from "./messages";
 
-enum BotState {
+export enum BotState {
 	Waiting = "waiting",
 	Countdown = "countdown",
 	Rendering = "rendering",
@@ -65,7 +65,7 @@ export default class Bot {
 					this.addPlayerToGame(msg.author);
 					this.state = BotState.Countdown;
 					this.countdownLeft = GAME_COUNTDOWN_SECONDS;
-					await this.countDown(msg.channel);
+					await this.countdown(msg.channel);
 				} else {
 					await msg.channel.send(MESSAGES[this.language].gameAlreadyStarting());
 				}
@@ -153,7 +153,7 @@ export default class Bot {
 		});
 	};
 
-	countDown = async (channel: Discord.TextChannel) => {
+	countdown = async (channel: Discord.TextChannel) => {
 		if (this.countdownLeft === 0) {
 			this.runGame(channel);
 			return;
@@ -164,7 +164,7 @@ export default class Bot {
 			);
 		}
 		this.countdownLeft -= 1;
-		setTimeout(() => this.countDown(channel), 1000);
+		setTimeout(() => this.countdown(channel), 1000);
 	};
 
 	runGame = async (channel: Discord.TextChannel) => {
@@ -233,7 +233,11 @@ export default class Bot {
 			);
 		});
 		startTimer("Deleting messages");
-		await channel.bulkDelete(messagesToDelete);
+		try {
+			await channel.bulkDelete(messagesToDelete, true);
+		} catch (error) {
+			console.error(error);
+		}
 		logTimer("Deleting messages");
 	};
 }
