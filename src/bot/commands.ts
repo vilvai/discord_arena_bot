@@ -1,4 +1,5 @@
 import { PlayerClass } from "../shared/types";
+import { getBotMention } from "./messages";
 
 export const acceptedCommands = [
 	{ command: "aloita", info: "aloita taistelu" },
@@ -13,8 +14,9 @@ export const acceptedClasses = Object.values(PlayerClass).map((playerClass) =>
 );
 export const acceptedClassesAsString = `[${acceptedClasses.join(" | ")}]`;
 
-export const acceptedCommandsAsString = (botMention: string): string =>
-	acceptedCommands
+export const acceptedCommandsAsString = (): string => {
+	const botMention = getBotMention();
+	return acceptedCommands
 		.map((command) => {
 			let fullCommandInfo = `${botMention} ${command.command}`;
 			if (command.command === "class") {
@@ -24,6 +26,7 @@ export const acceptedCommandsAsString = (botMention: string): string =>
 			return fullCommandInfo;
 		})
 		.join("\n");
+};
 
 export const parseCommand = (rawText: string): string[] | null => {
 	const commandWithArgs = rawText.split(" ");
