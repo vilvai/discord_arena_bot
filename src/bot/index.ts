@@ -268,6 +268,7 @@ const sendNoGameInProgressText = async (msg: Discord.Message) =>
 	);
 
 const deleteBotMessages = async (msg: Discord.Message) => {
+	if (msg.channel.type !== "text") return;
 	startTimer("Fetching messages");
 	const messages = await msg.channel.messages.fetch({ limit: 100 });
 	logTimer("Fetching messages");
