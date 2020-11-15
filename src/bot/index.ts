@@ -1,9 +1,22 @@
 import Discord from "discord.js";
+import rimraf from "rimraf";
+import fs from "fs";
 
 import Bot from "./Bot";
 import { messageMentionsBot, setBotMention } from "./messages";
+import { INPUT_FILE_DIRECTORY, RENDER_DIRECTORY } from "../shared/constants";
 
 require("dotenv").config();
+
+const createRootFolders = () => {
+	rimraf.sync(INPUT_FILE_DIRECTORY);
+	rimraf.sync(RENDER_DIRECTORY);
+
+	fs.mkdirSync(INPUT_FILE_DIRECTORY);
+	fs.mkdirSync(RENDER_DIRECTORY);
+};
+
+createRootFolders();
 
 const botsByChannel: { [channelId: string]: Bot } = {};
 
@@ -27,7 +40,7 @@ client.on("message", async (msg: Discord.Message) => {
 
 	const channelId = msg.channel.id;
 	if (botsByChannel[channelId] === undefined) {
-		botsByChannel[channelId] = new Bot(client.user.id);
+		botsByChannel[channelId] = new Bot(client.user.id, channelId);
 	}
 	await botsByChannel[channelId].handleMessage(msg);
 });

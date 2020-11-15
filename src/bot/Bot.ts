@@ -5,7 +5,10 @@ import GameRunner from "./GameRunner";
 import { createNewBotPlayer } from "../shared/bots";
 import {
 	GAME_COUNTDOWN_SECONDS,
+	INPUT_FILE_DIRECTORY,
 	MAX_PLAYER_COUNT_WITH_BOTS,
+	RENDER_DIRECTORY,
+	RENDER_FILE_NAME,
 } from "../shared/constants";
 import { startTimer, logTimer } from "../shared/timer";
 import {
@@ -27,7 +30,7 @@ enum BotState {
 }
 
 export default class Bot {
-	constructor(private botUserId: string) {
+	constructor(private botUserId: string, private channelId: string) {
 		this.gameRunner = new GameRunner();
 		this.state = BotState.Waiting;
 		this.countdownLeft = 0;
@@ -171,17 +174,28 @@ export default class Bot {
 			await channel.send(MESSAGES[this.language].notEnoughPlayers());
 		} else {
 			this.state = BotState.Rendering;
+
 			const gameStartMessage = await channel.send(
 				MESSAGES[this.language].gameStarting(
 					this.gameRunner.getCurrentPlayersWithClasses()
 				)
 			);
-			const gameEndData = await this.gameRunner.runGame();
+
+			const inputDirectory = `${INPUT_FILE_DIRECTORY}/${this.channelId}`;
+			const outputDirectory = `${RENDER_DIRECTORY}/${this.channelId}`;
+
+			const gameEndData = await this.gameRunner.runGame(
+				inputDirectory,
+				outputDirectory
+			);
+
 			if (gameStartMessage.deletable) gameStartMessage.delete();
-			if (!gameEndData) return;
+			if (gameEndData === null) return;
 
 			const gameEndText = constructGameEndText(this.language, gameEndData);
-			await channel.send(gameEndText, { files: ["Areena_fight.mp4"] });
+			await channel.send(gameEndText, {
+				files: [`./${outputDirectory}/${RENDER_FILE_NAME}.mp4`],
+			});
 		}
 		await channel.send(MESSAGES[this.language].startNewGame());
 		this.state = BotState.Waiting;

@@ -13,7 +13,7 @@ import {
 	SCREEN_WIDTH,
 	SCREEN_HEIGHT,
 	GAME_FPS,
-	TEMP_FILE_DIRECTORY,
+	RENDER_FILE_NAME,
 } from "../shared/constants";
 import {
 	PlayerData,
@@ -74,20 +74,25 @@ export default class GameRunner {
 			.join("\n");
 	}
 
-	runGame = async () => {
-		if (!this.game) return;
+	runGame = async (
+		inputFolder: string,
+		outputFolder: string
+	): Promise<GameEndData | null> => {
+		if (!this.game) return null;
 		await this.initializePlayers();
 
 		const timerAction = "Game update, draw and temp file generation";
 		startTimer(timerAction);
 
-		const gameEndData = this.runGameLoop(TEMP_FILE_DIRECTORY, [
+		this.createFolders(inputFolder, outputFolder);
+
+		const gameEndData = this.runGameLoop(this.game, inputFolder, [
 			"image/jpeg",
 			{ quality: 0.98 },
 		]);
 
 		logTimer(timerAction);
-		await this.renderVideo(TEMP_FILE_DIRECTORY);
+		await this.renderVideo(inputFolder, outputFolder);
 		return gameEndData;
 	};
 
@@ -101,36 +106,43 @@ export default class GameRunner {
 		await this.game.initializeGame(players);
 	};
 
+	createFolders = (inputFolder: string, outputFolder: string) => {
+		rimraf.sync(inputFolder);
+		rimraf.sync(outputFolder);
+
+		fs.mkdirSync(inputFolder);
+		fs.mkdirSync(outputFolder);
+	};
+
 	runGameLoop = (
-		tempDirectory: string,
+		game: Game,
+		inputFolder: string,
 		toBufferArgs:
 			| ["image/png", CanvasPngConfig]
 			| ["image/jpeg", CanvasJpegConfig]
-	) => {
-		if (!this.game) return;
+	): GameEndData => {
 		let gameEndData: GameEndData = {
 			gameEndReason: GameEndReason.TimeUp,
 		};
-		rimraf.sync(tempDirectory);
-		fs.mkdirSync(tempDirectory);
+
 		let i = 0;
 		let endingTime = Infinity;
 
 		const tailTimeSeconds = 2;
 		const gameMaxTimeSeconds = 30;
 		while (i < gameMaxTimeSeconds * GAME_FPS && i < endingTime) {
-			this.game.draw();
+			game.draw();
 			const stream = fs.createWriteStream(
-				`${tempDirectory}/pic${i.toString().padStart(3, "0")}.jpeg`
+				`${inputFolder}/pic${i.toString().padStart(3, "0")}.jpeg`
 			);
 			const [fileType, config]: [any, any] = toBufferArgs;
 			stream.write(this.canvas.toBuffer(fileType, config), () =>
 				stream.close()
 			);
-			this.game.update();
-			if (this.game.isGameOver() && endingTime === Infinity) {
+			game.update();
+			if (game.isGameOver() && endingTime === Infinity) {
 				endingTime = i + tailTimeSeconds * GAME_FPS;
-				const winner = this.game.getWinner();
+				const winner = game.getWinner();
 				gameEndData = {
 					gameEndReason: GameEndReason.PlayerWon,
 					winnerName: winner ? winner.name : null,
@@ -141,12 +153,12 @@ export default class GameRunner {
 		return gameEndData;
 	};
 
-	renderVideo = async (tempDirectory: string) =>
+	renderVideo = async (inputFolder: string, outputFolder: string) =>
 		new Promise((resolve) => {
 			const timerAction = "FFMpeg render";
 			startTimer(timerAction);
 			ffmpeg()
-				.addInput(`./${tempDirectory}/pic%3d.jpeg`)
+				.addInput(`./${inputFolder}/pic%3d.jpeg`)
 				.inputFPS(GAME_FPS)
 				.videoFilters([`fps=${GAME_FPS}`])
 				.videoCodec("libx264")
@@ -158,11 +170,11 @@ export default class GameRunner {
 					"-profile:v high",
 					"-pix_fmt yuv420p",
 				])
-				.save("Areena_fight.mp4")
+				.save(`./${outputFolder}/${RENDER_FILE_NAME}.mp4`)
 				.on("end", () => {
 					logTimer(timerAction);
-					rimraf(tempDirectory, (error) => error && console.log(error));
-					console.log("deleted temp files successfully");
+					rimraf(`./${inputFolder}`, (error) => error && console.log(error));
+					console.log("deleted input files successfully");
 					resolve();
 				});
 		});
