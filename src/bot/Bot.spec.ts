@@ -82,7 +82,7 @@ describe("Bot", () => {
 				it("sends a message that the game is already starting", () => {
 					expect(mockMessage.channel.send).toHaveBeenCalledTimes(1);
 					expect(mockMessage.channel.send).toHaveBeenCalledWith(
-						MESSAGES[bot.language].gameAlreadyStarting()
+						MESSAGES[bot.language].fightAlreadyStarting()
 					);
 				});
 
