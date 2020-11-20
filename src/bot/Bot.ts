@@ -46,6 +46,8 @@ export default class Bot {
 	language: Language;
 
 	handleMessage = async (msg: Discord.Message) => {
+		if (this.state === BotState.Rendering) return;
+
 		const messageWithoutMentions = msg.content.replace(/<@.*> +/, "");
 		const commandWithArgs = parseCommand(this.language, messageWithoutMentions);
 
