@@ -145,6 +145,7 @@ export default class Bot {
 					await msg.channel.send(
 						messagesByLanguage[this.language].onlyOwnerCanChangeLanguage()
 					);
+					return;
 				}
 				const possibleLanguage = commandWithArgs[1];
 				if (Object.keys(languages).includes(possibleLanguage)) {
