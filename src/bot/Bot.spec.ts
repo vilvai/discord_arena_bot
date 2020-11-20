@@ -1,7 +1,8 @@
 import Discord from "discord.js";
 
-import { GAME_COUNTDOWN_SECONDS } from "../shared/constants";
+import { GAME_COUNTDOWN_SECONDS, MAX_PLAYER_COUNT } from "../shared/constants";
 import Bot, { BotState } from "./Bot";
+import { DEFAULT_LANGUAGE } from "./languages";
 import { messagesByLanguage } from "./messages/messages";
 
 type MockMessage = Partial<
@@ -45,6 +46,10 @@ describe("Bot", () => {
 		it("creates a gameRunner for the bot", () => {
 			expect(bot.gameRunner).not.toEqual(undefined);
 		});
+
+		it("sets the default language", () => {
+			expect(bot.language).toEqual(DEFAULT_LANGUAGE);
+		});
 	});
 
 	describe("handling messages", () => {
@@ -54,6 +59,7 @@ describe("Bot", () => {
 		describe("when handling a message with an unknown command", () => {
 			beforeEach(() => {
 				bot = new Bot("fooUserId", "fooChannelId");
+				bot.language = "suomi";
 				mockMessage = constructMockMessage({ content: "foo bar asdf" });
 				bot.handleMessage(mockMessage as any);
 			});
@@ -74,6 +80,7 @@ describe("Bot", () => {
 			describe("and a game is already starting", () => {
 				beforeEach(() => {
 					bot = new Bot("fooUserId", "fooChannelId");
+					bot.language = "suomi";
 					mockMessage = constructMockMessage({ content: "aloita" });
 					bot.state = BotState.Countdown;
 					bot.handleMessage(mockMessage as any);
@@ -94,6 +101,7 @@ describe("Bot", () => {
 			describe("and the bot is ready to start a game", () => {
 				beforeEach(() => {
 					bot = new Bot("fooUserId", "fooChannelId");
+					bot.language = "suomi";
 
 					mockMessage = constructMockMessage({
 						content: "aloita ignored extra words foobar",
@@ -108,6 +116,7 @@ describe("Bot", () => {
 					bot.gameRunner = {
 						initializeGame: jest.fn(),
 						addPlayer: jest.fn(),
+						playerInGame: () => false,
 					} as any;
 
 					bot.handleMessage(mockMessage as any);
@@ -150,6 +159,7 @@ describe("Bot", () => {
 			describe("and there is no game in progress", () => {
 				beforeEach(() => {
 					bot = new Bot("fooUserId", "fooChannelId");
+					bot.language = "suomi";
 					bot.sendNoGameInProgressText = jest.fn();
 					bot.handleMessage(mockMessage as any);
 				});
@@ -162,10 +172,12 @@ describe("Bot", () => {
 			describe("and player is already in the game", () => {
 				beforeEach(() => {
 					bot = new Bot("fooUserId", "fooChannelId");
+					bot.language = "suomi";
 
 					bot.gameRunner = {
 						addPlayer: jest.fn(),
 						playerInGame: () => true,
+						getPlayerCount: () => 0,
 					} as any;
 
 					bot.state = BotState.Countdown;
@@ -185,10 +197,12 @@ describe("Bot", () => {
 			describe("and player is not already in the game", () => {
 				beforeEach(() => {
 					bot = new Bot("fooUserId", "fooChannelId");
+					bot.language = "suomi";
 
 					bot.gameRunner = {
 						addPlayer: jest.fn(),
 						playerInGame: () => false,
+						getPlayerCount: () => 0,
 					} as any;
 
 					bot.state = BotState.Countdown;
@@ -202,6 +216,31 @@ describe("Bot", () => {
 
 				it("calls updatePlayersInGameText", () => {
 					expect(bot.updatePlayersInGameText).toHaveBeenCalledTimes(1);
+				});
+			});
+
+			describe("and the game already has max players", () => {
+				beforeEach(() => {
+					bot = new Bot("fooUserId", "fooChannelId");
+					bot.language = "suomi";
+
+					bot.gameRunner = {
+						addPlayer: jest.fn(),
+						playerInGame: () => false,
+						getPlayerCount: () => MAX_PLAYER_COUNT,
+					} as any;
+
+					bot.state = BotState.Countdown;
+					bot.updatePlayersInGameText = jest.fn();
+					bot.handleMessage(mockMessage as any);
+				});
+
+				it("doesn't add player to the game", () => {
+					expect(bot.gameRunner.addPlayer).toHaveBeenCalledTimes(0);
+				});
+
+				it("doesn't call updatePlayersInGameText", () => {
+					expect(bot.updatePlayersInGameText).toHaveBeenCalledTimes(0);
 				});
 			});
 		});

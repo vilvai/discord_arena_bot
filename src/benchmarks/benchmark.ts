@@ -47,6 +47,8 @@ const renderGame = async (config: PNGConfig | JPEGConfig) => {
 
 	if (!gameRunner.game) return;
 
+	gameRunner.createFolders(customTempDirectory, "fooFolder");
+
 	const updateTimeStart = performance.now();
 	gameRunner.runGameLoop(
 		gameRunner.game,
@@ -104,7 +106,7 @@ const benchmarkCompressionLevels = async (fileType: FileType | "all") => {
 				fileType: "jpeg",
 				quality,
 				progressive: false,
-				chromaSubsampling: false,
+				chromaSubsampling: true,
 			});
 		}
 	}

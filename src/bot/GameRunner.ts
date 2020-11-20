@@ -151,6 +151,7 @@ export default class GameRunner {
 			}
 			i++;
 		}
+
 		return gameEndData;
 	};
 

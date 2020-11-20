@@ -10,8 +10,8 @@
     "start-bot-dev": "ts-node ./src/bot/index.ts",
     "debug-bot": "node --inspect-brk -r ts-node/register ./src/bot/index.ts",
     "start-preview-dev": "start http://localhost:8080/ && webpack-dev-server --hot --mode development",
-    "run-benchmark-winrate": "jest -c jest_benchmark.config.js",
-    "run-benchmark": "ts-node ./src/benchmark.ts",
+    "benchmark-winrate": "jest -c jest_benchmark.config.js",
+    "benchmark": "ts-node ./src/benchmarks/benchmark.ts",
     "lint": "eslint . --ext .tsx,.ts,.js",
     "test": "jest",
     "heroku-postbuild": "yarn build-preview && yarn build-bot"

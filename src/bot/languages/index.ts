@@ -6,6 +6,8 @@ import suomi from "./suomi";
 
 export type Language = "english" | "suomi";
 
+export const DEFAULT_LANGUAGE: Language = "suomi";
+
 export interface MessageTranslations {
 	fightStartsIn: (countdownLeft: number) => string;
 	fightStarting: (playersInFight: string) => string;

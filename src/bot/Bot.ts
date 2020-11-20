@@ -21,9 +21,8 @@ import {
 	messagesByLanguage,
 	constructGameEndText,
 	messageWasSentByGuildOwner,
-	MessageFunctions,
 } from "./messages/messages";
-import { Language, languages } from "./languages";
+import { DEFAULT_LANGUAGE, Language, languages } from "./languages";
 import { CommandType } from "./messages/types";
 
 export enum BotState {
@@ -37,7 +36,7 @@ export default class Bot {
 		this.gameRunner = new GameRunner();
 		this.state = BotState.Waiting;
 		this.countdownLeft = 0;
-		this.language = "suomi";
+		this.language = DEFAULT_LANGUAGE;
 	}
 
 	gameRunner: GameRunner;
@@ -239,7 +238,11 @@ export default class Bot {
 			this.currentParticipantsMessage &&
 			this.currentParticipantsMessage.deletable
 		) {
-			this.currentParticipantsMessage.delete();
+			try {
+				await this.currentParticipantsMessage.delete();
+			} catch (error) {
+				console.error(error);
+			}
 		}
 		this.currentParticipantsMessage = await channel.send(
 			`${messagesByLanguage[this.language].playersInFight(

@@ -7,7 +7,7 @@ const english: Translations = {
 		fightStartsIn: (countdownLeft: number) =>
 			`Fight starts in ${countdownLeft} seconds.`,
 		fightStarting: (playersInFight: string) =>
-			`**Fight is starting.** ${playersInFight}`,
+			`**Fight is starting.**\n${playersInFight}`,
 		fightEndedOutOfTime: () => "Fight ended because time ran out.",
 		fightEndedPlayerWon: (winnerName: string) =>
 			`Fight ended. ${winnerName} won!`,
@@ -25,7 +25,7 @@ const english: Translations = {
 		classSelected: (userName: string, selectedClass: string) =>
 			`${userName} is now ${selectedClass}.`,
 		unknownCommand: (knownCommands: string) =>
-			`Unknown command. Accepted commands:\n${knownCommands}.`,
+			`Unknown command. Accepted commands:\n${knownCommands}`,
 		playersInFight: (playersWithClasses: string) =>
 			`**Participants:**\n${playersWithClasses}`,
 		changeClassWith: (changeClassCommand: string) =>
