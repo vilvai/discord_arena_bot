@@ -6,22 +6,25 @@ import { createNewBotPlayer } from "../shared/bots";
 import {
 	GAME_COUNTDOWN_SECONDS,
 	INPUT_FILE_DIRECTORY,
-	MAX_PLAYER_COUNT_WITH_BOTS,
+	MAX_PLAYER_COUNT,
 	RENDER_DIRECTORY,
 	RENDER_FILE_NAME,
 } from "../shared/constants";
 import { startTimer, logTimer } from "../shared/timer";
 import {
-	acceptedClasses,
-	acceptedCommandsAsString,
+	findCommandByLabel,
+	getAcceptedCommandsForLanguage,
 	parseCommand,
-} from "./commands";
+} from "./messages/commands";
 import {
 	messageMentionsBot,
-	MESSAGES,
-	Language,
+	messagesByLanguage,
 	constructGameEndText,
-} from "./messages";
+	messageWasSentByGuildOwner,
+	MessageFunctions,
+} from "./messages/messages";
+import { Language, languages } from "./languages";
+import { CommandType } from "./messages/types";
 
 export enum BotState {
 	Waiting = "waiting",
@@ -34,7 +37,7 @@ export default class Bot {
 		this.gameRunner = new GameRunner();
 		this.state = BotState.Waiting;
 		this.countdownLeft = 0;
-		this.language = "finnish";
+		this.language = "suomi";
 	}
 
 	gameRunner: GameRunner;
@@ -45,21 +48,28 @@ export default class Bot {
 
 	handleMessage = async (msg: Discord.Message) => {
 		const messageWithoutMentions = msg.content.replace(/<@.*> +/, "");
-		const commandWithArgs = parseCommand(messageWithoutMentions);
+		const commandWithArgs = parseCommand(this.language, messageWithoutMentions);
 
 		if (commandWithArgs === null) {
-			await msg.channel.send(MESSAGES[this.language].unknownCommand());
+			await msg.channel.send(
+				messagesByLanguage[this.language].unknownCommand()
+			);
 		} else {
 			await this.executeCommand(msg, commandWithArgs);
 		}
 	};
 
-	executeCommand = async (msg: Discord.Message, commandWithArgs: string[]) => {
+	executeCommand = async (
+		msg: Discord.Message,
+		commandWithArgs: string[]
+	): Promise<void> => {
 		if (msg.channel.type !== "text") return;
-		const command = commandWithArgs[0];
+		const commandLabel = commandWithArgs[0];
+		const command = findCommandByLabel(this.language, commandLabel);
+		if (command === undefined) return;
 
-		switch (command) {
-			case "aloita": {
+		switch (command.type) {
+			case CommandType.Start: {
 				if (this.state === BotState.Waiting) {
 					this.gameRunner.initializeGame();
 					this.addPlayerToGame(msg.author);
@@ -68,16 +78,28 @@ export default class Bot {
 					await this.countdown(msg.channel);
 				} else {
 					await msg.channel.send(
-						MESSAGES[this.language].fightAlreadyStarting()
+						messagesByLanguage[this.language].fightAlreadyStarting()
 					);
 				}
 				return;
 			}
-			case "liity": {
+			case CommandType.Join:
+			case CommandType.Bot: {
 				switch (this.state) {
 					case BotState.Countdown: {
-						if (!this.gameRunner.playerInGame(msg.author.id))
+						if (this.gameRunner.getPlayerCount() >= MAX_PLAYER_COUNT) {
+							await msg.channel.send(
+								messagesByLanguage[this.language].gameIsFull()
+							);
+							return;
+						}
+
+						if (command.type === CommandType.Join) {
 							this.addPlayerToGame(msg.author);
+						} else {
+							this.addBotToGame();
+						}
+
 						await this.updatePlayersInGameText(msg.channel);
 						return;
 					}
@@ -90,59 +112,60 @@ export default class Bot {
 					}
 				}
 			}
-			case "botti": {
-				switch (this.state) {
-					case BotState.Countdown: {
-						if (
-							this.gameRunner.getPlayerCount() <= MAX_PLAYER_COUNT_WITH_BOTS
-						) {
-							const { playerClass, ...botPlayer } = createNewBotPlayer();
-							this.gameRunner.addPlayer(botPlayer);
-							this.gameRunner.setPlayerClass(botPlayer.id, playerClass);
-							await this.updatePlayersInGameText(msg.channel);
-						} else {
-							await msg.channel.send(
-								MESSAGES[this.language].maxPlayerCountWithBotsReached()
-							);
-						}
-						return;
-					}
-					case BotState.Waiting: {
-						await this.sendNoGameInProgressText(msg.channel);
-						return;
-					}
-					default: {
-						return;
-					}
-				}
-			}
-			case "class": {
+			case CommandType.Class: {
 				const possibleClass = commandWithArgs[1];
-				if (acceptedClasses.includes(possibleClass)) {
-					const newPlayerClass = possibleClass as PlayerClass;
-					this.gameRunner.setPlayerClass(msg.author.id, newPlayerClass);
+				const newPlayerClass = Object.entries(
+					command.playerClassTranslations
+				).find(([_playerClass, label]) => label === possibleClass)?.[0];
+
+				if (newPlayerClass !== undefined) {
+					this.gameRunner.setPlayerClass(
+						msg.author.id,
+						newPlayerClass as PlayerClass
+					);
 					await msg.channel.send(
-						MESSAGES[this.language].classSelected(
+						messagesByLanguage[this.language].classSelected(
 							msg.author.username,
 							newPlayerClass
 						)
 					);
 				} else {
-					await msg.channel.send(MESSAGES[this.language].selectableClasses());
+					await msg.channel.send(
+						messagesByLanguage[this.language].selectableClasses()
+					);
 				}
 				return;
 			}
-			case "info": {
-				await msg.channel.send(acceptedCommandsAsString());
+			case CommandType.Info: {
+				await msg.channel.send(getAcceptedCommandsForLanguage(this.language));
 				return;
 			}
-			default: {
+			case CommandType.Language: {
+				if (!messageWasSentByGuildOwner(msg)) {
+					await msg.channel.send(
+						messagesByLanguage[this.language].onlyOwnerCanChangeLanguage()
+					);
+				}
+				const possibleLanguage = commandWithArgs[1];
+				if (Object.keys(languages).includes(possibleLanguage)) {
+					this.language = possibleLanguage as Language;
+					await msg.channel.send(
+						messagesByLanguage[this.language].languageChanged()
+					);
+				} else {
+					await msg.channel.send(
+						messagesByLanguage[this.language].selectableLanguages()
+					);
+				}
+
 				return;
 			}
 		}
 	};
 
 	addPlayerToGame = (user: Discord.User) => {
+		if (this.gameRunner.playerInGame(user.id)) return;
+
 		const avatarURL = user.displayAvatarURL({
 			format: "png",
 			size: 128,
@@ -155,6 +178,12 @@ export default class Bot {
 		});
 	};
 
+	addBotToGame = () => {
+		const { playerClass, ...botPlayer } = createNewBotPlayer();
+		this.gameRunner.addPlayer(botPlayer);
+		this.gameRunner.setPlayerClass(botPlayer.id, playerClass);
+	};
+
 	countdown = async (channel: Discord.TextChannel) => {
 		if (this.countdownLeft === 0) {
 			this.runGame(channel);
@@ -162,7 +191,7 @@ export default class Bot {
 		}
 		if (this.countdownLeft % 10 === 0 || this.countdownLeft === 5) {
 			await channel.send(
-				MESSAGES[this.language].fightStartsIn(this.countdownLeft)
+				messagesByLanguage[this.language].fightStartsIn(this.countdownLeft)
 			);
 		}
 		this.countdownLeft -= 1;
@@ -173,12 +202,12 @@ export default class Bot {
 		await this.deleteBotMessages(channel);
 
 		if (this.gameRunner.getPlayerCount() <= 1) {
-			await channel.send(MESSAGES[this.language].notEnoughPlayers());
+			await channel.send(messagesByLanguage[this.language].notEnoughPlayers());
 		} else {
 			this.state = BotState.Rendering;
 
 			const gameStartMessage = await channel.send(
-				MESSAGES[this.language].fightStarting(
+				messagesByLanguage[this.language].fightStarting(
 					this.gameRunner.getCurrentPlayersWithClasses()
 				)
 			);
@@ -188,7 +217,8 @@ export default class Bot {
 
 			const gameEndData = await this.gameRunner.runGame(
 				inputDirectory,
-				outputDirectory
+				outputDirectory,
+				this.language
 			);
 
 			if (gameStartMessage.deletable) gameStartMessage.delete();
@@ -199,7 +229,7 @@ export default class Bot {
 				files: [`./${outputDirectory}/${RENDER_FILE_NAME}.mp4`],
 			});
 		}
-		await channel.send(MESSAGES[this.language].startNewFight());
+		await channel.send(messagesByLanguage[this.language].startNewFight());
 		this.state = BotState.Waiting;
 	};
 
@@ -211,15 +241,17 @@ export default class Bot {
 			this.currentParticipantsMessage.delete();
 		}
 		this.currentParticipantsMessage = await channel.send(
-			`${MESSAGES[this.language].playersInFight(
+			`${messagesByLanguage[this.language].playersInFight(
 				this.gameRunner.getCurrentPlayersWithClasses()
-			)}\n\n${MESSAGES[this.language].changeClassWith()}`
+			)}\n\n${messagesByLanguage[this.language].changeClassWith()}`
 		);
 	};
 
 	sendNoGameInProgressText = async (channel: Discord.TextChannel) =>
 		await channel.send(
-			`${MESSAGES[this.language].noFightInProgress()} ${MESSAGES[
+			`${messagesByLanguage[
+				this.language
+			].noFightInProgress()} ${messagesByLanguage[
 				this.language
 			].startNewFight()}`
 		);

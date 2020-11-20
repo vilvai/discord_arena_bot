@@ -1,3 +1,4 @@
+import { Language } from "../../bot/languages";
 import { SIDEBAR_WIDTH, SCREEN_HEIGHT, IS_RUNNING_ON_NODE } from "../constants";
 import BasePlayer from "./playerClasses/BasePlayer";
 import { getPlayerClassName } from "./playerClasses/getPlayerClassName";
@@ -46,10 +47,14 @@ const fontFamily = "Roboto";
 const fontWeight = IS_RUNNING_ON_NODE ? "700" : "500";
 
 export default class Sidebar {
-	draw(ctx: CanvasRenderingContext2D, players: BasePlayer[]) {
+	draw(
+		ctx: CanvasRenderingContext2D,
+		players: BasePlayer[],
+		language: Language
+	) {
 		this.drawBackground(ctx);
 		players.slice(0, 7).forEach((player) => {
-			this.drawPlayer(ctx, player);
+			this.drawPlayer(ctx, player, language);
 			ctx.translate(0, 42);
 		});
 		ctx.resetTransform();
@@ -60,10 +65,14 @@ export default class Sidebar {
 		ctx.fillRect(0, 0, SIDEBAR_WIDTH, SCREEN_HEIGHT);
 	}
 
-	drawPlayer(ctx: CanvasRenderingContext2D, player: BasePlayer) {
+	drawPlayer(
+		ctx: CanvasRenderingContext2D,
+		player: BasePlayer,
+		language: Language
+	) {
 		this.drawPlayerIcon(ctx, player);
 		this.drawPlayerName(ctx, player.name);
-		this.drawPlayerClass(ctx, player);
+		this.drawPlayerClass(ctx, player, language);
 	}
 
 	drawPlayerIcon(ctx: CanvasRenderingContext2D, player: BasePlayer) {
@@ -109,8 +118,12 @@ export default class Sidebar {
 		ctx.fillText(truncatedName, textStartX, iconCenterY - 4);
 	}
 
-	drawPlayerClass(ctx: CanvasRenderingContext2D, player: BasePlayer) {
-		const className = getPlayerClassName(player);
+	drawPlayerClass(
+		ctx: CanvasRenderingContext2D,
+		player: BasePlayer,
+		language: Language
+	) {
+		const className = getPlayerClassName(player, language);
 		ctx.fillStyle = "#bbbbbb";
 		ctx.font = `italic ${fontWeight} 11px ${fontFamily}`;
 		ctx.fillText(className, textStartX, iconCenterY + 12);

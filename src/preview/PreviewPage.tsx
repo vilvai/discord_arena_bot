@@ -68,14 +68,14 @@ export default class PreviewPage extends Component<Props, State> {
 	gameLoop() {
 		if (!this.game) return;
 		this.game.update();
-		this.game.draw();
+		this.game.draw("english");
 	}
 
 	handleStartSimulation = async () => {
 		if (!this.game) return;
 		clearInterval(this.state.gameLoopTimer);
 		await this.game.initializeGame(this.state.players);
-		this.game.draw();
+		this.game.draw("english");
 		this.setState({
 			gameLoopTimer: setInterval(() => this.gameLoop(), 1000 / GAME_FPS),
 		});

@@ -10,7 +10,7 @@ export const RENDER_DIRECTORY = "renders";
 export const RENDER_FILE_NAME = "areena_fight";
 
 export const GAME_COUNTDOWN_SECONDS = 30;
-export const MAX_PLAYER_COUNT_WITH_BOTS = 10;
+export const MAX_PLAYER_COUNT = 10;
 
 export const IS_RUNNING_ON_NODE = !!process.release;
 

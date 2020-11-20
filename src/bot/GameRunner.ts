@@ -24,6 +24,7 @@ import {
 } from "../shared/types";
 import { loadFonts } from "./loadFonts";
 import { startTimer, logTimer } from "../shared/timer";
+import { Language } from "./languages";
 
 type PlayerWithoutClass = Omit<PlayerData, "playerClass">;
 const defaultClass = PlayerClass.Fighter;
@@ -63,20 +64,17 @@ export default class GameRunner {
 		this.playerClassesById[playerId] = playerClass;
 	}
 
-	getCurrentPlayersWithClasses() {
-		return this.playersInGame
-			.map(
-				(player) =>
-					`${player.name} – ${
-						this.playerClassesById[player.id] || defaultClass
-					}`
-			)
-			.join("\n");
-	}
+	getCurrentPlayersWithClasses = (): Array<[string, PlayerClass]> => {
+		return this.playersInGame.map((player) => [
+			player.name,
+			this.playerClassesById[player.id] || defaultClass,
+		]);
+	};
 
 	runGame = async (
 		inputFolder: string,
-		outputFolder: string
+		outputFolder: string,
+		language: Language
 	): Promise<GameEndData | null> => {
 		if (!this.game) return null;
 		await this.initializePlayers();
@@ -86,10 +84,12 @@ export default class GameRunner {
 
 		this.createFolders(inputFolder, outputFolder);
 
-		const gameEndData = this.runGameLoop(this.game, inputFolder, [
-			"image/jpeg",
-			{ quality: 0.98 },
-		]);
+		const gameEndData = this.runGameLoop(
+			this.game,
+			inputFolder,
+			["image/jpeg", { quality: 0.98 }],
+			language
+		);
 
 		logTimer(timerAction);
 		await this.renderVideo(inputFolder, outputFolder);
@@ -119,7 +119,8 @@ export default class GameRunner {
 		inputFolder: string,
 		toBufferArgs:
 			| ["image/png", CanvasPngConfig]
-			| ["image/jpeg", CanvasJpegConfig]
+			| ["image/jpeg", CanvasJpegConfig],
+		language: Language
 	): GameEndData => {
 		let gameEndData: GameEndData = {
 			gameEndReason: GameEndReason.TimeUp,
@@ -131,7 +132,7 @@ export default class GameRunner {
 		const tailTimeSeconds = 2;
 		const gameMaxTimeSeconds = 30;
 		while (i < gameMaxTimeSeconds * GAME_FPS && i < endingTime) {
-			game.draw();
+			game.draw(language);
 			const stream = fs.createWriteStream(
 				`${inputFolder}/pic${i.toString().padStart(3, "0")}.jpeg`
 			);

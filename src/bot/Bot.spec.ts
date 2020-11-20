@@ -2,7 +2,7 @@ import Discord from "discord.js";
 
 import { GAME_COUNTDOWN_SECONDS } from "../shared/constants";
 import Bot, { BotState } from "./Bot";
-import { MESSAGES } from "./messages";
+import { messagesByLanguage } from "./messages/messages";
 
 type MockMessage = Partial<
 	Omit<Discord.Message, "channel" | "author" | "valueOf">
@@ -61,7 +61,7 @@ describe("Bot", () => {
 			it("calls the 'msg.channel.send' function with the unknownCommand text", () => {
 				expect(mockMessage.channel.send).toHaveBeenCalledTimes(1);
 				expect(mockMessage.channel.send).toHaveBeenCalledWith(
-					MESSAGES[bot.language].unknownCommand()
+					messagesByLanguage[bot.language].unknownCommand()
 				);
 			});
 
@@ -82,7 +82,7 @@ describe("Bot", () => {
 				it("sends a message that the game is already starting", () => {
 					expect(mockMessage.channel.send).toHaveBeenCalledTimes(1);
 					expect(mockMessage.channel.send).toHaveBeenCalledWith(
-						MESSAGES[bot.language].fightAlreadyStarting()
+						messagesByLanguage[bot.language].fightAlreadyStarting()
 					);
 				});
 

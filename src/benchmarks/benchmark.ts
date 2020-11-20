@@ -51,7 +51,8 @@ const renderGame = async (config: PNGConfig | JPEGConfig) => {
 	gameRunner.runGameLoop(
 		gameRunner.game,
 		customTempDirectory,
-		customToBufferArgs as any
+		customToBufferArgs as any,
+		"suomi"
 	);
 	const updateTime = performance.now() - updateTimeStart;
 

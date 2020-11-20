@@ -3,11 +3,25 @@ import Chungus from "./Chungus";
 import Teekkari from "./Teekkari";
 import Spuge from "./Spuge";
 import Assassin from "./Assassin";
+import { PlayerClass } from "../../types";
 
-export const getPlayerClassName = (player: BasePlayer) => {
-	if (player instanceof Chungus) return "CHUNGUS";
-	if (player instanceof Teekkari) return "TEEKKARI";
-	if (player instanceof Spuge) return "SPUGE";
-	if (player instanceof Assassin) return "ASSASSIN";
-	return "FIGHTER";
+import { findClassLabelForLanguage } from "../../../bot/messages/commands";
+import { Language } from "../../../bot/languages";
+
+export const getPlayerClassName = (player: BasePlayer, language: Language) => {
+	let playerClass: PlayerClass;
+
+	if (player instanceof Chungus) {
+		playerClass = PlayerClass.Chungus;
+	} else if (player instanceof Teekkari) {
+		playerClass = PlayerClass.Teekkari;
+	} else if (player instanceof Spuge) {
+		playerClass = PlayerClass.Spuge;
+	} else if (player instanceof Assassin) {
+		playerClass = PlayerClass.Assassin;
+	} else {
+		playerClass = PlayerClass.Fighter;
+	}
+
+	return findClassLabelForLanguage(language, playerClass).toUpperCase();
 };

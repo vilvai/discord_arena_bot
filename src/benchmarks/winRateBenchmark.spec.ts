@@ -63,7 +63,7 @@ describe("Win rate benchmark", () => {
 			});
 
 			if (winner !== null) {
-				dataByClass[getPlayerClassName(winner)].wins += 1;
+				dataByClass[getPlayerClassName(winner, "suomi")].wins += 1;
 			}
 		}
 

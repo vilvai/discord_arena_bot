@@ -3,8 +3,9 @@ import rimraf from "rimraf";
 import fs from "fs";
 
 import Bot from "./Bot";
-import { messageMentionsBot, setBotMention } from "./messages";
+import { messageMentionsBot } from "./messages/messages";
 import { INPUT_FILE_DIRECTORY, RENDER_DIRECTORY } from "../shared/constants";
+import { setBotMention } from "./messages/botMention";
 
 require("dotenv").config();
 

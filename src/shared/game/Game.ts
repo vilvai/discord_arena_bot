@@ -15,6 +15,7 @@ import Spuge from "./playerClasses/Spuge";
 import BeerCan from "./playerClasses/BeerCan";
 import Assassin from "./playerClasses/Assassin";
 import ParticleHandler from "./ParticleHandler";
+import { Language } from "../../bot/languages";
 
 export default class Game {
 	constructor(ctx: CanvasRenderingContext2D) {
@@ -146,7 +147,7 @@ export default class Game {
 		this.particleHandler.update();
 	}
 
-	draw() {
+	draw(language: Language) {
 		this.ctx.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 		this.ctx.resetTransform();
 		// @ts-ignore textDrawingMode exists on node-canvas
@@ -165,7 +166,7 @@ export default class Game {
 		this.particleHandler.draw(this.ctx);
 
 		this.players.forEach((player) => player.drawHealthbar(this.ctx));
-		this.sidebar.draw(this.ctx, this.players);
+		this.sidebar.draw(this.ctx, this.players, language);
 	}
 
 	drawBackground() {
