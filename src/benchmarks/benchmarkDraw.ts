@@ -45,7 +45,11 @@ const runDrawBenchmark = async () => {
 		const { drawTime, frameCount } = await runOneGame();
 		drawTimes.push(drawTime);
 		frameCounts.push(frameCount);
-		console.log(`Ran game ${i}.`);
+		console.log(
+			`Ran game #${i} in ${drawTime.toFixed(2)}ms (${frameCount} frames @ ${(
+				drawTime / frameCount
+			).toFixed(2)}ms/frame)`
+		);
 	}
 
 	const totalTime = drawTimes.reduce((acc, time) => acc + time, 0);

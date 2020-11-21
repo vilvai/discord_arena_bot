@@ -47,7 +47,19 @@ const fontFamily = "Roboto";
 const fontWeight = IS_RUNNING_ON_NODE ? "700" : "500";
 
 export default class Sidebar {
+	initialDrawDone: boolean = false;
+	deathOverlaysDrawn: { [position: number]: undefined | true } = {};
+
 	draw(
+		ctx: CanvasRenderingContext2D,
+		players: BasePlayer[],
+		language: Language
+	) {
+		if (!this.initialDrawDone) this.initialDraw(ctx, players, language);
+		this.updatePlayerDeathOverlays(ctx, players);
+	}
+
+	initialDraw(
 		ctx: CanvasRenderingContext2D,
 		players: BasePlayer[],
 		language: Language
@@ -55,6 +67,21 @@ export default class Sidebar {
 		this.drawBackground(ctx);
 		players.slice(0, 7).forEach((player) => {
 			this.drawPlayer(ctx, player, language);
+			ctx.translate(0, 42);
+		});
+		ctx.resetTransform();
+		this.initialDrawDone = true;
+	}
+
+	updatePlayerDeathOverlays(
+		ctx: CanvasRenderingContext2D,
+		players: BasePlayer[]
+	) {
+		players.slice(0, 7).forEach((player, i) => {
+			if (player.isDead() && this.deathOverlaysDrawn[i] === undefined) {
+				this.drawPlayerDeathOverlay(ctx);
+				this.deathOverlaysDrawn[i] = true;
+			}
 			ctx.translate(0, 42);
 		});
 		ctx.resetTransform();
@@ -88,23 +115,7 @@ export default class Sidebar {
 			iconRadius * 2,
 			iconRadius * 2
 		);
-		if (player.isDead()) {
-			ctx.fillStyle = "rgba(200,0,0,0.5)";
-			ctx.fillRect(
-				iconCenterX - 16,
-				iconCenterY - 16,
-				iconRadius * 2,
-				iconRadius * 2
-			);
-		}
 		ctx.restore();
-		if (player.isDead()) {
-			ctx.fillStyle = "#fff";
-			ctx.font = `${fontWeight} 12px ${fontFamily}`;
-			const ripText = "R.I.P";
-			const textWidth = ctx.measureText(ripText).width;
-			ctx.fillText(ripText, iconCenterX - textWidth / 2, iconCenterY + 5);
-		}
 	}
 
 	drawPlayerName(ctx: CanvasRenderingContext2D, name: string) {
@@ -127,5 +138,27 @@ export default class Sidebar {
 		ctx.fillStyle = "#bbbbbb";
 		ctx.font = `italic ${fontWeight} 11px ${fontFamily}`;
 		ctx.fillText(className, textStartX, iconCenterY + 12);
+	}
+
+	drawPlayerDeathOverlay(ctx: CanvasRenderingContext2D) {
+		ctx.save();
+		ctx.beginPath();
+		ctx.arc(iconCenterX, iconCenterY, iconRadius, 0, Math.PI * 2);
+		ctx.clip();
+
+		ctx.fillStyle = "rgba(200,0,0,0.5)";
+		ctx.fillRect(
+			iconCenterX - 16,
+			iconCenterY - 16,
+			iconRadius * 2,
+			iconRadius * 2
+		);
+
+		ctx.restore();
+		ctx.fillStyle = "#fff";
+		ctx.font = `${fontWeight} 12px ${fontFamily}`;
+		const deathText = "R.I.P";
+		const textWidth = ctx.measureText(deathText).width;
+		ctx.fillText(deathText, iconCenterX - textWidth / 2, iconCenterY + 5);
 	}
 }

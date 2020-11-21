@@ -10,7 +10,7 @@ const runRenderTest = async () => {
 	const gameRunner = new GameRunner();
 	gameRunner.initializeGame();
 
-	createUniqueBotPlayers(3).forEach(({ playerClass, ...botPlayer }) => {
+	createUniqueBotPlayers(5).forEach(({ playerClass, ...botPlayer }) => {
 		gameRunner.addPlayer(botPlayer);
 		gameRunner.setPlayerClass(botPlayer.id, playerClass);
 	});

@@ -148,8 +148,12 @@ export default class Game {
 	}
 
 	draw(language: Language) {
-		this.ctx.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+		this.ctx.clearRect(SIDEBAR_WIDTH, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 		this.ctx.resetTransform();
+
+		this.ctx.save();
+		this.ctx.rect(SIDEBAR_WIDTH, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+		this.ctx.clip();
 		// @ts-ignore textDrawingMode exists on node-canvas
 		if (this.ctx.textDrawingMode) this.ctx.textDrawingMode = "path";
 
@@ -166,11 +170,12 @@ export default class Game {
 		this.particleHandler.draw(this.ctx);
 
 		this.players.forEach((player) => player.drawHealthbar(this.ctx));
+		this.ctx.restore();
 		this.sidebar.draw(this.ctx, this.players, language);
 	}
 
 	drawBackground() {
 		this.ctx.fillStyle = "#36393F";
-		this.ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+		this.ctx.fillRect(SIDEBAR_WIDTH, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 	}
 }
