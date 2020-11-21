@@ -35,6 +35,8 @@ const suomi: Translations = {
 		languageChanged: () => "Kieli asetettu suomeksi.",
 		selectableLanguages: (selectableLanguages: string) =>
 			`Tuetut kielet: ${selectableLanguages}`,
+		renderingFailed: (startNewFightMessage: string) =>
+			`Videon luonti epäonnistui 😢\n${startNewFightMessage}`,
 	},
 	commandTranslations: [
 		{ type: CommandType.Start, label: "aloita", info: "aloita taistelu" },

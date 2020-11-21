@@ -35,6 +35,8 @@ const english: Translations = {
 		languageChanged: () => "Language set to english.",
 		selectableLanguages: (selectableLanguages: string) =>
 			`Supported languages: ${selectableLanguages}`,
+		renderingFailed: (startNewFightMessage: string) =>
+			`Rendering the video failed 😢\n${startNewFightMessage}`,
 	},
 	commandTranslations: [
 		{ type: CommandType.Start, label: "start", info: "start a fight" },

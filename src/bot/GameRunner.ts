@@ -196,7 +196,7 @@ export default class GameRunner {
 		);
 
 	renderVideo = async (inputFolder: string, outputFolder: string) =>
-		new Promise((resolve) => {
+		new Promise((resolve, reject) => {
 			const timerAction = "FFMpeg render";
 			startTimer(timerAction);
 			ffmpeg()
@@ -218,6 +218,11 @@ export default class GameRunner {
 					rimraf(`./${inputFolder}`, (error) => error && console.error(error));
 					console.log("deleted input files successfully");
 					resolve();
+				})
+				.on("error", (error) => {
+					const errorMessage = `FFMpeg error: ${error.message}`;
+					console.error(errorMessage);
+					reject(errorMessage);
 				});
 		});
 }

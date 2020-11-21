@@ -246,37 +246,65 @@ describe("Bot", () => {
 		});
 	});
 
-	describe("error handling in sending messages", () => {
-		describe("when sending a message throws an error", () => {
-			let bot: Bot;
-			const error = "Sending failed because of some random HTTP issue";
-			let originalConsoleError: any;
-			const brokenMockChannel = {
-				send: () => {
-					throw new Error(error);
+	describe("error handling for sending messages", () => {
+		let bot: Bot;
+		const error = "Sending failed because of some random HTTP issue";
+		let originalConsoleError: any;
+		const brokenMockChannel = {
+			send: () => {
+				throw new Error(error);
+			},
+		};
+
+		beforeAll(() => {
+			originalConsoleError = console.error;
+			console.error = jest.fn();
+		});
+
+		afterAll(() => {
+			console.error = originalConsoleError;
+		});
+
+		beforeEach(() => {
+			bot = new Bot("fooUserId", "fooChannelId");
+			bot.sendMessage(brokenMockChannel as any, "Lorem ipsum");
+		});
+
+		it("logs the error", () => {
+			expect(console.error as jest.Mock).toHaveBeenCalledTimes(1);
+			expect(
+				(console.error as jest.Mock).mock.calls[0][0].includes(error)
+			).toBe(true);
+		});
+	});
+
+	describe("error handling for rendering video", () => {
+		let bot: Bot;
+		let channel: MockMessage["channel"];
+
+		beforeEach(() => {
+			channel = constructMockMessage({}).channel;
+			bot = new Bot("fooUserId", "fooChannelId");
+			bot.deleteBotMessages = jest.fn();
+			bot.gameRunner = {
+				getPlayerCount: () => 2,
+				getCurrentPlayersWithClasses: () => [],
+				runGame: () => {
+					throw new Error("Bam");
 				},
-			};
+			} as any;
 
-			beforeAll(() => {
-				originalConsoleError = console.error;
-				console.error = jest.fn();
-			});
+			bot.runGame(channel as any);
+		});
 
-			afterAll(() => {
-				console.error = originalConsoleError;
-			});
+		it("sets the bot state to Waiting", () => {
+			expect(bot.state).toEqual(BotState.Waiting);
+		});
 
-			beforeEach(() => {
-				bot = new Bot("fooUserId", "fooChannelId");
-				bot.sendMessage(brokenMockChannel as any, "Lorem ipsum");
-			});
-
-			it("logs the error", () => {
-				expect(console.error as jest.Mock).toHaveBeenCalledTimes(1);
-				expect(
-					(console.error as jest.Mock).mock.calls[0][0].includes(error)
-				).toBe(true);
-			});
+		it("sends a message saying the rendering failed", () => {
+			expect(channel.send).toHaveBeenCalledWith(
+				messagesByLanguage[bot.language].renderingFailed()
+			);
 		});
 	});
 });

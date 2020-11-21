@@ -1,6 +1,6 @@
 import Discord from "discord.js";
 
-import { PlayerClass } from "../shared/types";
+import { GameEndData, PlayerClass } from "../shared/types";
 import GameRunner from "./GameRunner";
 import { createNewBotPlayer } from "../shared/bots";
 import {
@@ -214,11 +214,18 @@ export default class Bot {
 			const inputDirectory = `${INPUT_FILE_DIRECTORY}/${this.channelId}`;
 			const outputDirectory = `${RENDER_DIRECTORY}/${this.channelId}`;
 
-			const gameEndData = await this.gameRunner.runGame(
-				inputDirectory,
-				outputDirectory,
-				this.language
-			);
+			let gameEndData: GameEndData | null;
+			try {
+				gameEndData = await this.gameRunner.runGame(
+					inputDirectory,
+					outputDirectory,
+					this.language
+				);
+			} catch (error) {
+				this.state = BotState.Waiting;
+				await this.sendTranslatedMessage(channel, "renderingFailed");
+				return;
+			}
 
 			await this.deleteSingleMessage(gameStartMessage);
 

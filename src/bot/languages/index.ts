@@ -27,6 +27,7 @@ export interface MessageTranslations {
 	onlyOwnerCanChangeLanguage: () => string;
 	languageChanged: () => string;
 	selectableLanguages: (selectableLanguages: string) => string;
+	renderingFailed: (startNewFightMessage: string) => string;
 }
 
 interface CommandTranslation<T extends CommandType> {

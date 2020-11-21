@@ -41,6 +41,7 @@ interface MessageFunctionsWithLogic {
 	playersInFight: (playersWithClasses: Array<[string, PlayerClass]>) => string;
 	changeClassWith: () => string;
 	selectableLanguages: () => string;
+	renderingFailed: () => string;
 }
 
 export type MessageFunctions = Omit<
@@ -60,6 +61,7 @@ const messageFunctionsForLanguage = (language: Language): MessageFunctions => {
 		playersInFight,
 		changeClassWith,
 		selectableLanguages,
+		renderingFailed,
 		...restTranslations
 	} = languages[language].messageTranslations;
 
@@ -70,6 +72,9 @@ const messageFunctionsForLanguage = (language: Language): MessageFunctions => {
 		CommandType.Class
 	)} ${getClassesForLanguage(language)}`;
 
+	const startNewFightWithBotMention = () =>
+		startNewFight(withBotMention(startCommand));
+
 	return {
 		fightStarting: (playersWithClasses: Array<[string, PlayerClass]>) => {
 			const playersWithClassesAsString = getPlayersWithClassesAsString(
@@ -78,7 +83,7 @@ const messageFunctionsForLanguage = (language: Language): MessageFunctions => {
 			);
 			return fightStarting(playersWithClassesAsString);
 		},
-		startNewFight: () => startNewFight(withBotMention(startCommand)),
+		startNewFight: startNewFightWithBotMention,
 		fightAlreadyStarting: () =>
 			fightAlreadyStarting(withBotMention(joinCommand)),
 		gameIsFull: () => gameIsFull(MAX_PLAYER_COUNT),
@@ -94,6 +99,7 @@ const messageFunctionsForLanguage = (language: Language): MessageFunctions => {
 		},
 		changeClassWith: () => changeClassWith(withBotMention(changeClassCommand)),
 		selectableLanguages: () => selectableLanguages(getLanguageOptions()),
+		renderingFailed: () => renderingFailed(startNewFightWithBotMention()),
 		...restTranslations,
 	};
 };
