@@ -79,19 +79,27 @@ export default class GameRunner {
 		if (!this.game) return null;
 		await this.initializePlayers();
 
-		const timerAction = "Game update, draw and temp file generation";
-		startTimer(timerAction);
+		const gameUpdateTimerString =
+			"Game update, draw and image buffer generation";
+		startTimer(gameUpdateTimerString);
 
 		this.createFolders(inputFolder, outputFolder);
 
-		const gameEndData = this.runGameLoop(
+		const { gameEndData, imageBuffers } = this.runGameLoop(
 			this.game,
-			inputFolder,
-			["image/jpeg", { quality: 0.98 }],
+			["image/jpeg", { quality: 0.75 }],
 			language
 		);
 
-		logTimer(timerAction);
+		logTimer(gameUpdateTimerString);
+
+		const inputFileWriteTimerString = "Input file writing";
+		startTimer(inputFileWriteTimerString);
+
+		await this.writeInputFiles(inputFolder, imageBuffers);
+
+		logTimer(inputFileWriteTimerString);
+
 		await this.renderVideo(inputFolder, outputFolder);
 		return gameEndData;
 	};
@@ -116,15 +124,16 @@ export default class GameRunner {
 
 	runGameLoop = (
 		game: Game,
-		inputFolder: string,
 		toBufferArgs:
 			| ["image/png", CanvasPngConfig]
 			| ["image/jpeg", CanvasJpegConfig],
 		language: Language
-	): GameEndData => {
+	): { gameEndData: GameEndData; imageBuffers: Buffer[] } => {
 		let gameEndData: GameEndData = {
 			gameEndReason: GameEndReason.TimeUp,
 		};
+
+		const imageBuffers: Buffer[] = [];
 
 		let i = 0;
 		let endingTime = Infinity;
@@ -133,13 +142,21 @@ export default class GameRunner {
 		const gameMaxTimeSeconds = 30;
 		while (i < gameMaxTimeSeconds * GAME_FPS && i < endingTime) {
 			game.draw(language);
-			const stream = fs.createWriteStream(
-				`${inputFolder}/pic${i.toString().padStart(3, "0")}.jpeg`
-			);
-			const [fileType, config]: [any, any] = toBufferArgs;
-			stream.write(this.canvas.toBuffer(fileType, config), () =>
-				stream.close()
-			);
+
+			let chunk: Buffer;
+
+			/*
+				This if-else is required because of a bug in Typescript.
+				See: https://github.com/Microsoft/TypeScript/issues/4130
+			*/
+			if (toBufferArgs[0] === "image/png") {
+				chunk = this.canvas.toBuffer(...toBufferArgs);
+			} else {
+				chunk = this.canvas.toBuffer(...toBufferArgs);
+			}
+
+			imageBuffers.push(chunk);
+
 			game.update();
 			if (game.isGameOver() && endingTime === Infinity) {
 				endingTime = i + tailTimeSeconds * GAME_FPS;
@@ -152,15 +169,36 @@ export default class GameRunner {
 			i++;
 		}
 
-		return gameEndData;
+		return { gameEndData, imageBuffers };
 	};
+
+	writeInputFiles = async (inputFolder: string, imageBuffers: Buffer[]) =>
+		await Promise.all(
+			imageBuffers.map(
+				(imageBuffer, i) =>
+					new Promise((resolve, reject) => {
+						const stream = fs.createWriteStream(
+							`${inputFolder}/${i.toString().padStart(3, "0")}.jpeg`
+						);
+						stream.write(imageBuffer, (possibleError) => {
+							if (possibleError === null || possibleError === undefined) {
+								stream.close();
+								resolve();
+							} else {
+								console.error("error when writing input file", possibleError);
+								reject();
+							}
+						});
+					})
+			)
+		);
 
 	renderVideo = async (inputFolder: string, outputFolder: string) =>
 		new Promise((resolve) => {
 			const timerAction = "FFMpeg render";
 			startTimer(timerAction);
 			ffmpeg()
-				.addInput(`./${inputFolder}/pic%3d.jpeg`)
+				.addInput(`./${inputFolder}/%3d.jpeg`)
 				.inputFPS(GAME_FPS)
 				.videoFilters([`fps=${GAME_FPS}`])
 				.videoCodec("libx264")
@@ -175,7 +213,7 @@ export default class GameRunner {
 				.save(`./${outputFolder}/${RENDER_FILE_NAME}.mp4`)
 				.on("end", () => {
 					logTimer(timerAction);
-					rimraf(`./${inputFolder}`, (error) => error && console.log(error));
+					rimraf(`./${inputFolder}`, (error) => error && console.error(error));
 					console.log("deleted input files successfully");
 					resolve();
 				});

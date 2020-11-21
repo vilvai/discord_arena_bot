@@ -1,8 +1,6 @@
 import { createCanvas, PngConfig as CanvasPngConfig } from "canvas";
-import fs from "fs";
 import { performance } from "perf_hooks";
 
-import rimraf from "rimraf";
 import { createUniqueBotPlayers } from "../shared/bots";
 import GameRunner from "../bot/GameRunner";
 import { PNGConfig, JPEGConfig } from "../shared/types";
@@ -17,12 +15,10 @@ const renderGame = async (config: PNGConfig | JPEGConfig) => {
 		gameRunner.setPlayerClass(botPlayer.id, playerClass);
 	});
 
-	let customTempDirectory: string;
 	let customToBufferArgs;
 
 	if (config.fileType === "png") {
-		const { fileType, filters, compressionLevel } = config;
-		customTempDirectory = `temp-${fileType}-f${filters}-c${compressionLevel}`;
+		const { filters, compressionLevel } = config;
 		customToBufferArgs = [
 			"image/png",
 			{
@@ -31,8 +27,7 @@ const renderGame = async (config: PNGConfig | JPEGConfig) => {
 			},
 		];
 	} else {
-		const { fileType, quality, progressive, chromaSubsampling } = config;
-		customTempDirectory = `temp-${fileType}-q${quality}-p${progressive}-c${chromaSubsampling}`;
+		const { quality, progressive, chromaSubsampling } = config;
 		customToBufferArgs = [
 			"image/jpeg",
 			{
@@ -47,36 +42,29 @@ const renderGame = async (config: PNGConfig | JPEGConfig) => {
 
 	if (!gameRunner.game) return;
 
-	gameRunner.createFolders(customTempDirectory, "fooFolder");
-
 	const updateTimeStart = performance.now();
-	gameRunner.runGameLoop(
+
+	const { imageBuffers } = gameRunner.runGameLoop(
 		gameRunner.game,
-		customTempDirectory,
 		customToBufferArgs as any,
 		"suomi"
 	);
+
 	const updateTime = performance.now() - updateTimeStart;
 
-	setTimeout(() => {
-		const tempFiles = fs.readdirSync(customTempDirectory);
-		const tempDirectorySize = tempFiles.reduce(
-			(acc, fileName) =>
-				acc + fs.statSync(`${customTempDirectory}/${fileName}`).size,
-			0
-		);
+	const totalImageBufferSizes = imageBuffers.reduce(
+		(acc, imageBuffer) => acc + imageBuffer.length,
+		0
+	);
 
-		const frameCount = tempFiles.length;
+	const frameCount = imageBuffers.length;
 
-		console.log({
-			frameCount,
-			...config,
-			timePerFrame: (updateTime / frameCount).toFixed(2) + "ms",
-			sizePerFrame: (tempDirectorySize / 1024 / frameCount).toFixed(2) + "kB",
-		});
-
-		rimraf(`${customTempDirectory}`, (error) => error && console.log(error));
-	}, 100);
+	console.log({
+		frameCount,
+		...config,
+		timePerFrame: (updateTime / frameCount).toFixed(2) + "ms",
+		sizePerFrame: (totalImageBufferSizes / 1024 / frameCount).toFixed(2) + "kB",
+	});
 };
 
 type FileType = "png" | "jpeg";

@@ -11,10 +11,12 @@
     "debug-bot": "node --inspect-brk -r ts-node/register ./src/bot/index.ts",
     "start-preview-dev": "start http://localhost:8080/ && webpack-dev-server --hot --mode development",
     "benchmark-winrate": "jest -c jest_benchmark.config.js",
-    "benchmark": "ts-node ./src/benchmarks/benchmark.ts",
+    "benchmark-image": "ts-node ./src/benchmarks/benchmarkImage.ts",
+    "benchmark-draw": "ts-node ./src/benchmarks/benchmarkDraw.ts",
     "lint": "eslint . --ext .tsx,.ts,.js",
     "test": "jest",
-    "heroku-postbuild": "yarn build-preview && yarn build-bot"
+    "heroku-postbuild": "yarn build-preview && yarn build-bot",
+    "test-render": "ts-node ./src/benchmarks/renderTest.ts"
   },
   "repository": "git@github.com:vilvai/discord_areena_bot.git",
   "author": "ville-pc <ville.vainio1@gmail.com>",
