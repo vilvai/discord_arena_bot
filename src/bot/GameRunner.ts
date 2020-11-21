@@ -185,7 +185,9 @@ export default class GameRunner {
 								stream.close();
 								resolve();
 							} else {
-								console.error("error when writing input file", possibleError);
+								console.error(
+									`Error when writing input file: ${possibleError.name}\n${possibleError.message}`
+								);
 								reject();
 							}
 						});

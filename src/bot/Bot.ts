@@ -21,6 +21,7 @@ import {
 	messagesByLanguage,
 	constructGameEndText,
 	messageWasSentByGuildOwner,
+	MessageFunctions,
 } from "./messages/messages";
 import { DEFAULT_LANGUAGE, Language, languages } from "./languages";
 import { CommandType } from "./messages/types";
@@ -46,15 +47,15 @@ export default class Bot {
 	language: Language;
 
 	handleMessage = async (msg: Discord.Message) => {
-		if (this.state === BotState.Rendering) return;
+		if (this.state === BotState.Rendering || msg.channel.type !== "text") {
+			return;
+		}
 
 		const messageWithoutMentions = msg.content.replace(/<@.*> +/, "");
 		const commandWithArgs = parseCommand(this.language, messageWithoutMentions);
 
 		if (commandWithArgs === null) {
-			await msg.channel.send(
-				messagesByLanguage[this.language].unknownCommand()
-			);
+			await this.sendTranslatedMessage(msg.channel, "unknownCommand");
 		} else {
 			await this.executeCommand(msg, commandWithArgs);
 		}
@@ -78,9 +79,7 @@ export default class Bot {
 					this.countdownLeft = GAME_COUNTDOWN_SECONDS;
 					await this.countdown(msg.channel);
 				} else {
-					await msg.channel.send(
-						messagesByLanguage[this.language].fightAlreadyStarting()
-					);
+					await this.sendTranslatedMessage(msg.channel, "fightAlreadyStarting");
 				}
 				return;
 			}
@@ -89,9 +88,7 @@ export default class Bot {
 				switch (this.state) {
 					case BotState.Countdown: {
 						if (this.gameRunner.getPlayerCount() >= MAX_PLAYER_COUNT) {
-							await msg.channel.send(
-								messagesByLanguage[this.language].gameIsFull()
-							);
+							await this.sendTranslatedMessage(msg.channel, "gameIsFull");
 							return;
 						}
 
@@ -124,40 +121,39 @@ export default class Bot {
 						msg.author.id,
 						newPlayerClass as PlayerClass
 					);
-					await msg.channel.send(
-						messagesByLanguage[this.language].classSelected(
-							msg.author.username,
-							newPlayerClass
-						)
+					await this.sendTranslatedMessage(
+						msg.channel,
+						"classSelected",
+						msg.author.username,
+						newPlayerClass
 					);
 				} else {
-					await msg.channel.send(
-						messagesByLanguage[this.language].selectableClasses()
-					);
+					await this.sendTranslatedMessage(msg.channel, "selectableClasses");
 				}
 				return;
 			}
 			case CommandType.Info: {
-				await msg.channel.send(getAcceptedCommandsForLanguage(this.language));
+				await this.sendMessage(
+					msg.channel,
+					getAcceptedCommandsForLanguage(this.language)
+				);
 				return;
 			}
 			case CommandType.Language: {
 				if (!messageWasSentByGuildOwner(msg)) {
-					await msg.channel.send(
-						messagesByLanguage[this.language].onlyOwnerCanChangeLanguage()
+					await this.sendTranslatedMessage(
+						msg.channel,
+						"onlyOwnerCanChangeLanguage"
 					);
 					return;
 				}
+
 				const possibleLanguage = commandWithArgs[1];
 				if (Object.keys(languages).includes(possibleLanguage)) {
 					this.language = possibleLanguage as Language;
-					await msg.channel.send(
-						messagesByLanguage[this.language].languageChanged()
-					);
+					await this.sendTranslatedMessage(msg.channel, "languageChanged");
 				} else {
-					await msg.channel.send(
-						messagesByLanguage[this.language].selectableLanguages()
-					);
+					await this.sendTranslatedMessage(msg.channel, "selectableLanguages");
 				}
 
 				return;
@@ -192,8 +188,10 @@ export default class Bot {
 			return;
 		}
 		if (this.countdownLeft % 10 === 0 || this.countdownLeft === 5) {
-			await channel.send(
-				messagesByLanguage[this.language].fightStartsIn(this.countdownLeft)
+			await this.sendTranslatedMessage(
+				channel,
+				"fightStartsIn",
+				this.countdownLeft
 			);
 		}
 		this.countdownLeft -= 1;
@@ -204,14 +202,13 @@ export default class Bot {
 		await this.deleteBotMessages(channel);
 
 		if (this.gameRunner.getPlayerCount() <= 1) {
-			await channel.send(messagesByLanguage[this.language].notEnoughPlayers());
+			await this.sendTranslatedMessage(channel, "notEnoughPlayers");
 		} else {
 			this.state = BotState.Rendering;
-
-			const gameStartMessage = await channel.send(
-				messagesByLanguage[this.language].fightStarting(
-					this.gameRunner.getCurrentPlayersWithClasses()
-				)
+			const gameStartMessage = await this.sendTranslatedMessage(
+				channel,
+				"fightStarting",
+				this.gameRunner.getCurrentPlayersWithClasses()
 			);
 
 			const inputDirectory = `${INPUT_FILE_DIRECTORY}/${this.channelId}`;
@@ -223,30 +220,48 @@ export default class Bot {
 				this.language
 			);
 
-			if (gameStartMessage.deletable) gameStartMessage.delete();
+			await this.deleteSingleMessage(gameStartMessage);
+
 			if (gameEndData === null) return;
 
 			const gameEndText = constructGameEndText(this.language, gameEndData);
-			await channel.send(gameEndText, {
-				files: [`./${outputDirectory}/${RENDER_FILE_NAME}.mp4`],
-			});
+			try {
+				await channel.send(gameEndText, {
+					files: [`./${outputDirectory}/${RENDER_FILE_NAME}.mp4`],
+				});
+			} catch (error) {
+				console.error(`Error when posting fight:\n${error}`);
+			}
 		}
-		await channel.send(messagesByLanguage[this.language].startNewFight());
+		await this.sendTranslatedMessage(channel, "startNewFight");
 		this.state = BotState.Waiting;
 	};
 
-	updatePlayersInGameText = async (channel: Discord.TextChannel) => {
-		if (
-			this.currentParticipantsMessage &&
-			this.currentParticipantsMessage.deletable
-		) {
-			try {
-				await this.currentParticipantsMessage.delete();
-			} catch (error) {
-				console.error(error);
-			}
+	sendTranslatedMessage = async <M extends keyof MessageFunctions>(
+		channel: Discord.TextChannel,
+		messageFunctionKey: M,
+		...messageFunctionParameters: Parameters<MessageFunctions[M]>
+	) =>
+		await this.sendMessage(
+			channel,
+			(messagesByLanguage[this.language][messageFunctionKey] as any)(
+				...messageFunctionParameters
+			)
+		);
+
+	sendMessage = async (channel: Discord.TextChannel, message: string) => {
+		try {
+			return await channel.send(message);
+		} catch (error) {
+			console.error(`Error when sending message: ${message}\n${error}`);
 		}
-		this.currentParticipantsMessage = await channel.send(
+	};
+
+	updatePlayersInGameText = async (channel: Discord.TextChannel) => {
+		await this.deleteSingleMessage(this.currentParticipantsMessage);
+
+		this.currentParticipantsMessage = await this.sendMessage(
+			channel,
 			`${messagesByLanguage[this.language].playersInFight(
 				this.gameRunner.getCurrentPlayersWithClasses()
 			)}\n\n${messagesByLanguage[this.language].changeClassWith()}`
@@ -254,13 +269,26 @@ export default class Bot {
 	};
 
 	sendNoGameInProgressText = async (channel: Discord.TextChannel) =>
-		await channel.send(
+		await this.sendMessage(
+			channel,
 			`${messagesByLanguage[
 				this.language
 			].noFightInProgress()} ${messagesByLanguage[
 				this.language
 			].startNewFight()}`
 		);
+
+	deleteSingleMessage = async (message: Discord.Message | undefined) => {
+		if (message === undefined || !message.deletable) return;
+
+		try {
+			return await message.delete();
+		} catch (error) {
+			console.error(
+				`Error when deleting message: ${message.content}\n${error}`
+			);
+		}
+	};
 
 	deleteBotMessages = async (channel: Discord.TextChannel) => {
 		startTimer("Fetching messages");

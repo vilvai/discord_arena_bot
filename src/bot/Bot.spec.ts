@@ -245,4 +245,38 @@ describe("Bot", () => {
 			});
 		});
 	});
+
+	describe("error handling in sending messages", () => {
+		describe("when sending a message throws an error", () => {
+			let bot: Bot;
+			const error = "Sending failed because of some random HTTP issue";
+			let originalConsoleError: any;
+			const brokenMockChannel = {
+				send: () => {
+					throw new Error(error);
+				},
+			};
+
+			beforeAll(() => {
+				originalConsoleError = console.error;
+				console.error = jest.fn();
+			});
+
+			afterAll(() => {
+				console.error = originalConsoleError;
+			});
+
+			beforeEach(() => {
+				bot = new Bot("fooUserId", "fooChannelId");
+				bot.sendMessage(brokenMockChannel as any, "Lorem ipsum");
+			});
+
+			it("logs the error", () => {
+				expect(console.error as jest.Mock).toHaveBeenCalledTimes(1);
+				expect(
+					(console.error as jest.Mock).mock.calls[0][0].includes(error)
+				).toBe(true);
+			});
+		});
+	});
 });
