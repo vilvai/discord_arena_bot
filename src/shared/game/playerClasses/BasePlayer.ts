@@ -191,8 +191,14 @@ export default class BasePlayer {
 	}
 
 	updateBleeding() {
-		if (!this.isDead()) return;
-		if ((1 - this.health / this.maxHealth) * 0.07 > Math.random()) {
+		if (
+			!this.isDead() ||
+			(this.knockbackXSpeed < 2 && this.knockbackYSpeed < 2)
+		) {
+			return;
+		}
+		const bleedChancePerTick = 0.4;
+		if (bleedChancePerTick > Math.random()) {
 			const size = 6 + Math.random() * 4;
 			this.createBloodStain(this.x, this.y, size);
 		}
