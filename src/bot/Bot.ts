@@ -125,7 +125,7 @@ export default class Bot {
 						msg.channel,
 						"classSelected",
 						msg.author.username,
-						newPlayerClass
+						possibleClass
 					);
 				} else {
 					await this.sendTranslatedMessage(msg.channel, "selectableClasses");
