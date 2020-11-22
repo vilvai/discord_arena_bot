@@ -87,7 +87,7 @@ export default class GameRunner {
 
 		const { gameEndData, imageBuffers } = this.runGameLoop(
 			this.game,
-			["image/jpeg", { quality: 0.75 }],
+			["image/jpeg", { quality: 0.95 }],
 			language
 		);
 
