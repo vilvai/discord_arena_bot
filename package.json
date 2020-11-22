@@ -16,7 +16,8 @@
     "lint": "eslint . --ext .tsx,.ts,.js",
     "test": "jest",
     "heroku-postbuild": "yarn build-preview && yarn build-bot",
-    "test-render": "ts-node ./src/benchmarks/renderTest.ts"
+    "test-render": "ts-node ./src/benchmarks/renderTest.ts",
+    "firebase": "ts-node ./src/firebaseTest.ts"
   },
   "repository": "git@github.com:vilvai/discord_areena_bot.git",
   "author": "ville-pc <ville.vainio1@gmail.com>",
@@ -27,6 +28,7 @@
     "discord.js": "^12.2.0",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
+    "firebase-admin": "^9.4.1",
     "fluent-ffmpeg": "^2.1.2",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",

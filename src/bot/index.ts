@@ -6,6 +6,7 @@ import Bot from "./Bot";
 import { messageMentionsBot } from "./messages/messages";
 import { INPUT_FILE_DIRECTORY, RENDER_DIRECTORY } from "../shared/constants";
 import { setBotMention } from "./messages/botMention";
+import { initializeDatabase } from "./database";
 
 require("dotenv").config();
 
@@ -19,6 +20,8 @@ const createRootFolders = () => {
 
 createRootFolders();
 
+initializeDatabase();
+
 const botsByChannel: { [channelId: string]: Bot } = {};
 
 const client = new Discord.Client();
@@ -31,17 +34,22 @@ client.on("ready", () => {
 });
 
 client.on("message", async (msg: Discord.Message) => {
+	const channel = msg.channel;
 	if (
 		client.user === null ||
-		msg.channel.type !== "text" ||
+		channel.type !== "text" ||
 		!messageMentionsBot(msg, client.user.id)
 	) {
 		return;
 	}
 
-	const channelId = msg.channel.id;
+	const channelId = channel.id;
 	if (botsByChannel[channelId] === undefined) {
+		console.log(
+			`Bot added to channel ${channel.guild.name}/${channel.name} (${channel.id})`
+		);
 		botsByChannel[channelId] = new Bot(client.user.id, channelId);
+		await botsByChannel[channelId].loadLanguageFromDB();
 	}
 	await botsByChannel[channelId].handleMessage(msg);
 });

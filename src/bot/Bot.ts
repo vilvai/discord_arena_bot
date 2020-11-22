@@ -25,6 +25,7 @@ import {
 } from "./messages/messages";
 import { DEFAULT_LANGUAGE, Language, languages } from "./languages";
 import { CommandType } from "./messages/types";
+import { getLanguageForChannel, saveLanguageForChannel } from "./database";
 
 export enum BotState {
 	Waiting = "waiting",
@@ -45,6 +46,11 @@ export default class Bot {
 	countdownLeft: number;
 	currentParticipantsMessage?: Discord.Message;
 	language: Language;
+
+	loadLanguageFromDB = async () => {
+		const language = await getLanguageForChannel(this.channelId);
+		if (language !== null) this.language = language;
+	};
 
 	handleMessage = async (msg: Discord.Message) => {
 		if (this.state === BotState.Rendering || msg.channel.type !== "text") {
@@ -150,7 +156,9 @@ export default class Bot {
 
 				const possibleLanguage = commandWithArgs[1];
 				if (Object.keys(languages).includes(possibleLanguage)) {
-					this.language = possibleLanguage as Language;
+					const language = possibleLanguage as Language;
+					this.language = language;
+					saveLanguageForChannel(this.channelId, language);
 					await this.sendTranslatedMessage(msg.channel, "languageChanged");
 				} else {
 					await this.sendTranslatedMessage(msg.channel, "selectableLanguages");
@@ -210,6 +218,8 @@ export default class Bot {
 				"fightStarting",
 				this.gameRunner.getCurrentPlayersWithClasses()
 			);
+
+			console.log(`Starting video render for channel ${channel.id}`);
 
 			const inputDirectory = `${INPUT_FILE_DIRECTORY}/${this.channelId}`;
 			const outputDirectory = `${RENDER_DIRECTORY}/${this.channelId}`;
