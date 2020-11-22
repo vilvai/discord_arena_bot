@@ -9,10 +9,13 @@ const runOneGame = async () => {
 	const gameRunner = new GameRunner();
 	gameRunner.initializeGame();
 
-	createUniqueBotPlayers(Object.values(PlayerClass).length).forEach(
+	createUniqueBotPlayers(Object.values(PlayerClass).length * 2).forEach(
 		({ playerClass: _playerClass, ...botPlayer }, i) => {
 			gameRunner.addPlayer(botPlayer);
-			gameRunner.setPlayerClass(botPlayer.id, Object.values(PlayerClass)[i]);
+			gameRunner.setPlayerClass(
+				botPlayer.id,
+				Object.values(PlayerClass)[Math.floor(i / 2)]
+			);
 		}
 	);
 

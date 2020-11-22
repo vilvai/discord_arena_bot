@@ -1,4 +1,4 @@
-import { loadImage } from "canvas";
+import { createCanvas, loadImage } from "canvas";
 import { SCREEN_WIDTH, SIDEBAR_WIDTH, SCREEN_HEIGHT } from "../../constants";
 import {
 	findRandomAliveTarget,
@@ -36,6 +36,8 @@ export default class BasePlayer {
 	}
 
 	avatar?: CanvasImageSource;
+	cachedAvatarImage?: OffscreenCanvas;
+	cachedDeadAvatarImage?: OffscreenCanvas;
 	radius: number;
 	target?: BasePlayer;
 	chaseSpeed: number;
@@ -53,7 +55,38 @@ export default class BasePlayer {
 	async loadAvatar(avatarURL: string) {
 		const avatar: unknown = await loadImage(avatarURL);
 		this.avatar = avatar as CanvasImageSource;
+		/*
+			Avatars are drawn once to their actual size and cached for performance.
+			See: https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Optimizing_canvas
+		*/
+		const { avatarCanvas, deadAvatarCanvas } = this.createCachedAvatars();
+		this.cachedAvatarImage = avatarCanvas;
+		this.cachedDeadAvatarImage = deadAvatarCanvas;
 	}
+
+	createCachedAvatars = (): {
+		avatarCanvas: OffscreenCanvas;
+		deadAvatarCanvas: OffscreenCanvas;
+	} => {
+		const avatarCanvas = this.createCanvasAvatar(false);
+		const deadAvatarCanvas = this.createCanvasAvatar(true);
+		return { avatarCanvas, deadAvatarCanvas };
+	};
+
+	createCanvasAvatar = (dead: boolean): OffscreenCanvas => {
+		const size = this.radius * 2;
+		const canvas = createCanvas(size, size);
+		const ctx = canvas.getContext("2d");
+		ctx.beginPath();
+		ctx.arc(this.radius, this.radius, this.radius, 0, Math.PI * 2);
+		ctx.clip();
+		ctx.drawImage(this.avatar, 0, 0, size, size);
+		if (dead) {
+			ctx.fillStyle = "rgba(255,0,0,0.5)";
+			ctx.fillRect(0, 0, size, size);
+		}
+		return canvas as any;
+	};
 
 	onHit(
 		sourceX: number,
@@ -170,28 +203,18 @@ export default class BasePlayer {
 	}
 
 	drawAvatar(ctx: CanvasRenderingContext2D) {
-		if (!this.avatar) return;
-		ctx.save();
-		ctx.beginPath();
-		ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-		ctx.clip();
-		ctx.drawImage(
-			this.avatar,
-			this.x - this.radius,
-			this.y - this.radius,
-			this.radius * 2,
-			this.radius * 2
-		);
-		if (this.isDead()) {
-			ctx.fillStyle = "rgba(255,0,0,0.5)";
-			ctx.fillRect(
-				this.x - this.radius,
-				this.y - this.radius,
-				this.radius * 2,
-				this.radius * 2
-			);
+		if (
+			!this.avatar ||
+			!this.cachedAvatarImage ||
+			!this.cachedDeadAvatarImage
+		) {
+			return;
 		}
-		ctx.restore();
+		ctx.drawImage(
+			this.isDead() ? this.cachedDeadAvatarImage : this.cachedAvatarImage,
+			this.x - this.radius,
+			this.y - this.radius
+		);
 	}
 
 	drawHealthbar(ctx: CanvasRenderingContext2D) {
