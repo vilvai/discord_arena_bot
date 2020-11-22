@@ -1,10 +1,11 @@
 import GameRunner from "../bot/GameRunner";
 import { createUniqueBotPlayers } from "../shared/bots";
+import { INPUT_FILE_DIRECTORY, RENDER_DIRECTORY } from "../shared/constants";
 
 console.log("Starting render test");
 
-const INPUT_FOLDER = "renderTestInput";
-const OUTPUT_FOLDER = "renderTestOutput";
+const INPUT_FOLDER = `${INPUT_FILE_DIRECTORY}/render_test`;
+const OUTPUT_FOLDER = `${RENDER_DIRECTORY}/render_test`;
 
 const runRenderTest = async () => {
 	const gameRunner = new GameRunner();
