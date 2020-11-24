@@ -14,6 +14,7 @@ import {
 	SCREEN_HEIGHT,
 	GAME_FPS,
 	RENDER_FILE_NAME,
+	GAME_OVER_OVERLAY_DURATION,
 } from "../shared/constants";
 import {
 	PlayerData,
@@ -77,7 +78,7 @@ export default class GameRunner {
 		language: Language
 	): Promise<GameEndData | null> => {
 		if (!this.game) return null;
-		await this.initializePlayers();
+		await this.initializePlayers(language);
 
 		const gameUpdateTimerString =
 			"Game update, draw and image buffer generation";
@@ -85,11 +86,10 @@ export default class GameRunner {
 
 		this.createFolders(inputFolder, outputFolder);
 
-		const { gameEndData, imageBuffers } = this.runGameLoop(
-			this.game,
-			["image/jpeg", { quality: 0.95 }],
-			language
-		);
+		const { gameEndData, imageBuffers } = this.runGameLoop(this.game, [
+			"image/jpeg",
+			{ quality: 0.95 },
+		]);
 
 		logTimer(gameUpdateTimerString);
 
@@ -104,14 +104,14 @@ export default class GameRunner {
 		return gameEndData;
 	};
 
-	initializePlayers = async () => {
+	initializePlayers = async (language: Language) => {
 		if (!this.game) return;
 		const players = this.playersInGame.map((player) => ({
 			...player,
 			playerClass: this.playerClassesById[player.id] || defaultClass,
 		}));
 
-		await this.game.initializeGame(players);
+		await this.game.initializeGame(players, language);
 	};
 
 	createFolders = (inputFolder: string, outputFolder: string) => {
@@ -126,8 +126,7 @@ export default class GameRunner {
 		game: Game,
 		toBufferArgs:
 			| ["image/png", CanvasPngConfig]
-			| ["image/jpeg", CanvasJpegConfig],
-		language: Language
+			| ["image/jpeg", CanvasJpegConfig]
 	): { gameEndData: GameEndData; imageBuffers: Buffer[] } => {
 		let gameEndData: GameEndData = {
 			gameEndReason: GameEndReason.TimeUp,
@@ -136,12 +135,11 @@ export default class GameRunner {
 		const imageBuffers: Buffer[] = [];
 
 		let i = 0;
-		let endingTime = Infinity;
-
-		const tailTimeSeconds = 2;
 		const gameMaxTimeSeconds = 30;
-		while (i < gameMaxTimeSeconds * GAME_FPS && i < endingTime) {
-			game.draw(language);
+		let endingTime: number = Infinity;
+
+		while (i < endingTime) {
+			game.draw();
 
 			let chunk: Buffer;
 
@@ -158,13 +156,17 @@ export default class GameRunner {
 			imageBuffers.push(chunk);
 
 			game.update();
+
 			if (game.isGameOver() && endingTime === Infinity) {
-				endingTime = i + tailTimeSeconds * GAME_FPS;
+				endingTime = i + GAME_OVER_OVERLAY_DURATION;
 				const winner = game.getWinner();
 				gameEndData = {
 					gameEndReason: GameEndReason.PlayerWon,
 					winnerName: winner ? winner.name : null,
 				};
+			} else if (i === gameMaxTimeSeconds * GAME_FPS) {
+				endingTime = i + GAME_OVER_OVERLAY_DURATION;
+				game.initializeGameOverOverlay(GameEndReason.TimeUp);
 			}
 			i++;
 		}

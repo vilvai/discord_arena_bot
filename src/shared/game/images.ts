@@ -17,7 +17,7 @@ export const BEER_CAN_IMAGE_WIDTH = 14;
 export const BEER_CAN_IMAGE_HEIGHT = 24;
 
 let turretImageConstructor: HTMLImageElement;
-if (process.env.NODE) {
+if (IS_RUNNING_ON_NODE) {
 	turretImageConstructor = new NodeImage() as any;
 	turretImageConstructor.src = "src/assets/turret.png";
 } else {
@@ -29,3 +29,15 @@ if (process.env.NODE) {
 export const turretImage = turretImageConstructor;
 
 export const TURRET_IMAGE_SIZE = 36;
+
+let crownImageConstructor: HTMLImageElement;
+if (IS_RUNNING_ON_NODE) {
+	crownImageConstructor = new NodeImage() as any;
+	crownImageConstructor.src = "src/assets/kruunu.png";
+} else {
+	crownImageConstructor = new Image();
+	const crownSrc = require("../../assets/kruunu.png").default;
+	crownImageConstructor.src = crownSrc;
+}
+
+export const crownImage = crownImageConstructor;

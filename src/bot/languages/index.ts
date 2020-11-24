@@ -11,9 +11,9 @@ export const DEFAULT_LANGUAGE: Language = "english";
 export interface MessageTranslations {
 	fightStartsIn: (countdownLeft: number) => string;
 	fightStarting: (playersInFight: string) => string;
-	fightEndedOutOfTime: () => string;
-	fightEndedPlayerWon: (winnerName: string) => string;
-	fightEndedNobodyWon: () => string;
+	fightEndedTimesUp: () => string;
+	fightEndedWinner: () => string;
+	fightEndedTie: () => string;
 	notEnoughPlayers: () => string;
 	startNewFight: (startCommand: string) => string;
 	noFightInProgress: () => string;

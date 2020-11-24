@@ -18,7 +18,7 @@ const runGame = async (players: PlayerData[]) => {
 	const canvas = createCanvas(SCREEN_WIDTH, SCREEN_HEIGHT);
 	const ctx = canvas.getContext("2d");
 	const game = new Game(ctx);
-	await game.initializeGame(players);
+	await game.initializeGame(players, "suomi");
 
 	let i = 0;
 

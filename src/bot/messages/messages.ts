@@ -115,19 +115,3 @@ export const messagesByLanguage: MessagesByLanguage = Object.keys(
 	}),
 	{} as MessagesByLanguage
 );
-
-export const constructGameEndText = (
-	language: Language,
-	gameEndData: GameEndData
-) => {
-	let gameEndText = "";
-	if (gameEndData.gameEndReason === GameEndReason.TimeUp) {
-		gameEndText = messagesByLanguage[language].fightEndedOutOfTime();
-	} else {
-		const winnerName = gameEndData.winnerName;
-		gameEndText = winnerName
-			? messagesByLanguage[language].fightEndedPlayerWon(winnerName)
-			: messagesByLanguage[language].fightEndedNobodyWon();
-	}
-	return gameEndText;
-};

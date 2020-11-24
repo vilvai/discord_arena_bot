@@ -8,10 +8,9 @@ const suomi: Translations = {
 			`Taistelu alkaa ${countdownLeft} sekunnin kuluttua.`,
 		fightStarting: (playersInFight: string) =>
 			`**Taistelu alkaa.**\n${playersInFight}`,
-		fightEndedOutOfTime: () => "Taistelu päättyi koska aika loppui kesken.",
-		fightEndedPlayerWon: (winnerName: string) =>
-			`Taistelu päättyi. ${winnerName} voitti!`,
-		fightEndedNobodyWon: () => "Taistelu päättyi ilman voittajaa.",
+		fightEndedTimesUp: () => "Aika loppui!",
+		fightEndedWinner: () => "Voittaja:",
+		fightEndedTie: () => "Tasapeli!",
 		notEnoughPlayers: () => "Taistelussa oli liian vähän osallistujia.",
 		startNewFight: (startCommand: string) =>
 			`Aloita uusi taistelu komennolla ${startCommand}.`,

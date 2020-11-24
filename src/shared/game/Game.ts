@@ -1,4 +1,4 @@
-import { PlayerClass, PlayerData } from "../types";
+import { GameEndReason, PlayerClass, PlayerData } from "../types";
 import BasePlayer from "./playerClasses/BasePlayer";
 import {
 	SCREEN_HEIGHT,
@@ -15,16 +15,19 @@ import Spuge from "./playerClasses/Spuge";
 import BeerCan from "./playerClasses/BeerCan";
 import Assassin from "./playerClasses/Assassin";
 import ParticleHandler from "./ParticleHandler";
-import { Language } from "../../bot/languages";
+import GameOverOverlay from "./GameOverOverlay";
+import { DEFAULT_LANGUAGE, Language, languages } from "../../bot/languages";
 
 export default class Game {
-	constructor(ctx: CanvasRenderingContext2D) {
-		this.ctx = ctx;
+	constructor(private ctx: CanvasRenderingContext2D) {
+		this.language = DEFAULT_LANGUAGE;
 	}
-	ctx: CanvasRenderingContext2D;
+
+	language: Language;
 	players!: BasePlayer[];
 	bloodStains!: Blood[];
 	sidebar!: Sidebar;
+	gameOverOverlay?: GameOverOverlay;
 	turrets!: Turret[];
 	beerCans!: BeerCan[];
 	particleHandler!: ParticleHandler;
@@ -41,7 +44,7 @@ export default class Game {
 		return { x, y };
 	}
 
-	async initializeGame(players: PlayerData[]) {
+	async initializeGame(players: PlayerData[], language: Language) {
 		this.players = [];
 		for (const [i, playerData] of players.entries()) {
 			const { x, y } = Game.calculatePlayerStartingPosition(players.length, i);
@@ -87,8 +90,10 @@ export default class Game {
 		this.bloodStains = [];
 		this.turrets = [];
 		this.beerCans = [];
-		this.sidebar = new Sidebar();
+		this.sidebar = new Sidebar(this.players);
 		this.particleHandler = new ParticleHandler();
+		this.gameOverOverlay = undefined;
+		this.language = language;
 	}
 
 	isGameOver = () =>
@@ -145,10 +150,45 @@ export default class Game {
 			beerCan.update(otherPlayers);
 		});
 		this.particleHandler.update();
+
+		if (this.isGameOver()) {
+			if (this.gameOverOverlay === undefined) {
+				this.initializeGameOverOverlay(GameEndReason.PlayerWon);
+			}
+		}
+		if (this.gameOverOverlay !== undefined) {
+			this.gameOverOverlay.update();
+		}
 	}
 
-	draw(language: Language) {
-		this.ctx.clearRect(SIDEBAR_WIDTH, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+	initializeGameOverOverlay(gameEndReason: GameEndReason) {
+		const { messageTranslations } = languages[this.language];
+
+		let gameOverText: string = "";
+		let winnerName: string | undefined = undefined;
+		let winnerAvatar: CanvasImageSource | undefined = undefined;
+
+		if (gameEndReason === GameEndReason.TimeUp) {
+			gameOverText = messageTranslations.fightEndedTimesUp().toUpperCase();
+		} else if (gameEndReason === GameEndReason.PlayerWon) {
+			const winner = this.getWinner();
+			if (winner === null) {
+				gameOverText = messageTranslations.fightEndedTie().toUpperCase();
+			} else {
+				gameOverText = messageTranslations.fightEndedWinner().toUpperCase();
+				winnerName = winner.name;
+				winnerAvatar = winner.avatar;
+			}
+		}
+
+		this.gameOverOverlay = new GameOverOverlay(
+			gameOverText,
+			winnerName,
+			winnerAvatar
+		);
+	}
+
+	draw() {
 		this.ctx.resetTransform();
 
 		this.ctx.save();
@@ -171,7 +211,8 @@ export default class Game {
 
 		this.players.forEach((player) => player.drawHealthbar(this.ctx));
 		this.ctx.restore();
-		this.sidebar.draw(this.ctx, this.players, language);
+		this.sidebar.draw(this.ctx, this.players, this.language);
+		if (this.gameOverOverlay) this.gameOverOverlay.draw(this.ctx);
 	}
 
 	drawBackground() {

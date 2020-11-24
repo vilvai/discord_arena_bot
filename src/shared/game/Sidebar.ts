@@ -1,5 +1,11 @@
+import { createCanvas } from "canvas";
 import { Language } from "../../bot/languages";
-import { SIDEBAR_WIDTH, SCREEN_HEIGHT, IS_RUNNING_ON_NODE } from "../constants";
+import {
+	SIDEBAR_WIDTH,
+	SCREEN_HEIGHT,
+	FONT_FAMILY,
+	FONT_WEIGHT,
+} from "../constants";
 import BasePlayer from "./playerClasses/BasePlayer";
 import { getPlayerClassName } from "./playerClasses/getPlayerClassName";
 
@@ -43,49 +49,44 @@ const iconCenterX = iconRadius + 6;
 const iconCenterY = iconRadius + 6;
 const textStartX = iconCenterX + iconRadius + 4;
 
-const fontFamily = "Roboto";
-const fontWeight = IS_RUNNING_ON_NODE ? "700" : "500";
-
 export default class Sidebar {
-	initialDrawDone: boolean = false;
-	deathOverlaysDrawn: { [position: number]: undefined | true } = {};
+	constructor(players: BasePlayer[]) {
+		this.playerDeathStates = players.map((player) => player.isDead());
+	}
+
+	playerDeathStates: boolean[];
+	cachedSidebar?: OffscreenCanvas;
 
 	draw(
 		ctx: CanvasRenderingContext2D,
 		players: BasePlayer[],
 		language: Language
 	) {
-		if (!this.initialDrawDone) this.initialDraw(ctx, players, language);
-		this.updatePlayerDeathOverlays(ctx, players);
+		if (
+			this.cachedSidebar === undefined ||
+			players.some((player, i) => player.isDead() !== this.playerDeathStates[i])
+		) {
+			this.cachedSidebar = this.createCachedSidebar(players, language);
+			this.playerDeathStates = players.map((player) => player.isDead());
+		}
+		ctx.drawImage(this.cachedSidebar, 0, 0);
 	}
 
-	initialDraw(
-		ctx: CanvasRenderingContext2D,
+	createCachedSidebar = (
 		players: BasePlayer[],
 		language: Language
-	) {
+	): OffscreenCanvas => {
+		const canvas = createCanvas(SIDEBAR_WIDTH, SCREEN_HEIGHT);
+		const ctx = canvas.getContext("2d");
+
 		this.drawBackground(ctx);
 		players.slice(0, 7).forEach((player) => {
 			this.drawPlayer(ctx, player, language);
 			ctx.translate(0, 42);
 		});
 		ctx.resetTransform();
-		this.initialDrawDone = true;
-	}
-
-	updatePlayerDeathOverlays(
-		ctx: CanvasRenderingContext2D,
-		players: BasePlayer[]
-	) {
-		players.slice(0, 7).forEach((player, i) => {
-			if (player.isDead() && this.deathOverlaysDrawn[i] === undefined) {
-				this.drawPlayerDeathOverlay(ctx);
-				this.deathOverlaysDrawn[i] = true;
-			}
-			ctx.translate(0, 42);
-		});
-		ctx.resetTransform();
-	}
+		return canvas as any;
+	};
 
 	drawBackground(ctx: CanvasRenderingContext2D) {
 		ctx.fillStyle = "#2F3136";
@@ -98,6 +99,7 @@ export default class Sidebar {
 		language: Language
 	) {
 		this.drawPlayerIcon(ctx, player);
+		if (player.isDead()) this.drawPlayerDeathOverlay(ctx);
 		this.drawPlayerName(ctx, player.name);
 		this.drawPlayerClass(ctx, player, language);
 	}
@@ -115,12 +117,13 @@ export default class Sidebar {
 			iconRadius * 2,
 			iconRadius * 2
 		);
+
 		ctx.restore();
 	}
 
 	drawPlayerName(ctx: CanvasRenderingContext2D, name: string) {
 		ctx.fillStyle = "#eeeeee";
-		ctx.font = `${fontWeight} 12px ${fontFamily}`;
+		ctx.font = `${FONT_WEIGHT} 12px ${FONT_FAMILY}`;
 		const truncatedName = memoizedTruncateText(
 			ctx,
 			name,
@@ -136,7 +139,7 @@ export default class Sidebar {
 	) {
 		const className = getPlayerClassName(player, language);
 		ctx.fillStyle = "#bbbbbb";
-		ctx.font = `italic ${fontWeight} 11px ${fontFamily}`;
+		ctx.font = `italic ${FONT_WEIGHT} 11px ${FONT_FAMILY}`;
 		ctx.fillText(className, textStartX, iconCenterY + 12);
 	}
 
@@ -156,7 +159,7 @@ export default class Sidebar {
 
 		ctx.restore();
 		ctx.fillStyle = "#fff";
-		ctx.font = `${fontWeight} 12px ${fontFamily}`;
+		ctx.font = `${FONT_WEIGHT} 12px ${FONT_FAMILY}`;
 		const deathText = "R.I.P";
 		const textWidth = ctx.measureText(deathText).width;
 		ctx.fillText(deathText, iconCenterX - textWidth / 2, iconCenterY + 5);

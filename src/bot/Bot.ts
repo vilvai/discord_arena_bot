@@ -19,7 +19,6 @@ import {
 import {
 	messageMentionsBot,
 	messagesByLanguage,
-	constructGameEndText,
 	messageWasSentByGuildOwner,
 	MessageFunctions,
 } from "./messages/messages";
@@ -241,9 +240,8 @@ export default class Bot {
 
 			if (gameEndData === null) return;
 
-			const gameEndText = constructGameEndText(this.language, gameEndData);
 			try {
-				await channel.send(gameEndText, {
+				await channel.send("", {
 					files: [`./${outputDirectory}/${RENDER_FILE_NAME}.mp4`],
 				});
 			} catch (error) {

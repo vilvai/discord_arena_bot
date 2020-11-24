@@ -38,7 +38,7 @@ const renderGame = async (config: PNGConfig | JPEGConfig) => {
 		];
 	}
 
-	await gameRunner.initializePlayers();
+	await gameRunner.initializePlayers("suomi");
 
 	if (!gameRunner.game) return;
 
@@ -46,8 +46,7 @@ const renderGame = async (config: PNGConfig | JPEGConfig) => {
 
 	const { imageBuffers } = gameRunner.runGameLoop(
 		gameRunner.game,
-		customToBufferArgs as any,
-		"suomi"
+		customToBufferArgs as any
 	);
 
 	const updateTime = performance.now() - updateTimeStart;

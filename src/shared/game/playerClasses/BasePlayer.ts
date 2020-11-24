@@ -74,16 +74,16 @@ export default class BasePlayer {
 	};
 
 	createCanvasAvatar = (dead: boolean): OffscreenCanvas => {
-		const size = this.radius * 2;
-		const canvas = createCanvas(size, size);
+		const SIZE = this.radius * 4;
+		const canvas = createCanvas(SIZE, SIZE);
 		const ctx = canvas.getContext("2d");
 		ctx.beginPath();
-		ctx.arc(this.radius, this.radius, this.radius, 0, Math.PI * 2);
+		ctx.arc(SIZE / 2, SIZE / 2, SIZE / 2, 0, Math.PI * 2);
 		ctx.clip();
-		ctx.drawImage(this.avatar, 0, 0, size, size);
+		ctx.drawImage(this.avatar, 0, 0, SIZE, SIZE);
 		if (dead) {
 			ctx.fillStyle = "rgba(255,0,0,0.5)";
-			ctx.fillRect(0, 0, size, size);
+			ctx.fillRect(0, 0, SIZE, SIZE);
 		}
 		return canvas as any;
 	};
@@ -219,7 +219,9 @@ export default class BasePlayer {
 		ctx.drawImage(
 			this.isDead() ? this.cachedDeadAvatarImage : this.cachedAvatarImage,
 			this.x - this.radius,
-			this.y - this.radius
+			this.y - this.radius,
+			this.radius * 2,
+			this.radius * 2
 		);
 	}
 

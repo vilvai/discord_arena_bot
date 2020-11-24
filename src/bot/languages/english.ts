@@ -8,10 +8,9 @@ const english: Translations = {
 			`Fight starts in ${countdownLeft} seconds.`,
 		fightStarting: (playersInFight: string) =>
 			`**Fight is starting.**\n${playersInFight}`,
-		fightEndedOutOfTime: () => "Fight ended because time ran out.",
-		fightEndedPlayerWon: (winnerName: string) =>
-			`Fight ended. ${winnerName} won!`,
-		fightEndedNobodyWon: () => "Fight ended without a winner.",
+		fightEndedTimesUp: () => "Time's up!",
+		fightEndedWinner: () => "Winner:",
+		fightEndedTie: () => "Tie!",
 		notEnoughPlayers: () => "Not enough players in the fight.",
 		startNewFight: (startCommand: string) =>
 			`Start a new fight with ${startCommand}.`,

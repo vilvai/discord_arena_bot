@@ -19,16 +19,12 @@ const runOneGame = async () => {
 		}
 	);
 
-	await gameRunner.initializePlayers();
+	await gameRunner.initializePlayers("english");
 
 	gameRunner.canvas = { toBuffer: () => Buffer.from(["foo"]) } as any;
 	const drawTimeStart = performance.now();
 
-	const { imageBuffers } = gameRunner.runGameLoop(
-		gameRunner.game!,
-		[] as any,
-		"english"
-	);
+	const { imageBuffers } = gameRunner.runGameLoop(gameRunner.game!, [] as any);
 
 	const drawTime = performance.now() - drawTimeStart;
 	const frameCount = imageBuffers.length;
