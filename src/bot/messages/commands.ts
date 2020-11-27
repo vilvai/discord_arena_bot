@@ -1,58 +1,15 @@
-import { PlayerClass } from "../../shared/types";
-import { Language, languages } from "../languages";
+import {
+	getLanguageOptions,
+	Language,
+	languages,
+	optionsToString,
+} from "../languages";
 import { adminOnlyCommands, CommandType } from "./types";
 
 export const BOT_PREFIX = "arena ";
 
 export const commandWithBotPrefix = (command: string) =>
 	`\`${BOT_PREFIX}${command}\``;
-
-export const findCommandByLabel = (language: Language, label: string) =>
-	languages[language].commandTranslations.find(
-		(acceptedCommand) => acceptedCommand.label === label
-	);
-
-export const getCommandLabelForLanguage = (
-	language: Language,
-	commandType: CommandType
-): string =>
-	languages[language].commandTranslations.find(
-		(command) => command.type === commandType
-	)!.label;
-
-export const findClassLabelForLanguage = (
-	language: Language,
-	playerClass: PlayerClass
-): string =>
-	languages[language].commandTranslations[4].playerClassTranslations[
-		playerClass
-	];
-
-export const getPlayersWithClassesAsString = (
-	language: Language,
-	playersWithClasses: Array<[string, PlayerClass]>
-) =>
-	playersWithClasses
-		.map(
-			([playerName, playerClass]) =>
-				`${playerName} - \`${findClassLabelForLanguage(
-					language,
-					playerClass
-				)}\``
-		)
-		.join("\n");
-
-export const getClassesForLanguage = (language: Language): string =>
-	optionsToString(
-		Object.values(
-			languages[language].commandTranslations[4].playerClassTranslations
-		)
-	);
-
-export const getLanguageOptions = () => optionsToString(Object.keys(languages));
-
-const optionsToString = (options: string[]): string =>
-	`${options.map((option) => `\`${option}\``).join(", ")}`;
 
 export const getCommandsAsStringForLanguage = (
 	language: Language,

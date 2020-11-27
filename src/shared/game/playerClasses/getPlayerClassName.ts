@@ -5,8 +5,7 @@ import Spuge from "./Spuge";
 import Assassin from "./Assassin";
 import { PlayerClass } from "../../types";
 
-import { findClassLabelForLanguage } from "../../../bot/messages/commands";
-import { Language } from "../../../bot/languages";
+import { findClassLabelForLanguage, Language } from "../../../bot/languages";
 
 export const getPlayerClassName = (player: BasePlayer, language: Language) => {
 	let playerClass: PlayerClass;

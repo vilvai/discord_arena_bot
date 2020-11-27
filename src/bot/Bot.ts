@@ -11,18 +11,19 @@ import {
 	RENDER_FILE_NAME,
 } from "../shared/constants";
 import { startTimer, logTimer } from "../shared/timer";
-import {
-	BOT_PREFIX,
-	findCommandByLabel,
-	parseCommand,
-} from "./messages/commands";
+import { BOT_PREFIX, parseCommand } from "./messages/commands";
 import {
 	messagesByLanguage,
 	messageWasSentByGuildOwner,
 	MessageFunctions,
 	getAcceptedCommandsForLanguage,
 } from "./messages/messages";
-import { DEFAULT_LANGUAGE, Language, languages } from "./languages";
+import {
+	DEFAULT_LANGUAGE,
+	findCommandByLabel,
+	Language,
+	languages,
+} from "./languages";
 import { CommandType } from "./messages/types";
 import { getLanguageForChannel, saveLanguageForChannel } from "./database";
 

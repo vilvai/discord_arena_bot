@@ -5,14 +5,18 @@ import { MAX_PLAYER_COUNT } from "../../shared/constants";
 
 import { PlayerClass } from "../../shared/types";
 import {
+	commandWithBotPrefix,
+	getCommandsAsStringForLanguage,
+} from "./commands";
+import {
 	getClassesForLanguage,
 	getCommandLabelForLanguage,
 	getLanguageOptions,
 	getPlayersWithClassesAsString,
-	commandWithBotPrefix,
-	getCommandsAsStringForLanguage,
-} from "./commands";
-import { Language, languages, MessageTranslations } from "../languages";
+	Language,
+	languages,
+	MessageTranslations,
+} from "../languages";
 import { CommandType } from "./types";
 
 export const messageWasSentByGuildOwner = (msg: Message) => {
