@@ -37,7 +37,7 @@ interface CommandTranslation<T extends CommandType> {
 	info: string;
 }
 
-export type PlayerClassTranslations = { [P in PlayerClass]: string };
+type PlayerClassTranslations = { [P in PlayerClass]: string };
 
 export interface Translations {
 	messageTranslations: MessageTranslations;

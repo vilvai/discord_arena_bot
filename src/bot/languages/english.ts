@@ -24,7 +24,7 @@ const english: Translations = {
 			`${userName} is now ${selectedClass}.`,
 		participants: () => "Participants:",
 		changeClassWith: (changeClassCommand: string) =>
-			`Change your class with ${changeClassCommand}.`,
+			`Change your class with ${changeClassCommand}`,
 		onlyOwnerCanChangeLanguage: () =>
 			"Only the server owner can change the language.",
 		languageChanged: () => "Language set to english.",

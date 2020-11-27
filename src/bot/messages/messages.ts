@@ -1,4 +1,5 @@
-import { Message, MessageEmbed } from "discord.js";
+import { MessageEmbed } from "discord.js";
+import type { Message } from "discord.js";
 
 import { MAX_PLAYER_COUNT } from "../../shared/constants";
 
