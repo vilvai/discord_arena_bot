@@ -14,13 +14,13 @@ import { startTimer, logTimer } from "../shared/timer";
 import {
 	BOT_PREFIX,
 	findCommandByLabel,
-	getAcceptedCommandsForLanguage,
 	parseCommand,
 } from "./messages/commands";
 import {
 	messagesByLanguage,
 	messageWasSentByGuildOwner,
 	MessageFunctions,
+	getAcceptedCommandsForLanguage,
 } from "./messages/messages";
 import { DEFAULT_LANGUAGE, Language, languages } from "./languages";
 import { CommandType } from "./messages/types";

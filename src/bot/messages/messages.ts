@@ -10,6 +10,7 @@ import {
 	getLanguageOptions,
 	getPlayersWithClassesAsString,
 	commandWithBotPrefix,
+	getCommandsAsStringForLanguage,
 } from "./commands";
 import { Language, languages, MessageTranslations } from "../languages";
 import { CommandType } from "./types";
@@ -104,3 +105,17 @@ export const messagesByLanguage: MessagesByLanguage = Object.keys(
 	}),
 	{} as MessagesByLanguage
 );
+
+export const getAcceptedCommandsForLanguage = (
+	language: Language
+): MessageEmbed =>
+	new MessageEmbed().setColor("#000000").addFields(
+		{
+			name: `${languages[language].messageTranslations.generalCommands()}:`,
+			value: getCommandsAsStringForLanguage(language, "general"),
+		},
+		{
+			name: `${languages[language].messageTranslations.adminCommands()}:`,
+			value: getCommandsAsStringForLanguage(language, "admin"),
+		}
+	);

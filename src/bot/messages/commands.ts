@@ -1,4 +1,3 @@
-import { MessageEmbed } from "discord.js";
 import { PlayerClass } from "../../shared/types";
 import { Language, languages } from "../languages";
 import { adminOnlyCommands, CommandType } from "./types";
@@ -54,20 +53,6 @@ export const getLanguageOptions = () => optionsToString(Object.keys(languages));
 
 const optionsToString = (options: string[]): string =>
 	`${options.map((option) => `\`${option}\``).join(", ")}`;
-
-export const getAcceptedCommandsForLanguage = (
-	language: Language
-): MessageEmbed =>
-	new MessageEmbed().setColor("#000000").addFields(
-		{
-			name: `${languages[language].messageTranslations.generalCommands()}:`,
-			value: getCommandsAsStringForLanguage(language, "general"),
-		},
-		{
-			name: `${languages[language].messageTranslations.adminCommands()}:`,
-			value: getCommandsAsStringForLanguage(language, "admin"),
-		}
-	);
 
 export const getCommandsAsStringForLanguage = (
 	language: Language,
