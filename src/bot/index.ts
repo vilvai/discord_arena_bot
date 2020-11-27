@@ -3,10 +3,9 @@ import rimraf from "rimraf";
 import fs from "fs";
 
 import Bot from "./Bot";
-import { messageMentionsBot } from "./messages/messages";
 import { INPUT_FILE_DIRECTORY, RENDER_DIRECTORY } from "../shared/constants";
-import { setBotMention } from "./messages/botMention";
 import { initializeDatabase } from "./database";
+import { BOT_PREFIX } from "./messages/commands";
 
 require("dotenv").config();
 
@@ -29,7 +28,6 @@ client.login(process.env.TOKEN);
 
 client.on("ready", () => {
 	if (client.user === null) return;
-	setBotMention(`@${client.user.username}`);
 	console.log(`Logged in as ${client.user.tag}!`);
 });
 
@@ -38,7 +36,7 @@ client.on("message", async (msg: Discord.Message) => {
 	if (
 		client.user === null ||
 		channel.type !== "text" ||
-		!messageMentionsBot(msg, client.user.id)
+		!msg.content.startsWith(BOT_PREFIX)
 	) {
 		return;
 	}

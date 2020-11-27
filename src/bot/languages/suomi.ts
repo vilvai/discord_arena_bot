@@ -6,8 +6,7 @@ const suomi: Translations = {
 	messageTranslations: {
 		fightStartsIn: (countdownLeft: number) =>
 			`Taistelu alkaa ${countdownLeft} sekunnin kuluttua.`,
-		fightStarting: (playersInFight: string) =>
-			`**Taistelu alkaa.**\n${playersInFight}`,
+		fightStarting: () => "Taistelu alkaa.",
 		fightEndedTimesUp: () => "Aika loppui!",
 		fightEndedWinner: () => "Voittaja:",
 		fightEndedTie: () => "Tasapeli!",
@@ -22,13 +21,10 @@ const suomi: Translations = {
 		selectableClasses: (selectableClasses: string) =>
 			`Valittavat luokat: ${selectableClasses}.`,
 		classSelected: (userName: string, selectedClass: string) =>
-			`${userName} on nyt ${selectedClass}.`,
-		unknownCommand: (knownCommands: string) =>
-			`Tuntematon komento. Tunnetut komennot:\n${knownCommands}`,
-		playersInFight: (playersWithClasses: string) =>
-			`**Osallistujat:**\n${playersWithClasses}`,
+			`${userName} on nyt \`${selectedClass}\`.`,
+		participants: () => "Osallistujat:",
 		changeClassWith: (changeClassCommand: string) =>
-			`Vaihda luokka komennolla ${changeClassCommand}.`,
+			`Vaihda luokka komennolla ${changeClassCommand}`,
 		onlyOwnerCanChangeLanguage: () =>
 			"Vain serverin omistaja voi vaihtaa kieltä.",
 		languageChanged: () => "Kieli asetettu suomeksi.",
@@ -36,6 +32,8 @@ const suomi: Translations = {
 			`Tuetut kielet: ${selectableLanguages}`,
 		renderingFailed: (startNewFightMessage: string) =>
 			`Videon luonti epäonnistui 😢\n${startNewFightMessage}`,
+		generalCommands: () => "Kaikille avoimet komennot",
+		adminCommands: () => "Serverin omistajan komennot",
 	},
 	commandTranslations: [
 		{ type: CommandType.Start, label: "aloita", info: "aloita taistelu" },
@@ -45,7 +43,7 @@ const suomi: Translations = {
 		{
 			type: CommandType.Class,
 			label: "luokka",
-			info: "vaihda oma luokka",
+			info: "vaihda oma luokka. Valittavat luokat: ",
 			playerClassTranslations: {
 				[PlayerClass.Assassin]: "assassin",
 				[PlayerClass.Teekkari]: "teekkari",
@@ -54,7 +52,11 @@ const suomi: Translations = {
 				[PlayerClass.Fighter]: "fighter",
 			},
 		},
-		{ type: CommandType.Language, label: "kieli", info: "vaihda kieli" },
+		{
+			type: CommandType.Language,
+			label: "kieli",
+			info: "vaihda kieli. Tuetut kielet: ",
+		},
 	],
 };
 

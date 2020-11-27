@@ -6,3 +6,5 @@ export enum CommandType {
 	Info = "Info",
 	Language = "Language",
 }
+
+export const adminOnlyCommands: CommandType[] = [CommandType.Language];

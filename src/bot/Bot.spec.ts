@@ -1,6 +1,7 @@
 import type { Message } from "discord.js";
 
 import { GAME_COUNTDOWN_SECONDS, MAX_PLAYER_COUNT } from "../shared/constants";
+import { PlayerClass } from "../shared/types";
 import Bot, { BotState } from "./Bot";
 import { DEFAULT_LANGUAGE } from "./languages";
 import { messagesByLanguage } from "./messages/messages";
@@ -51,26 +52,6 @@ describe("Bot", () => {
 	describe("handling messages", () => {
 		let bot: Bot;
 		let mockMessage: MockMessage;
-
-		describe("when handling a message with an unknown command", () => {
-			beforeEach(() => {
-				bot = new Bot("fooUserId", "fooChannelId");
-				bot.language = "suomi";
-				mockMessage = constructMockMessage({ content: "foo bar asdf" });
-				bot.handleMessage(mockMessage as any);
-			});
-
-			it("calls the 'msg.channel.send' function with the unknownCommand text", () => {
-				expect(mockMessage.channel.send).toHaveBeenCalledTimes(1);
-				expect(mockMessage.channel.send).toHaveBeenCalledWith(
-					messagesByLanguage[bot.language].unknownCommand()
-				);
-			});
-
-			it("doesn't change the bot state", () => {
-				expect(bot.state).toEqual(BotState.Waiting);
-			});
-		});
 
 		describe("when handling a start game command", () => {
 			describe("and a game is already starting", () => {
@@ -284,7 +265,7 @@ describe("Bot", () => {
 			bot.deleteBotMessages = jest.fn();
 			bot.gameRunner = {
 				getPlayerCount: () => 2,
-				getCurrentPlayersWithClasses: () => [],
+				getCurrentPlayersWithClasses: () => ["fooPlayer", PlayerClass.Chungus],
 				runGame: () => {
 					throw new Error("Bam");
 				},
