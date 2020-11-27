@@ -1,4 +1,5 @@
-import Discord from "discord.js";
+import type { Message } from "discord.js";
+
 import { MAX_PLAYER_COUNT } from "../../shared/constants";
 
 import { PlayerClass } from "../../shared/types";
@@ -14,7 +15,7 @@ import { CommandType } from "./types";
 import { withBotMention } from "./botMention";
 
 export const messageMentionsBot = (
-	msg: Discord.Message,
+	msg: Message,
 	botUserId: string
 ): boolean => {
 	const mentionedUsers = msg.mentions.users;
@@ -26,7 +27,7 @@ export const messageMentionsBot = (
 	return mentionsBotUser || mentionsBotRole;
 };
 
-export const messageWasSentByGuildOwner = (msg: Discord.Message) => {
+export const messageWasSentByGuildOwner = (msg: Message) => {
 	if (msg.channel.type !== "text") return false;
 	return msg.author.id === msg.channel.guild.ownerID;
 };

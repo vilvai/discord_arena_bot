@@ -1,20 +1,16 @@
-import Discord from "discord.js";
+import type { Message } from "discord.js";
 
 import { GAME_COUNTDOWN_SECONDS, MAX_PLAYER_COUNT } from "../shared/constants";
 import Bot, { BotState } from "./Bot";
 import { DEFAULT_LANGUAGE } from "./languages";
 import { messagesByLanguage } from "./messages/messages";
 
-type MockMessage = Partial<
-	Omit<Discord.Message, "channel" | "author" | "valueOf">
-> & {
-	channel: Partial<Omit<Discord.Message["channel"], "send" | "valueOf">> & {
-		type: Discord.Message["channel"]["type"];
+type MockMessage = Partial<Omit<Message, "channel" | "author" | "valueOf">> & {
+	channel: Partial<Omit<Message["channel"], "send" | "valueOf">> & {
+		type: Message["channel"]["type"];
 		send: jest.Mock;
 	};
-	author?: Partial<
-		Omit<Discord.Message["author"], "displayAvatarURL" | "valueOf">
-	> & {
+	author?: Partial<Omit<Message["author"], "displayAvatarURL" | "valueOf">> & {
 		displayAvatarURL: () => string;
 		username: string;
 		id: string;

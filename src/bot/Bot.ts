@@ -1,4 +1,4 @@
-import Discord from "discord.js";
+import type { Message, TextChannel, User } from "discord.js";
 
 import { GameEndData, PlayerClass } from "../shared/types";
 import GameRunner from "./GameRunner";
@@ -43,7 +43,7 @@ export default class Bot {
 	gameRunner: GameRunner;
 	state: BotState;
 	countdownLeft: number;
-	currentParticipantsMessage?: Discord.Message;
+	currentParticipantsMessage?: Message;
 	language: Language;
 
 	loadLanguageFromDB = async () => {
@@ -51,7 +51,7 @@ export default class Bot {
 		if (language !== null) this.language = language;
 	};
 
-	handleMessage = async (msg: Discord.Message) => {
+	handleMessage = async (msg: Message) => {
 		if (this.state === BotState.Rendering || msg.channel.type !== "text") {
 			return;
 		}
@@ -67,7 +67,7 @@ export default class Bot {
 	};
 
 	executeCommand = async (
-		msg: Discord.Message,
+		msg: Message,
 		commandWithArgs: string[]
 	): Promise<void> => {
 		if (msg.channel.type !== "text") return;
@@ -168,7 +168,7 @@ export default class Bot {
 		}
 	};
 
-	addPlayerToGame = (user: Discord.User) => {
+	addPlayerToGame = (user: User) => {
 		if (this.gameRunner.playerInGame(user.id)) return;
 
 		const avatarURL = user.displayAvatarURL({
@@ -189,7 +189,7 @@ export default class Bot {
 		this.gameRunner.setPlayerClass(botPlayer.id, playerClass);
 	};
 
-	countdown = async (channel: Discord.TextChannel) => {
+	countdown = async (channel: TextChannel) => {
 		if (this.countdownLeft === 0) {
 			this.runGame(channel);
 			return;
@@ -205,7 +205,7 @@ export default class Bot {
 		setTimeout(() => this.countdown(channel), 1000);
 	};
 
-	runGame = async (channel: Discord.TextChannel) => {
+	runGame = async (channel: TextChannel) => {
 		await this.deleteBotMessages(channel);
 
 		if (this.gameRunner.getPlayerCount() <= 1) {
@@ -253,7 +253,7 @@ export default class Bot {
 	};
 
 	sendTranslatedMessage = async <M extends keyof MessageFunctions>(
-		channel: Discord.TextChannel,
+		channel: TextChannel,
 		messageFunctionKey: M,
 		...messageFunctionParameters: Parameters<MessageFunctions[M]>
 	) =>
@@ -264,7 +264,7 @@ export default class Bot {
 			)
 		);
 
-	sendMessage = async (channel: Discord.TextChannel, message: string) => {
+	sendMessage = async (channel: TextChannel, message: string) => {
 		try {
 			return await channel.send(message);
 		} catch (error) {
@@ -272,7 +272,7 @@ export default class Bot {
 		}
 	};
 
-	updatePlayersInGameText = async (channel: Discord.TextChannel) => {
+	updatePlayersInGameText = async (channel: TextChannel) => {
 		await this.deleteSingleMessage(this.currentParticipantsMessage);
 
 		this.currentParticipantsMessage = await this.sendMessage(
@@ -283,7 +283,7 @@ export default class Bot {
 		);
 	};
 
-	sendNoGameInProgressText = async (channel: Discord.TextChannel) =>
+	sendNoGameInProgressText = async (channel: TextChannel) =>
 		await this.sendMessage(
 			channel,
 			`${messagesByLanguage[
@@ -293,7 +293,7 @@ export default class Bot {
 			].startNewFight()}`
 		);
 
-	deleteSingleMessage = async (message: Discord.Message | undefined) => {
+	deleteSingleMessage = async (message: Message | undefined) => {
 		if (message === undefined || !message.deletable) return;
 
 		try {
@@ -305,7 +305,7 @@ export default class Bot {
 		}
 	};
 
-	deleteBotMessages = async (channel: Discord.TextChannel) => {
+	deleteBotMessages = async (channel: TextChannel) => {
 		startTimer("Fetching messages");
 		const messages = await channel.messages.fetch({ limit: 100 });
 		logTimer("Fetching messages");
