@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  test:
+  tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -19,3 +19,13 @@ jobs:
           node-version: "14"
       - run: yarn install
       - run: yarn test
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Tests
+        uses: actions/setup-node@v1
+        with:
+          node-version: "14"
+      - run: yarn install
+      - run: yarn lint
