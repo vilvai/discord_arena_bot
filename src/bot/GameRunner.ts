@@ -16,16 +16,16 @@ import {
 	RENDER_FILE_NAME,
 	GAME_OVER_OVERLAY_DURATION,
 } from "../shared/constants";
-import {
-	PlayerData,
-	PlayerClassesById,
-	PlayerClass,
-	GameEndReason,
-	GameEndData,
-} from "../shared/types";
+import { PlayerClass, GameEndReason } from "../shared/types";
 import { loadFonts } from "./loadFonts";
 import { startTimer, logTimer } from "../shared/timer";
 import { Language } from "./languages";
+
+import type {
+	PlayerData,
+	PlayerClassesById,
+	GameEndData,
+} from "../shared/types";
 
 type PlayerWithoutClass = Omit<PlayerData, "playerClass">;
 const defaultClass = PlayerClass.Fighter;

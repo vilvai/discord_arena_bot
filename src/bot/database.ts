@@ -1,5 +1,6 @@
 import admin from "firebase-admin";
-import { Language, languages } from "./languages";
+import { languages } from "./languages";
+import type { Language } from "./languages";
 
 let database: FirebaseFirestore.Firestore | null = null;
 

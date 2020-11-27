@@ -1,6 +1,6 @@
 import type { Message, MessageEmbed, TextChannel, User } from "discord.js";
 
-import { GameEndData, PlayerClass } from "../shared/types";
+import { GameEndData } from "../shared/types";
 import GameRunner from "./GameRunner";
 import { createNewBotPlayer } from "../shared/bots";
 import {
@@ -26,6 +26,8 @@ import {
 } from "./languages";
 import { CommandType } from "./messages/types";
 import { getLanguageForChannel, saveLanguageForChannel } from "./database";
+
+import type { PlayerClass } from "../shared/types";
 
 export enum BotState {
 	Waiting = "waiting",

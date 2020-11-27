@@ -1,5 +1,5 @@
-import { PlayerClass } from "../../shared/types";
-import { CommandType } from "../messages/types";
+import type { PlayerClass } from "../../shared/types";
+import type { CommandType } from "../messages/types";
 
 import english from "./english";
 import suomi from "./suomi";

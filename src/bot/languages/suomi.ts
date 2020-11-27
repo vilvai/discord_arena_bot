@@ -1,4 +1,4 @@
-import { Translations } from ".";
+import type { Translations } from ".";
 import { PlayerClass } from "../../shared/types";
 import { CommandType } from "../messages/types";
 

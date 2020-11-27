@@ -2,8 +2,6 @@ import { MessageEmbed } from "discord.js";
 import type { Message } from "discord.js";
 
 import { MAX_PLAYER_COUNT } from "../../shared/constants";
-
-import { PlayerClass } from "../../shared/types";
 import {
 	commandWithBotPrefix,
 	getCommandsAsStringForLanguage,
@@ -18,6 +16,7 @@ import {
 	MessageTranslations,
 } from "../languages";
 import { CommandType } from "./types";
+import type { PlayerClass } from "../../shared/types";
 
 export const messageWasSentByGuildOwner = (msg: Message) => {
 	if (msg.channel.type !== "text") return false;
