@@ -18,7 +18,6 @@ import {
 	parseCommand,
 } from "./messages/commands";
 import {
-	messageIsABotCommand,
 	messagesByLanguage,
 	messageWasSentByGuildOwner,
 	MessageFunctions,

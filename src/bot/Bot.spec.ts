@@ -52,26 +52,6 @@ describe("Bot", () => {
 		let bot: Bot;
 		let mockMessage: MockMessage;
 
-		describe("when handling a message with an unknown command", () => {
-			beforeEach(() => {
-				bot = new Bot("fooUserId", "fooChannelId");
-				bot.language = "suomi";
-				mockMessage = constructMockMessage({ content: "foo bar asdf" });
-				bot.handleMessage(mockMessage as any);
-			});
-
-			it("calls the 'msg.channel.send' function with the unknownCommand text", () => {
-				expect(mockMessage.channel.send).toHaveBeenCalledTimes(1);
-				expect(mockMessage.channel.send).toHaveBeenCalledWith(
-					messagesByLanguage[bot.language].unknownCommand()
-				);
-			});
-
-			it("doesn't change the bot state", () => {
-				expect(bot.state).toEqual(BotState.Waiting);
-			});
-		});
-
 		describe("when handling a start game command", () => {
 			describe("and a game is already starting", () => {
 				beforeEach(() => {

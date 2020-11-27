@@ -9,22 +9,9 @@ import {
 	getLanguageOptions,
 	getPlayersWithClassesAsString,
 	commandWithBotPrefix,
-	BOT_PREFIX,
 } from "./commands";
 import { Language, languages, MessageTranslations } from "../languages";
 import { CommandType } from "./types";
-
-export const messageIsABotCommand = (
-	language: Language,
-	message: string
-): boolean => {
-	if (!message.startsWith(BOT_PREFIX)) return false;
-
-	const commandWithArgs = message.split(" ");
-	return languages[language].commandTranslations.some(
-		(command) => command.label === commandWithArgs[1]
-	);
-};
 
 export const messageWasSentByGuildOwner = (msg: Message) => {
 	if (msg.channel.type !== "text") return false;
