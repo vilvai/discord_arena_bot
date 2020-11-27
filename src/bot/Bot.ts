@@ -1,4 +1,4 @@
-import type { Message, TextChannel, User } from "discord.js";
+import type { Message, MessageEmbed, TextChannel, User } from "discord.js";
 
 import { GameEndData, PlayerClass } from "../shared/types";
 import GameRunner from "./GameRunner";
@@ -12,12 +12,13 @@ import {
 } from "../shared/constants";
 import { startTimer, logTimer } from "../shared/timer";
 import {
+	BOT_PREFIX,
 	findCommandByLabel,
 	getAcceptedCommandsForLanguage,
 	parseCommand,
 } from "./messages/commands";
 import {
-	messageMentionsBot,
+	messageIsABotCommand,
 	messagesByLanguage,
 	messageWasSentByGuildOwner,
 	MessageFunctions,
@@ -56,12 +57,9 @@ export default class Bot {
 			return;
 		}
 
-		const messageWithoutMentions = msg.content.replace(/<@.*> +/, "");
-		const commandWithArgs = parseCommand(this.language, messageWithoutMentions);
+		const commandWithArgs = parseCommand(this.language, msg.content);
 
-		if (commandWithArgs === null) {
-			await this.sendTranslatedMessage(msg.channel, "unknownCommand");
-		} else {
+		if (commandWithArgs !== null) {
 			await this.executeCommand(msg, commandWithArgs);
 		}
 	};
@@ -264,7 +262,10 @@ export default class Bot {
 			)
 		);
 
-	sendMessage = async (channel: TextChannel, message: string) => {
+	sendMessage = async (
+		channel: TextChannel,
+		message: string | MessageEmbed
+	) => {
 		try {
 			return await channel.send(message);
 		} catch (error) {
@@ -277,9 +278,9 @@ export default class Bot {
 
 		this.currentParticipantsMessage = await this.sendMessage(
 			channel,
-			`${messagesByLanguage[this.language].playersInFight(
+			messagesByLanguage[this.language].participants(
 				this.gameRunner.getCurrentPlayersWithClasses()
-			)}\n\n${messagesByLanguage[this.language].changeClassWith()}`
+			)
 		);
 	};
 
@@ -312,7 +313,8 @@ export default class Bot {
 		const messagesToDelete = messages.filter((message) => {
 			return (
 				message.author.id === this.botUserId ||
-				messageMentionsBot(message, this.botUserId)
+				(message.content.startsWith(BOT_PREFIX) &&
+					parseCommand(this.language, message.content) !== null)
 			);
 		});
 		startTimer("Deleting messages");

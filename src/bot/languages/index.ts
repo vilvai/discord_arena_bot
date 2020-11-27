@@ -10,7 +10,7 @@ export const DEFAULT_LANGUAGE: Language = "english";
 
 export interface MessageTranslations {
 	fightStartsIn: (countdownLeft: number) => string;
-	fightStarting: (playersInFight: string) => string;
+	fightStarting: () => string;
 	fightEndedTimesUp: () => string;
 	fightEndedWinner: () => string;
 	fightEndedTie: () => string;
@@ -21,13 +21,14 @@ export interface MessageTranslations {
 	gameIsFull: (maxPlayerCount: number) => string;
 	selectableClasses: (selectableClasses: string) => string;
 	classSelected: (userName: string, selectedClass: string) => string;
-	unknownCommand: (knownCommands: string) => string;
-	playersInFight: (playersWithClasses: string) => string;
+	participants: () => string;
 	changeClassWith: (changeClassCommand: string) => string;
 	onlyOwnerCanChangeLanguage: () => string;
 	languageChanged: () => string;
 	selectableLanguages: (selectableLanguages: string) => string;
 	renderingFailed: (startNewFightMessage: string) => string;
+	generalCommands: () => string;
+	adminCommands: () => string;
 }
 
 interface CommandTranslation<T extends CommandType> {
@@ -36,7 +37,7 @@ interface CommandTranslation<T extends CommandType> {
 	info: string;
 }
 
-type PlayerClassTranslations = { [P in PlayerClass]: string };
+export type PlayerClassTranslations = { [P in PlayerClass]: string };
 
 export interface Translations {
 	messageTranslations: MessageTranslations;

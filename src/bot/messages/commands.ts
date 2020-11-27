@@ -1,7 +1,12 @@
+import { MessageEmbed } from "discord.js";
 import { PlayerClass } from "../../shared/types";
 import { Language, languages } from "../languages";
-import { withBotMention } from "./botMention";
-import { CommandType } from "./types";
+import { adminOnlyCommands, CommandType } from "./types";
+
+export const BOT_PREFIX = "arena ";
+
+export const commandWithBotPrefix = (command: string) =>
+	`\`${BOT_PREFIX}${command}\``;
 
 export const findCommandByLabel = (language: Language, label: string) =>
 	languages[language].commandTranslations.find(
@@ -31,7 +36,10 @@ export const getPlayersWithClassesAsString = (
 	playersWithClasses
 		.map(
 			([playerName, playerClass]) =>
-				`${playerName} - ${findClassLabelForLanguage(language, playerClass)}`
+				`${playerName} - \`${findClassLabelForLanguage(
+					language,
+					playerClass
+				)}\``
 		)
 		.join("\n");
 
@@ -45,28 +53,63 @@ export const getClassesForLanguage = (language: Language): string =>
 export const getLanguageOptions = () => optionsToString(Object.keys(languages));
 
 const optionsToString = (options: string[]): string =>
-	`[${options.join(" | ")}]`;
+	`${options.map((option) => `\`${option}\``).join(", ")}`;
 
-export const getAcceptedCommandsForLanguage = (language: Language): string => {
-	return languages[language].commandTranslations
+export const getAcceptedCommandsForLanguage = (
+	language: Language
+): MessageEmbed =>
+	new MessageEmbed().setColor("#000000").addFields(
+		{
+			name: `${languages[language].messageTranslations.generalCommands()}:`,
+			value: getCommandsAsStringForLanguage(language, "general"),
+		},
+		{
+			name: `${languages[language].messageTranslations.adminCommands()}:`,
+			value: getCommandsAsStringForLanguage(language, "admin"),
+		}
+	);
+
+export const getCommandsAsStringForLanguage = (
+	language: Language,
+	type: "admin" | "general"
+): string =>
+	languages[language].commandTranslations
+		.filter((command) =>
+			type === "admin"
+				? adminOnlyCommands.includes(command.type)
+				: !adminOnlyCommands.includes(command.type)
+		)
 		.map((command) => {
-			let fullCommandInfo = withBotMention(command.label);
-			if (command.type === CommandType.Class) {
-				fullCommandInfo += ` ${getClassesForLanguage(language)}`;
-			} else if (command.type === CommandType.Language) {
-				fullCommandInfo += ` ${getLanguageOptions()}`;
+			let commandLabel = command.label;
+			if (
+				command.type === CommandType.Class ||
+				command.type === CommandType.Language
+			) {
+				commandLabel += ` [${command.label}]`;
 			}
-			fullCommandInfo += ` *(${command.info})*`;
-			return fullCommandInfo;
+
+			let commandInfo = `${commandWithBotPrefix(commandLabel)} - ${
+				command.info
+			}`;
+
+			if (command.type === CommandType.Class) {
+				commandInfo += ` ${optionsToString(
+					Object.values(command.playerClassTranslations)
+				)}`;
+			} else if (command.type === CommandType.Language) {
+				commandInfo += ` ${getLanguageOptions()}`;
+			}
+
+			return "🔹" + commandInfo;
 		})
 		.join("\n");
-};
 
 export const parseCommand = (
 	language: Language,
-	rawText: string
+	message: string
 ): string[] | null => {
-	const commandWithArgs = rawText.split(" ");
+	const messageWithoutPrefix = message.replace(BOT_PREFIX, "");
+	const commandWithArgs = messageWithoutPrefix.split(" ");
 	return languages[language].commandTranslations.some(
 		(command) => command.label === commandWithArgs[0]
 	)

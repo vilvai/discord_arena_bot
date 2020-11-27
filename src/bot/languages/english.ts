@@ -6,8 +6,7 @@ const english: Translations = {
 	messageTranslations: {
 		fightStartsIn: (countdownLeft: number) =>
 			`Fight starts in ${countdownLeft} seconds.`,
-		fightStarting: (playersInFight: string) =>
-			`**Fight is starting.**\n${playersInFight}`,
+		fightStarting: () => "Fight is starting.",
 		fightEndedTimesUp: () => "Time's up!",
 		fightEndedWinner: () => "Winner:",
 		fightEndedTie: () => "Tie!",
@@ -23,10 +22,7 @@ const english: Translations = {
 			`Selectable classes: ${selectableClasses}.`,
 		classSelected: (userName: string, selectedClass: string) =>
 			`${userName} is now ${selectedClass}.`,
-		unknownCommand: (knownCommands: string) =>
-			`Unknown command. Accepted commands:\n${knownCommands}`,
-		playersInFight: (playersWithClasses: string) =>
-			`**Participants:**\n${playersWithClasses}`,
+		participants: () => "Participants:",
 		changeClassWith: (changeClassCommand: string) =>
 			`Change your class with ${changeClassCommand}.`,
 		onlyOwnerCanChangeLanguage: () =>
@@ -36,6 +32,8 @@ const english: Translations = {
 			`Supported languages: ${selectableLanguages}`,
 		renderingFailed: (startNewFightMessage: string) =>
 			`Rendering the video failed 😢\n${startNewFightMessage}`,
+		generalCommands: () => "Commands available for everyone",
+		adminCommands: () => "Commands for channel owner",
 	},
 	commandTranslations: [
 		{ type: CommandType.Start, label: "start", info: "start a fight" },
@@ -45,7 +43,7 @@ const english: Translations = {
 		{
 			type: CommandType.Class,
 			label: "class",
-			info: "change your class",
+			info: "change your class. Selectable classes: ",
 			playerClassTranslations: {
 				[PlayerClass.Assassin]: "assassin",
 				[PlayerClass.Teekkari]: "engineer",
@@ -57,7 +55,7 @@ const english: Translations = {
 		{
 			type: CommandType.Language,
 			label: "language",
-			info: "change the language",
+			info: "change the language. Supported languages: ",
 		},
 	],
 };
