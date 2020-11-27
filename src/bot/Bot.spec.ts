@@ -1,6 +1,7 @@
 import type { Message } from "discord.js";
 
 import { GAME_COUNTDOWN_SECONDS, MAX_PLAYER_COUNT } from "../shared/constants";
+import { PlayerClass } from "../shared/types";
 import Bot, { BotState } from "./Bot";
 import { DEFAULT_LANGUAGE } from "./languages";
 import { messagesByLanguage } from "./messages/messages";
@@ -264,7 +265,7 @@ describe("Bot", () => {
 			bot.deleteBotMessages = jest.fn();
 			bot.gameRunner = {
 				getPlayerCount: () => 2,
-				getCurrentPlayersWithClasses: () => [],
+				getCurrentPlayersWithClasses: () => ["fooPlayer", PlayerClass.Chungus],
 				runGame: () => {
 					throw new Error("Bam");
 				},

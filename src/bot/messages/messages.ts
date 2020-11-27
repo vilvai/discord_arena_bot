@@ -65,29 +65,27 @@ const messageFunctionsForLanguage = (language: Language): MessageFunctions => {
 		startNewFight(commandWithBotPrefix(startCommand));
 
 	return {
-		fightStarting: (playersWithClasses: Array<[string, PlayerClass]>) => {
-			return new MessageEmbed()
+		fightStarting: (playersWithClasses: Array<[string, PlayerClass]>) =>
+			new MessageEmbed()
 				.setColor("#000000")
 				.setTitle(fightStarting())
 				.addFields({
 					name: participants(),
 					value: getPlayersWithClassesAsString(language, playersWithClasses),
-				});
-		},
+				}),
 		startNewFight: startNewFightWithBotPrefix,
 		fightAlreadyStarting: () =>
 			fightAlreadyStarting(commandWithBotPrefix(joinCommand)),
 		gameIsFull: () => gameIsFull(MAX_PLAYER_COUNT),
 		selectableClasses: () => selectableClasses(getClassesForLanguage(language)),
-		participants: (playersWithClasses: Array<[string, PlayerClass]>) => {
-			return new MessageEmbed().setColor("#000000").addFields({
+		participants: (playersWithClasses: Array<[string, PlayerClass]>) =>
+			new MessageEmbed().setColor("#000000").addFields({
 				name: participants(),
 				value: `${getPlayersWithClassesAsString(
 					language,
 					playersWithClasses
 				)}\n\n${changeClassWith(changeClassCommand)}`,
-			});
-		},
+			}),
 		changeClassWith: () => changeClassWith(changeClassCommand),
 		selectableLanguages: () => selectableLanguages(getLanguageOptions()),
 		renderingFailed: () => renderingFailed(startNewFightWithBotPrefix()),
