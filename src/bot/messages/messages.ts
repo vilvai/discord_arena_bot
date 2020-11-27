@@ -1,7 +1,7 @@
 import Discord from "discord.js";
 import { MAX_PLAYER_COUNT } from "../../shared/constants";
 
-import { GameEndData, GameEndReason, PlayerClass } from "../../shared/types";
+import { PlayerClass } from "../../shared/types";
 import {
 	getAcceptedCommandsForLanguage,
 	getClassesForLanguage,
