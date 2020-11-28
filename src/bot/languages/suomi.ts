@@ -4,6 +4,9 @@ import { CommandType } from "../messages/types";
 
 const suomi: Translations = {
 	messageTranslations: {
+		fightInitiated: () => "Taistelu aloitettu",
+		waitingForOtherPlayers: (joinCommand: string, botCommand: string) =>
+			`Odotetaan muita pelaajia. Muut pelaajat voivat liittyä komennolla ${joinCommand}. Voit myös lisätä botteja komennolla ${botCommand}`,
 		fightStartsIn: (countdownLeft: number) =>
 			`Taistelu alkaa ${countdownLeft} sekunnin kuluttua.`,
 		fightStarting: () => "Taistelu alkaa.",
