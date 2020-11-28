@@ -23,7 +23,10 @@ export const messageWasSentByGuildOwner = (msg: Message) => {
 	return msg.author.id === msg.channel.guild.ownerID;
 };
 
+const MESSAGE_EMBED_COLOR = "#000000";
+
 interface MessageFunctionsWithLogic {
+	fightStartsIn: (countdownLeft: number) => MessageEmbed;
 	fightStarting: (
 		playersWithClasses: Array<[string, PlayerClass]>
 	) => MessageEmbed;
@@ -47,6 +50,7 @@ export type MessageFunctions = Omit<
 
 const messageFunctionsForLanguage = (language: Language): MessageFunctions => {
 	const {
+		fightStartsIn,
 		fightStarting,
 		startNewFight,
 		fightAlreadyStarting,
@@ -69,10 +73,14 @@ const messageFunctionsForLanguage = (language: Language): MessageFunctions => {
 		startNewFight(commandWithBotPrefix(startCommand));
 
 	return {
+		fightStartsIn: (countdownLeft: number) =>
+			new MessageEmbed()
+				.setColor(MESSAGE_EMBED_COLOR)
+				.setTitle(`⚔️ ${fightStartsIn(countdownLeft)} ⚔️`),
 		fightStarting: (playersWithClasses: Array<[string, PlayerClass]>) =>
 			new MessageEmbed()
-				.setColor("#000000")
-				.setTitle(fightStarting())
+				.setColor(MESSAGE_EMBED_COLOR)
+				.setTitle(`⚔️ ${fightStarting()} ⚔️`)
 				.addFields({
 					name: participants(),
 					value: getPlayersWithClassesAsString(language, playersWithClasses),
@@ -83,7 +91,7 @@ const messageFunctionsForLanguage = (language: Language): MessageFunctions => {
 		gameIsFull: () => gameIsFull(MAX_PLAYER_COUNT),
 		selectableClasses: () => selectableClasses(getClassesForLanguage(language)),
 		participants: (playersWithClasses: Array<[string, PlayerClass]>) =>
-			new MessageEmbed().setColor("#000000").addFields({
+			new MessageEmbed().setColor(MESSAGE_EMBED_COLOR).addFields({
 				name: participants(),
 				value: `${getPlayersWithClassesAsString(
 					language,
@@ -112,7 +120,7 @@ export const messagesByLanguage: MessagesByLanguage = Object.keys(
 export const getAcceptedCommandsForLanguage = (
 	language: Language
 ): MessageEmbed =>
-	new MessageEmbed().setColor("#000000").addFields(
+	new MessageEmbed().setColor(MESSAGE_EMBED_COLOR).addFields(
 		{
 			name: `${languages[language].messageTranslations.generalCommands()}:`,
 			value: getCommandsAsStringForLanguage(language, "general"),
