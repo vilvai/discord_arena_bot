@@ -3,12 +3,11 @@ import type { Message } from "discord.js";
 
 import { MAX_PLAYER_COUNT } from "../../shared/constants";
 import {
-	commandWithBotPrefix,
+	formattedCommandWithPrefix,
 	getCommandsAsStringForLanguage,
 } from "./commands";
 import {
 	getClassesForLanguage,
-	getCommandLabelForLanguage,
 	getLanguageOptions,
 	getPlayersWithClassesAsString,
 	Language,
@@ -26,6 +25,7 @@ export const messageWasSentByGuildOwner = (msg: Message) => {
 const MESSAGE_EMBED_COLOR = "#000000";
 
 interface MessageFunctionsWithLogic {
+	fightInitiated: () => MessageEmbed;
 	fightStartsIn: (countdownLeft: number) => MessageEmbed;
 	fightStarting: (
 		playersWithClasses: Array<[string, PlayerClass]>
@@ -42,14 +42,18 @@ interface MessageFunctionsWithLogic {
 	renderingFailed: () => string;
 }
 
+type NotDirectlyCallableMessageTranslations = "waitingForOtherPlayers";
+
 export type MessageFunctions = Omit<
 	MessageTranslations,
-	keyof MessageFunctionsWithLogic
+	keyof MessageFunctionsWithLogic | NotDirectlyCallableMessageTranslations
 > &
 	MessageFunctionsWithLogic;
 
 const messageFunctionsForLanguage = (language: Language): MessageFunctions => {
 	const {
+		fightInitiated,
+		waitingForOtherPlayers,
 		fightStartsIn,
 		fightStarting,
 		startNewFight,
@@ -63,16 +67,25 @@ const messageFunctionsForLanguage = (language: Language): MessageFunctions => {
 		...restTranslations
 	} = languages[language].messageTranslations;
 
-	const startCommand = getCommandLabelForLanguage(language, CommandType.Start);
-	const joinCommand = getCommandLabelForLanguage(language, CommandType.Join);
-	const changeClassCommand = `${commandWithBotPrefix(
-		getCommandLabelForLanguage(language, CommandType.Class)
+	const startCommand = formattedCommandWithPrefix(language, CommandType.Start);
+	const joinCommand = formattedCommandWithPrefix(language, CommandType.Join);
+	const botCommand = formattedCommandWithPrefix(language, CommandType.Bot);
+	const changeClassCommand = `${formattedCommandWithPrefix(
+		language,
+		CommandType.Class
 	)}. ${selectableClasses(getClassesForLanguage(language))}`;
 
-	const startNewFightWithBotPrefix = () =>
-		startNewFight(commandWithBotPrefix(startCommand));
+	const startNewFightWithBotPrefix = () => startNewFight(startCommand);
 
 	return {
+		fightInitiated: () =>
+			new MessageEmbed()
+				.setColor(MESSAGE_EMBED_COLOR)
+				.setTitle(`⚔️ ${fightInitiated()} ⚔️`)
+				.addFields({
+					name: "\u200B",
+					value: waitingForOtherPlayers(joinCommand, botCommand),
+				}),
 		fightStartsIn: (countdownLeft: number) =>
 			new MessageEmbed()
 				.setColor(MESSAGE_EMBED_COLOR)
@@ -86,8 +99,7 @@ const messageFunctionsForLanguage = (language: Language): MessageFunctions => {
 					value: getPlayersWithClassesAsString(language, playersWithClasses),
 				}),
 		startNewFight: startNewFightWithBotPrefix,
-		fightAlreadyStarting: () =>
-			fightAlreadyStarting(commandWithBotPrefix(joinCommand)),
+		fightAlreadyStarting: () => fightAlreadyStarting(joinCommand),
 		gameIsFull: () => gameIsFull(MAX_PLAYER_COUNT),
 		selectableClasses: () => selectableClasses(getClassesForLanguage(language)),
 		participants: (playersWithClasses: Array<[string, PlayerClass]>) =>

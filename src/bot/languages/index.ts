@@ -9,6 +9,8 @@ export type Language = "english" | "suomi";
 export const DEFAULT_LANGUAGE: Language = "english";
 
 export interface MessageTranslations {
+	fightInitiated: () => string;
+	waitingForOtherPlayers: (joinCommand: string, botCommand: string) => string;
 	fightStartsIn: (countdownLeft: number) => string;
 	fightStarting: () => string;
 	fightEndedTimesUp: () => string;

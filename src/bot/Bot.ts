@@ -30,6 +30,7 @@ import { getLanguageForChannel, saveLanguageForChannel } from "./database";
 import type { PlayerClass } from "../shared/types";
 
 export enum BotState {
+	Idle = "idle",
 	Waiting = "waiting",
 	Countdown = "countdown",
 	Rendering = "rendering",
@@ -38,7 +39,7 @@ export enum BotState {
 export default class Bot {
 	constructor(private botUserId: string, private channelId: string) {
 		this.gameRunner = new GameRunner();
-		this.state = BotState.Waiting;
+		this.state = BotState.Idle;
 		this.countdownLeft = 0;
 		this.language = DEFAULT_LANGUAGE;
 	}
@@ -77,12 +78,11 @@ export default class Bot {
 
 		switch (command.type) {
 			case CommandType.Start: {
-				if (this.state === BotState.Waiting) {
+				if (this.state === BotState.Idle) {
 					this.gameRunner.initializeGame();
 					this.addPlayerToGame(msg.author);
-					this.state = BotState.Countdown;
-					this.countdownLeft = GAME_COUNTDOWN_SECONDS;
-					await this.countdown(msg.channel);
+					this.sendTranslatedMessage(msg.channel, "fightInitiated");
+					this.state = BotState.Waiting;
 				} else {
 					await this.sendTranslatedMessage(msg.channel, "fightAlreadyStarting");
 				}
@@ -91,6 +91,7 @@ export default class Bot {
 			case CommandType.Join:
 			case CommandType.Bot: {
 				switch (this.state) {
+					case BotState.Waiting:
 					case BotState.Countdown: {
 						if (this.gameRunner.getPlayerCount() >= MAX_PLAYER_COUNT) {
 							await this.sendTranslatedMessage(msg.channel, "gameIsFull");
@@ -104,9 +105,15 @@ export default class Bot {
 						}
 
 						await this.updatePlayersInGameText(msg.channel);
+
+						if (this.state === BotState.Waiting) {
+							this.state = BotState.Countdown;
+							this.countdownLeft = GAME_COUNTDOWN_SECONDS;
+							await this.countdown(msg.channel);
+						}
 						return;
 					}
-					case BotState.Waiting: {
+					case BotState.Idle: {
 						await this.sendNoGameInProgressText(msg.channel);
 						return;
 					}
@@ -210,46 +217,50 @@ export default class Bot {
 
 		if (this.gameRunner.getPlayerCount() <= 1) {
 			await this.sendTranslatedMessage(channel, "notEnoughPlayers");
-		} else {
-			this.state = BotState.Rendering;
-			const gameStartMessage = await this.sendTranslatedMessage(
-				channel,
-				"fightStarting",
-				this.gameRunner.getCurrentPlayersWithClasses()
-			);
-
-			console.log(`Starting video render for channel ${channel.id}`);
-
-			const inputDirectory = `${INPUT_FILE_DIRECTORY}/${this.channelId}`;
-			const outputDirectory = `${RENDER_DIRECTORY}/${this.channelId}`;
-
-			let gameEndData: GameEndData | null;
-			try {
-				gameEndData = await this.gameRunner.runGame(
-					inputDirectory,
-					outputDirectory,
-					this.language
-				);
-			} catch (error) {
-				this.state = BotState.Waiting;
-				await this.sendTranslatedMessage(channel, "renderingFailed");
-				return;
-			}
-
-			await this.deleteSingleMessage(gameStartMessage);
-
-			if (gameEndData === null) return;
-
-			try {
-				await channel.send("", {
-					files: [`./${outputDirectory}/${RENDER_FILE_NAME}.mp4`],
-				});
-			} catch (error) {
-				console.error(`Error when posting fight:\n${error}`);
-			}
+			await this.sendTranslatedMessage(channel, "startNewFight");
+			this.state = BotState.Idle;
+			return;
 		}
+
+		this.state = BotState.Rendering;
+		const gameStartMessage = await this.sendTranslatedMessage(
+			channel,
+			"fightStarting",
+			this.gameRunner.getCurrentPlayersWithClasses()
+		);
+
+		console.log(`Starting video render for channel ${channel.id}`);
+
+		const inputDirectory = `${INPUT_FILE_DIRECTORY}/${this.channelId}`;
+		const outputDirectory = `${RENDER_DIRECTORY}/${this.channelId}`;
+
+		let gameEndData: GameEndData | null;
+		try {
+			gameEndData = await this.gameRunner.runGame(
+				inputDirectory,
+				outputDirectory,
+				this.language
+			);
+		} catch (error) {
+			this.state = BotState.Idle;
+			await this.sendTranslatedMessage(channel, "renderingFailed");
+			return;
+		}
+
+		await this.deleteSingleMessage(gameStartMessage);
+
+		if (gameEndData === null) return;
+
+		try {
+			await channel.send("", {
+				files: [`./${outputDirectory}/${RENDER_FILE_NAME}.mp4`],
+			});
+		} catch (error) {
+			console.error(`Error when posting fight:\n${error}`);
+		}
+
 		await this.sendTranslatedMessage(channel, "startNewFight");
-		this.state = BotState.Waiting;
+		this.state = BotState.Idle;
 	};
 
 	sendTranslatedMessage = async <M extends keyof MessageFunctions>(

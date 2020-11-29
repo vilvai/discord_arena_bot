@@ -4,6 +4,9 @@ import { CommandType } from "../messages/types";
 
 const english: Translations = {
 	messageTranslations: {
+		fightInitiated: () => "Fight initiated",
+		waitingForOtherPlayers: (joinCommand: string, botCommand: string) =>
+			`Waiting for other players. Players can join with ${joinCommand}. You can also add bots with ${botCommand}`,
 		fightStartsIn: (countdownLeft: number) =>
 			`Fight starts in ${countdownLeft} seconds.`,
 		fightStarting: () => "Fight is starting.",

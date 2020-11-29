@@ -1,4 +1,5 @@
 import {
+	getCommandLabelForLanguage,
 	getLanguageOptions,
 	Language,
 	languages,
@@ -8,8 +9,13 @@ import { adminOnlyCommands, CommandType } from "./types";
 
 export const BOT_PREFIX = "arena ";
 
-export const commandWithBotPrefix = (command: string) =>
+const formattedWithBotPrefix = (command: string) =>
 	`\`${BOT_PREFIX}${command}\``;
+
+export const formattedCommandWithPrefix = (
+	language: Language,
+	commandType: CommandType
+) => formattedWithBotPrefix(getCommandLabelForLanguage(language, commandType));
 
 export const getCommandsAsStringForLanguage = (
 	language: Language,
@@ -30,7 +36,7 @@ export const getCommandsAsStringForLanguage = (
 				commandLabel += ` [${command.label}]`;
 			}
 
-			let commandInfo = `${commandWithBotPrefix(commandLabel)} - ${
+			let commandInfo = `${formattedWithBotPrefix(commandLabel)} - ${
 				command.info
 			}`;
 
