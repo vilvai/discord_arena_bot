@@ -42,9 +42,11 @@ interface MessageFunctionsWithLogic {
 	renderingFailed: () => string;
 }
 
+type NotDirectlyCallableMessageTranslations = "waitingForOtherPlayers";
+
 export type MessageFunctions = Omit<
 	MessageTranslations,
-	keyof MessageFunctionsWithLogic | "waitingForOtherPlayers"
+	keyof MessageFunctionsWithLogic | NotDirectlyCallableMessageTranslations
 > &
 	MessageFunctionsWithLogic;
 
