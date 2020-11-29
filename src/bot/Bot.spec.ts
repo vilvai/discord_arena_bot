@@ -1,6 +1,6 @@
 import type { Message } from "discord.js";
 
-import { GAME_COUNTDOWN_SECONDS, MAX_PLAYER_COUNT } from "../shared/constants";
+import { MAX_PLAYER_COUNT } from "../shared/constants";
 import { PlayerClass } from "../shared/types";
 import Bot, { BotState } from "./Bot";
 import { DEFAULT_LANGUAGE } from "./languages";
@@ -36,8 +36,8 @@ describe("Bot", () => {
 			bot = new Bot("fooUserId", "fooChannelId");
 		});
 
-		it("sets the state of the bot to Waiting", () => {
-			expect(bot.state).toEqual(BotState.Waiting);
+		it("sets the state of the bot to Idle", () => {
+			expect(bot.state).toEqual(BotState.Idle);
 		});
 
 		it("creates a gameRunner for the bot", () => {
@@ -107,16 +107,14 @@ describe("Bot", () => {
 					expect(bot.gameRunner.addPlayer).toHaveBeenCalledTimes(1);
 				});
 
-				it("changes the bot state to Countdown", () => {
-					expect(bot.state).toEqual(BotState.Countdown);
+				it("changes the bot state to Waiting", () => {
+					expect(bot.state).toEqual(BotState.Waiting);
 				});
 
-				it("sets the countdownLeft property", () => {
-					expect(bot.countdownLeft).toEqual(GAME_COUNTDOWN_SECONDS);
-				});
-
-				it("starts the countdown", () => {
-					expect(bot.countdown).toHaveBeenCalledTimes(1);
+				it("sends a fightInitiated message", () => {
+					expect(mockMessage.channel.send).toHaveBeenCalledWith(
+						messagesByLanguage[bot.language].fightInitiated()
+					);
 				});
 			});
 		});
@@ -133,7 +131,7 @@ describe("Bot", () => {
 				});
 			});
 
-			describe("and there is no game in progress", () => {
+			describe("and there is no game starting", () => {
 				beforeEach(() => {
 					bot = new Bot("fooUserId", "fooChannelId");
 					bot.language = "suomi";
@@ -274,8 +272,8 @@ describe("Bot", () => {
 			bot.runGame(channel as any);
 		});
 
-		it("sets the bot state to Waiting", () => {
-			expect(bot.state).toEqual(BotState.Waiting);
+		it("sets the bot state to Idle", () => {
+			expect(bot.state).toEqual(BotState.Idle);
 		});
 
 		it("sends a message saying the rendering failed", () => {
