@@ -5,8 +5,13 @@ import { CommandType } from "../messages/types";
 const english: Translations = {
 	messageTranslations: {
 		fightInitiated: () => "Fight initiated",
-		waitingForOtherPlayers: (joinCommand: string, botCommand: string) =>
-			`Waiting for other players. Players can join with ${joinCommand}. You can also add bots with ${botCommand}`,
+		waitingForOtherPlayers: (
+			joinCommand: string,
+			botCommand: string,
+			changeClassCommand: string,
+			startCommand: string
+		) =>
+			`Players can join with ${joinCommand}. You can also add bots with ${botCommand}. Change your class with ${changeClassCommand}. When everyone is ready, write ${startCommand} again to start the fight.`,
 		fightStartsIn: (countdownLeft: number) =>
 			`Fight starts in ${countdownLeft} seconds.`,
 		fightStarting: () => "Fight is starting.",
@@ -17,8 +22,6 @@ const english: Translations = {
 		startNewFight: (startCommand: string) =>
 			`Start a new fight with ${startCommand}.`,
 		noFightInProgress: () => "No fight in progress.",
-		fightAlreadyStarting: (joinCommand: string) =>
-			`Fight is already starting. Join the fight with ${joinCommand}.`,
 		gameIsFull: (maxPlayerCount: number) =>
 			`Game is already full (${maxPlayerCount} players).`,
 		selectableClasses: (selectableClasses: string) =>
@@ -26,8 +29,6 @@ const english: Translations = {
 		classSelected: (userName: string, selectedClass: string) =>
 			`${userName} is now ${selectedClass}.`,
 		participants: () => "Participants:",
-		changeClassWith: (changeClassCommand: string) =>
-			`Change your class with ${changeClassCommand}`,
 		onlyOwnerCanChangeLanguage: () =>
 			"Only the server owner can change the language.",
 		languageChanged: () => "Language set to english.",

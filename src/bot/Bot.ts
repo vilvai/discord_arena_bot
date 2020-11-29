@@ -4,7 +4,6 @@ import { GameEndData } from "../shared/types";
 import GameRunner from "./GameRunner";
 import { createNewBotPlayer } from "../shared/bots";
 import {
-	GAME_COUNTDOWN_SECONDS,
 	INPUT_FILE_DIRECTORY,
 	MAX_PLAYER_COUNT,
 	RENDER_DIRECTORY,
@@ -32,7 +31,6 @@ import type { PlayerClass } from "../shared/types";
 export enum BotState {
 	Idle = "idle",
 	Waiting = "waiting",
-	Countdown = "countdown",
 	Rendering = "rendering",
 }
 
@@ -40,13 +38,11 @@ export default class Bot {
 	constructor(private botUserId: string, private channelId: string) {
 		this.gameRunner = new GameRunner();
 		this.state = BotState.Idle;
-		this.countdownLeft = 0;
 		this.language = DEFAULT_LANGUAGE;
 	}
 
 	gameRunner: GameRunner;
 	state: BotState;
-	countdownLeft: number;
 	currentParticipantsMessage?: Message;
 	language: Language;
 
@@ -81,46 +77,32 @@ export default class Bot {
 				if (this.state === BotState.Idle) {
 					this.gameRunner.initializeGame();
 					this.addPlayerToGame(msg.author);
-					this.sendTranslatedMessage(msg.channel, "fightInitiated");
+					this.updatePlayersInGameText(msg.channel);
 					this.state = BotState.Waiting;
-				} else {
-					await this.sendTranslatedMessage(msg.channel, "fightAlreadyStarting");
+				} else if (this.state === BotState.Waiting) {
+					await this.runGame(msg.channel);
 				}
 				return;
 			}
 			case CommandType.Join:
 			case CommandType.Bot: {
-				switch (this.state) {
-					case BotState.Waiting:
-					case BotState.Countdown: {
-						if (this.gameRunner.getPlayerCount() >= MAX_PLAYER_COUNT) {
-							await this.sendTranslatedMessage(msg.channel, "gameIsFull");
-							return;
-						}
-
-						if (command.type === CommandType.Join) {
-							this.addPlayerToGame(msg.author);
-						} else {
-							this.addBotToGame();
-						}
-
-						await this.updatePlayersInGameText(msg.channel);
-
-						if (this.state === BotState.Waiting) {
-							this.state = BotState.Countdown;
-							this.countdownLeft = GAME_COUNTDOWN_SECONDS;
-							await this.countdown(msg.channel);
-						}
+				if (this.state === BotState.Idle) {
+					await this.sendTranslatedMessage(msg.channel, "noFightInProgress");
+				} else if (this.state === BotState.Waiting) {
+					if (this.gameRunner.getPlayerCount() >= MAX_PLAYER_COUNT) {
+						await this.sendTranslatedMessage(msg.channel, "gameIsFull");
 						return;
 					}
-					case BotState.Idle: {
-						await this.sendNoGameInProgressText(msg.channel);
-						return;
+
+					if (command.type === CommandType.Join) {
+						this.addPlayerToGame(msg.author);
+					} else if (command.type === CommandType.Bot) {
+						this.addBotToGame();
 					}
-					default: {
-						return;
-					}
+
+					await this.updatePlayersInGameText(msg.channel);
 				}
+				return;
 			}
 			case CommandType.Class: {
 				const possibleClass = commandWithArgs[1];
@@ -194,22 +176,6 @@ export default class Bot {
 		const { playerClass, ...botPlayer } = createNewBotPlayer();
 		this.gameRunner.addPlayer(botPlayer);
 		this.gameRunner.setPlayerClass(botPlayer.id, playerClass);
-	};
-
-	countdown = async (channel: TextChannel) => {
-		if (this.countdownLeft === 0) {
-			this.runGame(channel);
-			return;
-		}
-		if (this.countdownLeft % 10 === 0 || this.countdownLeft === 5) {
-			await this.sendTranslatedMessage(
-				channel,
-				"fightStartsIn",
-				this.countdownLeft
-			);
-		}
-		this.countdownLeft -= 1;
-		setTimeout(() => this.countdown(channel), 1000);
 	};
 
 	runGame = async (channel: TextChannel) => {
@@ -289,23 +255,12 @@ export default class Bot {
 	updatePlayersInGameText = async (channel: TextChannel) => {
 		await this.deleteSingleMessage(this.currentParticipantsMessage);
 
-		this.currentParticipantsMessage = await this.sendMessage(
+		this.currentParticipantsMessage = await this.sendTranslatedMessage(
 			channel,
-			messagesByLanguage[this.language].participants(
-				this.gameRunner.getCurrentPlayersWithClasses()
-			)
+			"fightInitiated",
+			this.gameRunner.getCurrentPlayersWithClasses()
 		);
 	};
-
-	sendNoGameInProgressText = async (channel: TextChannel) =>
-		await this.sendMessage(
-			channel,
-			`${messagesByLanguage[
-				this.language
-			].noFightInProgress()} ${messagesByLanguage[
-				this.language
-			].startNewFight()}`
-		);
 
 	deleteSingleMessage = async (message: Message | undefined) => {
 		if (message === undefined || !message.deletable) return;

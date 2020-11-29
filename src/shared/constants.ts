@@ -10,7 +10,6 @@ export const INPUT_FILE_DIRECTORY = "inputs";
 export const RENDER_DIRECTORY = "renders";
 export const RENDER_FILE_NAME = "areena_fight";
 
-export const GAME_COUNTDOWN_SECONDS = 30;
 export const MAX_PLAYER_COUNT = 7;
 
 export const IS_RUNNING_ON_NODE = !!process.release;
