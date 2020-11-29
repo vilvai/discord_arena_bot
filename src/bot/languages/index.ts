@@ -10,7 +10,12 @@ export const DEFAULT_LANGUAGE: Language = "english";
 
 export interface MessageTranslations {
 	fightInitiated: () => string;
-	waitingForOtherPlayers: (joinCommand: string, botCommand: string) => string;
+	waitingForOtherPlayers: (
+		joinCommand: string,
+		botCommand: string,
+		changeClassCommand: string,
+		startCommand: string
+	) => string;
 	fightStartsIn: (countdownLeft: number) => string;
 	fightStarting: () => string;
 	fightEndedTimesUp: () => string;
@@ -19,12 +24,10 @@ export interface MessageTranslations {
 	notEnoughPlayers: () => string;
 	startNewFight: (startCommand: string) => string;
 	noFightInProgress: () => string;
-	fightAlreadyStarting: (joinCommand: string) => string;
 	gameIsFull: (maxPlayerCount: number) => string;
 	selectableClasses: (selectableClasses: string) => string;
 	classSelected: (userName: string, selectedClass: string) => string;
 	participants: () => string;
-	changeClassWith: (changeClassCommand: string) => string;
 	onlyOwnerCanChangeLanguage: () => string;
 	languageChanged: () => string;
 	selectableLanguages: (selectableLanguages: string) => string;

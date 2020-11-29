@@ -56,34 +56,13 @@ describe("Bot", () => {
 		let mockMessage: MockMessage;
 
 		describe("when handling a start game command", () => {
-			describe("and a game is already starting", () => {
-				beforeEach(() => {
-					bot = new Bot("fooUserId", "fooChannelId");
-					bot.language = "suomi";
-					mockMessage = constructMockMessage({ content: "aloita" });
-					bot.state = BotState.Countdown;
-					bot.handleMessage(mockMessage as any);
-				});
-
-				it("sends a message that the game is already starting", () => {
-					expect(mockMessage.channel.send).toHaveBeenCalledTimes(1);
-					expect(mockMessage.channel.send).toHaveBeenCalledWith(
-						messagesByLanguage[bot.language].fightAlreadyStarting()
-					);
-				});
-
-				it("doesn't change the bot state", () => {
-					expect(bot.state).toEqual(BotState.Countdown);
-				});
-			});
-
-			describe("and the bot is ready to start a game", () => {
+			describe("and the bot is in Idle state", () => {
 				beforeEach(() => {
 					bot = new Bot("fooUserId", "fooChannelId");
 					bot.language = "suomi";
 
 					mockMessage = constructMockMessage({
-						content: "aloita ignored extra words foobar",
+						content: "aloita",
 						author: {
 							username: "someUser",
 							id: "someId",
@@ -91,7 +70,7 @@ describe("Bot", () => {
 						},
 					});
 
-					bot.countdown = jest.fn();
+					bot.updatePlayersInGameText = jest.fn();
 					bot.gameRunner = {
 						initializeGame: jest.fn(),
 						addPlayer: jest.fn(),
@@ -113,10 +92,23 @@ describe("Bot", () => {
 					expect(bot.state).toEqual(BotState.Waiting);
 				});
 
-				it("sends a fightInitiated message", () => {
-					expect(mockMessage.channel.send).toHaveBeenCalledWith(
-						messagesByLanguage[bot.language].fightInitiated()
-					);
+				it("calls updatePlayersInGameText", () => {
+					expect(bot.updatePlayersInGameText).toHaveBeenCalledTimes(1);
+				});
+			});
+
+			describe("and a bot is in Waiting state", () => {
+				beforeEach(() => {
+					bot = new Bot("fooUserId", "fooChannelId");
+					bot.language = "suomi";
+					mockMessage = constructMockMessage({ content: "aloita" });
+					bot.state = BotState.Waiting;
+					bot.runGame = jest.fn();
+					bot.handleMessage(mockMessage as any);
+				});
+
+				it("starts the game", () => {
+					expect(bot.runGame).toHaveBeenCalledTimes(1);
 				});
 			});
 		});
@@ -124,7 +116,7 @@ describe("Bot", () => {
 		describe("when handling a join game command", () => {
 			beforeAll(() => {
 				mockMessage = constructMockMessage({
-					content: "liity ignored extra words foobar",
+					content: "liity",
 					author: {
 						username: "someUser",
 						id: "someId",
@@ -133,16 +125,17 @@ describe("Bot", () => {
 				});
 			});
 
-			describe("and there is no game starting", () => {
+			describe("and the bot is in Idle state", () => {
 				beforeEach(() => {
 					bot = new Bot("fooUserId", "fooChannelId");
 					bot.language = "suomi";
-					bot.sendNoGameInProgressText = jest.fn();
 					bot.handleMessage(mockMessage as any);
 				});
 
-				it("calls sendNoGameInProgressText", () => {
-					expect(bot.sendNoGameInProgressText).toHaveBeenCalledTimes(1);
+				it("sends noFightInProgress message", () => {
+					expect(mockMessage.channel.send).toHaveBeenCalledWith(
+						messagesByLanguage[bot.language].noFightInProgress()
+					);
 				});
 			});
 
@@ -157,7 +150,7 @@ describe("Bot", () => {
 						getPlayerCount: () => 0,
 					} as any;
 
-					bot.state = BotState.Countdown;
+					bot.state = BotState.Waiting;
 					bot.updatePlayersInGameText = jest.fn();
 					bot.handleMessage(mockMessage as any);
 				});
@@ -182,7 +175,7 @@ describe("Bot", () => {
 						getPlayerCount: () => 0,
 					} as any;
 
-					bot.state = BotState.Countdown;
+					bot.state = BotState.Waiting;
 					bot.updatePlayersInGameText = jest.fn();
 					bot.handleMessage(mockMessage as any);
 				});
@@ -207,7 +200,7 @@ describe("Bot", () => {
 						getPlayerCount: () => MAX_PLAYER_COUNT,
 					} as any;
 
-					bot.state = BotState.Countdown;
+					bot.state = BotState.Waiting;
 					bot.updatePlayersInGameText = jest.fn();
 					bot.handleMessage(mockMessage as any);
 				});
