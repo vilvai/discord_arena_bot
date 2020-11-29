@@ -5,7 +5,7 @@ import fs from "fs";
 import Bot from "./Bot";
 import { INPUT_FILE_DIRECTORY, RENDER_DIRECTORY } from "../shared/constants";
 import { initializeDatabase } from "./database";
-import { BOT_PREFIX } from "./messages/commands";
+import { messageStartsWithBotPrefix } from "./messages/commands";
 
 require("dotenv").config();
 
@@ -36,7 +36,7 @@ client.on("message", async (msg: Discord.Message) => {
 	if (
 		client.user === null ||
 		channel.type !== "text" ||
-		!msg.content.startsWith(BOT_PREFIX)
+		!messageStartsWithBotPrefix(msg.content)
 	) {
 		return;
 	}

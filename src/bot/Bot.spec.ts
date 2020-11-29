@@ -4,6 +4,7 @@ import { MAX_PLAYER_COUNT } from "../shared/constants";
 import { PlayerClass } from "../shared/types";
 import Bot, { BotState } from "./Bot";
 import { DEFAULT_LANGUAGE } from "./languages";
+import { BOT_PREFIX } from "./messages/commands";
 import { messagesByLanguage } from "./messages/messages";
 
 type MockMessage = Partial<Omit<Message, "channel" | "author" | "valueOf">> & {
@@ -26,6 +27,7 @@ const constructMockMessage = (
 		send: jest.fn(),
 	},
 	...mockMessage,
+	content: BOT_PREFIX + mockMessage.content,
 });
 
 describe("Bot", () => {

@@ -11,7 +11,7 @@ import {
 	RENDER_FILE_NAME,
 } from "../shared/constants";
 import { startTimer, logTimer } from "../shared/timer";
-import { BOT_PREFIX, parseCommand } from "./messages/commands";
+import { parseCommand } from "./messages/commands";
 import {
 	messagesByLanguage,
 	messageWasSentByGuildOwner,
@@ -326,8 +326,7 @@ export default class Bot {
 		const messagesToDelete = messages.filter((message) => {
 			return (
 				message.author.id === this.botUserId ||
-				(message.content.startsWith(BOT_PREFIX) &&
-					parseCommand(this.language, message.content) !== null)
+				parseCommand(this.language, message.content) !== null
 			);
 		});
 		startTimer("Deleting messages");

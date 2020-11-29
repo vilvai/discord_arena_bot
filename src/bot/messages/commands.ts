@@ -9,6 +9,9 @@ import { adminOnlyCommands, CommandType } from "./types";
 
 export const BOT_PREFIX = "arena ";
 
+export const messageStartsWithBotPrefix = (message: string): boolean =>
+	message.toLowerCase().startsWith(BOT_PREFIX);
+
 const formattedWithBotPrefix = (command: string) =>
 	`\`${BOT_PREFIX}${command}\``;
 
@@ -56,7 +59,9 @@ export const parseCommand = (
 	language: Language,
 	message: string
 ): string[] | null => {
-	const messageWithoutPrefix = message.replace(BOT_PREFIX, "");
+	if (!messageStartsWithBotPrefix(message)) return null;
+
+	const messageWithoutPrefix = message.slice(BOT_PREFIX.length);
 	const commandWithArgs = messageWithoutPrefix.split(" ");
 	return languages[language].commandTranslations.some(
 		(command) => command.label === commandWithArgs[0]
