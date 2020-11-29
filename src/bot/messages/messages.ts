@@ -38,6 +38,7 @@ interface MessageFunctionsWithLogic {
 	selectableLanguages: () => string;
 	renderingFailed: () => string;
 	noFightInProgress: () => string;
+	classSelected: (userName: string, selectedClass: string) => string;
 }
 
 type NotDirectlyCallableMessageTranslations =
@@ -63,6 +64,7 @@ const messageFunctionsForLanguage = (language: Language): MessageFunctions => {
 		selectableLanguages,
 		renderingFailed,
 		noFightInProgress,
+		classSelected,
 		...restTranslations
 	} = languages[language].messageTranslations;
 
@@ -112,6 +114,8 @@ const messageFunctionsForLanguage = (language: Language): MessageFunctions => {
 		renderingFailed: () => renderingFailed(startNewFightWithBotPrefix()),
 		noFightInProgress: () =>
 			`${noFightInProgress()} ${startNewFightWithBotPrefix}`,
+		classSelected: (userName: string, selectedClass: string) =>
+			classSelected(userName, `\`${selectedClass}\``),
 		...restTranslations,
 	};
 };

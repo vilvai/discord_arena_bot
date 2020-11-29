@@ -27,7 +27,7 @@ const suomi: Translations = {
 		selectableClasses: (selectableClasses: string) =>
 			`Valittavat luokat: ${selectableClasses}.`,
 		classSelected: (userName: string, selectedClass: string) =>
-			`${userName} on nyt \`${selectedClass}\`.`,
+			`${userName} on nyt ${selectedClass}.`,
 		participants: () => "Osallistujat:",
 		onlyOwnerCanChangeLanguage: () =>
 			"Vain serverin omistaja voi vaihtaa kieltä.",
