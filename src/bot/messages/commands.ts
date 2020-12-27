@@ -41,15 +41,7 @@ export const getCommandsAsString = (): string =>
 				commandLabel += ` [${command.label}]`;
 			}
 
-			let commandInfo = `${formattedWithBotPrefix(commandLabel)} - ${
-				command.info
-			}`;
-
-			if (command.type === CommandType.Class) {
-				commandInfo += ` ${optionsToString(Object.values(PlayerClass))}`;
-			}
-
-			return "🔹" + commandInfo;
+			return "🔹" + `${formattedWithBotPrefix(commandLabel)} - ${command.info}`;
 		})
 		.join("\n");
 

@@ -1,7 +1,7 @@
 export enum CommandType {
-	Start = "Start",
-	Join = "Join",
-	Bot = "Bot",
-	Class = "Class",
-	Info = "Info",
+	Start = 0,
+	Join = 1,
+	Bot = 2,
+	Class = 3,
+	Info = 4,
 }

@@ -19,7 +19,9 @@
     "lint": "eslint . --ext .tsx,.ts,.js",
     "test": "jest",
     "heroku-postbuild": "yarn build-preview && yarn build-bot",
-    "test-render": "ts-node ./src/benchmarks/renderTest.ts"
+    "test-render": "ts-node ./src/benchmarks/renderTest.ts",
+    "update-commands-dev": "ts-node ./src/bot/updateCommands.ts dev",
+    "update-commands-prod": "ts-node ./src/bot/updateCommands.ts prod"
   },
   "repository": "git@github.com:vilvai/discord_areena_bot.git",
   "author": "ville-pc <ville.vainio1@gmail.com>",
