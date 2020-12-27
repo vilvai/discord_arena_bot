@@ -1,6 +1,5 @@
 import fs from "fs";
 import ffmpeg from "fluent-ffmpeg";
-
 import rimraf from "rimraf";
 import {
 	createCanvas,
@@ -27,13 +26,9 @@ import type {
 	GameEndData,
 } from "../shared/types";
 
-const ffmpegPath = require("@ffmpeg-installer/ffmpeg").path;
-
-ffmpeg.setFfmpegPath(ffmpegPath);
-loadFonts();
-
 type PlayerWithoutClass = Omit<PlayerData, "playerClass">;
 const defaultClass = PlayerClass.Fighter;
+loadFonts();
 
 export default class GameRunner {
 	constructor() {
