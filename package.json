@@ -28,6 +28,7 @@
   "license": "GPLV3",
   "private": true,
   "dependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.0.20",
     "canvas": "^2.6.1",
     "discord.js": "^12.2.0",
     "dotenv": "^8.2.0",
