@@ -113,7 +113,7 @@ const messageFunctionsForLanguage = (language: Language): MessageFunctions => {
 		selectableLanguages: () => selectableLanguages(getLanguageOptions()),
 		renderingFailed: () => renderingFailed(startNewFightWithBotPrefix()),
 		noFightInProgress: () =>
-			`${noFightInProgress()} ${startNewFightWithBotPrefix}`,
+			`${noFightInProgress()} ${startNewFightWithBotPrefix()}`,
 		classSelected: (userName: string, selectedClass: string) =>
 			classSelected(userName, `\`${selectedClass}\``),
 		...restTranslations,
