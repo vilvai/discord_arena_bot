@@ -1,6 +1,6 @@
 import type { Message, MessageEmbed, TextChannel, User } from "discord.js";
 
-import { GameEndData } from "../shared/types";
+import { GameEndData, PlayerClass } from "../shared/types";
 import GameRunner from "./GameRunner";
 import { createNewBotPlayer } from "../shared/bots";
 import {
@@ -10,23 +10,9 @@ import {
 	RENDER_FILE_NAME,
 } from "../shared/constants";
 import { startTimer, logTimer } from "../shared/timer";
-import { parseCommand } from "./messages/commands";
-import {
-	messagesByLanguage,
-	messageWasSentByGuildOwner,
-	MessageFunctions,
-	getAcceptedCommandsForLanguage,
-} from "./messages/messages";
-import {
-	DEFAULT_LANGUAGE,
-	findCommandByLabel,
-	Language,
-	languages,
-} from "./languages";
+import { commands, parseCommand } from "./messages/commands";
+import { messages, Messages, getAcceptedCommands } from "./messages/messages";
 import { CommandType } from "./messages/types";
-import { getLanguageForChannel, saveLanguageForChannel } from "./database";
-
-import type { PlayerClass } from "../shared/types";
 
 export enum BotState {
 	Idle = "idle",
@@ -38,25 +24,18 @@ export default class Bot {
 	constructor(private botUserId: string, private channelId: string) {
 		this.gameRunner = new GameRunner();
 		this.state = BotState.Idle;
-		this.language = DEFAULT_LANGUAGE;
 	}
 
 	gameRunner: GameRunner;
 	state: BotState;
 	currentParticipantsMessage?: Message;
-	language: Language;
-
-	loadLanguageFromDB = async () => {
-		const language = await getLanguageForChannel(this.channelId);
-		if (language !== null) this.language = language;
-	};
 
 	handleMessage = async (msg: Message) => {
 		if (this.state === BotState.Rendering || msg.channel.type !== "text") {
 			return;
 		}
 
-		const commandWithArgs = parseCommand(this.language, msg.content);
+		const commandWithArgs = parseCommand(msg.content);
 
 		if (commandWithArgs !== null) {
 			await this.executeCommand(msg, commandWithArgs);
@@ -69,7 +48,7 @@ export default class Bot {
 	): Promise<void> => {
 		if (msg.channel.type !== "text") return;
 		const commandLabel = commandWithArgs[0];
-		const command = findCommandByLabel(this.language, commandLabel);
+		const command = commands.find((command) => command.label === commandLabel);
 		if (command === undefined) return;
 
 		switch (command.type) {
@@ -106,9 +85,9 @@ export default class Bot {
 			}
 			case CommandType.Class: {
 				const possibleClass = commandWithArgs[1];
-				const newPlayerClass = Object.entries(
-					command.playerClassTranslations
-				).find(([_playerClass, label]) => label === possibleClass)?.[0];
+				const newPlayerClass = Object.entries(PlayerClass).find(
+					([_playerClass, label]) => label === possibleClass
+				)?.[0];
 
 				if (newPlayerClass !== undefined) {
 					this.gameRunner.setPlayerClass(
@@ -127,31 +106,7 @@ export default class Bot {
 				return;
 			}
 			case CommandType.Info: {
-				await this.sendMessage(
-					msg.channel,
-					getAcceptedCommandsForLanguage(this.language)
-				);
-				return;
-			}
-			case CommandType.Language: {
-				if (!messageWasSentByGuildOwner(msg)) {
-					await this.sendTranslatedMessage(
-						msg.channel,
-						"onlyOwnerCanChangeLanguage"
-					);
-					return;
-				}
-
-				const possibleLanguage = commandWithArgs[1];
-				if (Object.keys(languages).includes(possibleLanguage)) {
-					const language = possibleLanguage as Language;
-					this.language = language;
-					saveLanguageForChannel(this.channelId, language);
-					await this.sendTranslatedMessage(msg.channel, "languageChanged");
-				} else {
-					await this.sendTranslatedMessage(msg.channel, "selectableLanguages");
-				}
-
+				await this.sendMessage(msg.channel, getAcceptedCommands());
 				return;
 			}
 		}
@@ -204,8 +159,7 @@ export default class Bot {
 		try {
 			gameEndData = await this.gameRunner.runGame(
 				inputDirectory,
-				outputDirectory,
-				this.language
+				outputDirectory
 			);
 		} catch (error) {
 			this.state = BotState.Idle;
@@ -229,16 +183,14 @@ export default class Bot {
 		this.state = BotState.Idle;
 	};
 
-	sendTranslatedMessage = async <M extends keyof MessageFunctions>(
+	sendTranslatedMessage = async <M extends keyof Messages>(
 		channel: TextChannel,
 		messageFunctionKey: M,
-		...messageFunctionParameters: Parameters<MessageFunctions[M]>
+		...messageFunctionParameters: Parameters<Messages[M]>
 	) =>
 		await this.sendMessage(
 			channel,
-			(messagesByLanguage[this.language][messageFunctionKey] as any)(
-				...messageFunctionParameters
-			)
+			(messages[messageFunctionKey] as any)(...messageFunctionParameters)
 		);
 
 	sendMessage = async (
@@ -281,7 +233,7 @@ export default class Bot {
 		const messagesToDelete = messages.filter((message) => {
 			return (
 				message.author.id === this.botUserId ||
-				parseCommand(this.language, message.content) !== null
+				parseCommand(message.content) !== null
 			);
 		});
 		startTimer("Deleting messages");

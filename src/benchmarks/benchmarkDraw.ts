@@ -19,7 +19,7 @@ const runOneGame = async () => {
 		}
 	);
 
-	await gameRunner.initializePlayers("english");
+	await gameRunner.initializePlayers();
 
 	gameRunner.canvas = { toBuffer: () => Buffer.from(["foo"]) } as any;
 	const drawTimeStart = performance.now();

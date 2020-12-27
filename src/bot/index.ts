@@ -4,7 +4,6 @@ import fs from "fs";
 
 import Bot from "./Bot";
 import { INPUT_FILE_DIRECTORY, RENDER_DIRECTORY } from "../shared/constants";
-import { initializeDatabase } from "./database";
 import { messageStartsWithBotPrefix } from "./messages/commands";
 
 require("dotenv").config();
@@ -18,8 +17,6 @@ const createRootFolders = () => {
 };
 
 createRootFolders();
-
-initializeDatabase();
 
 const botsByChannel: { [channelId: string]: Bot } = {};
 
@@ -47,7 +44,6 @@ client.on("message", async (msg: Discord.Message) => {
 			`Bot added to channel ${channel.guild.name}/${channel.name} (${channel.id})`
 		);
 		botsByChannel[channelId] = new Bot(client.user.id, channelId);
-		await botsByChannel[channelId].loadLanguageFromDB();
 	}
 	await botsByChannel[channelId].handleMessage(msg);
 });

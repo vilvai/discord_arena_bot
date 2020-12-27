@@ -4,7 +4,4 @@ export enum CommandType {
 	Bot = "Bot",
 	Class = "Class",
 	Info = "Info",
-	Language = "Language",
 }
-
-export const adminOnlyCommands: CommandType[] = [CommandType.Language];

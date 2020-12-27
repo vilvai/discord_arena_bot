@@ -1,13 +1,26 @@
-import {
-	getCommandLabelForLanguage,
-	getLanguageOptions,
-	Language,
-	languages,
-	optionsToString,
-} from "../languages";
-import { adminOnlyCommands, CommandType } from "./types";
+import { PlayerClass } from "../../shared/types";
+import { CommandType } from "./types";
 
-export const BOT_PREFIX = "arena ";
+const optionsToString = (options: string[]): string =>
+	`${options.map((option) => `\`${option}\``).join(", ")}`;
+
+export const selectableClassesAsString = optionsToString(
+	Object.values(PlayerClass)
+);
+
+export const commands = [
+	{ type: CommandType.Start, label: "start", info: "start a fight" },
+	{ type: CommandType.Join, label: "join", info: "join a fight" },
+	{ type: CommandType.Bot, label: "bot", info: "add a bot to the fight" },
+	{ type: CommandType.Info, label: "info", info: "show available commands" },
+	{
+		type: CommandType.Class,
+		label: "class",
+		info: `change your class. Selectable classes: ${selectableClassesAsString}`,
+	},
+];
+
+export const BOT_PREFIX = "/arena ";
 
 export const messageStartsWithBotPrefix = (message: string): boolean =>
 	message.toLowerCase().startsWith(BOT_PREFIX);
@@ -15,27 +28,16 @@ export const messageStartsWithBotPrefix = (message: string): boolean =>
 const formattedWithBotPrefix = (command: string) =>
 	`\`${BOT_PREFIX}${command}\``;
 
-export const formattedCommandWithPrefix = (
-	language: Language,
-	commandType: CommandType
-) => formattedWithBotPrefix(getCommandLabelForLanguage(language, commandType));
+export const formattedCommandWithPrefix = (commandType: CommandType): string =>
+	formattedWithBotPrefix(
+		commands.find((command) => command.type === commandType)!.label
+	);
 
-export const getCommandsAsStringForLanguage = (
-	language: Language,
-	type: "admin" | "general"
-): string =>
-	languages[language].commandTranslations
-		.filter((command) =>
-			type === "admin"
-				? adminOnlyCommands.includes(command.type)
-				: !adminOnlyCommands.includes(command.type)
-		)
+export const getCommandsAsString = (): string =>
+	commands
 		.map((command) => {
 			let commandLabel = command.label;
-			if (
-				command.type === CommandType.Class ||
-				command.type === CommandType.Language
-			) {
+			if (command.type === CommandType.Class) {
 				commandLabel += ` [${command.label}]`;
 			}
 
@@ -44,28 +46,19 @@ export const getCommandsAsStringForLanguage = (
 			}`;
 
 			if (command.type === CommandType.Class) {
-				commandInfo += ` ${optionsToString(
-					Object.values(command.playerClassTranslations)
-				)}`;
-			} else if (command.type === CommandType.Language) {
-				commandInfo += ` ${getLanguageOptions()}`;
+				commandInfo += ` ${optionsToString(Object.values(PlayerClass))}`;
 			}
 
 			return "🔹" + commandInfo;
 		})
 		.join("\n");
 
-export const parseCommand = (
-	language: Language,
-	message: string
-): string[] | null => {
+export const parseCommand = (message: string): string[] | null => {
 	if (!messageStartsWithBotPrefix(message)) return null;
 
 	const messageWithoutPrefix = message.slice(BOT_PREFIX.length);
 	const commandWithArgs = messageWithoutPrefix.split(" ");
-	return languages[language].commandTranslations.some(
-		(command) => command.label === commandWithArgs[0]
-	)
+	return commands.some((command) => command.label === commandWithArgs[0])
 		? commandWithArgs
 		: null;
 };

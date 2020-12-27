@@ -5,22 +5,16 @@ import Spuge from "./Spuge";
 import Assassin from "./Assassin";
 import { PlayerClass } from "../../types";
 
-import { findClassLabelForLanguage, Language } from "../../../bot/languages";
-
-export const getPlayerClassName = (player: BasePlayer, language: Language) => {
-	let playerClass: PlayerClass;
-
+export const getPlayerClassName = (player: BasePlayer): string => {
 	if (player instanceof Chungus) {
-		playerClass = PlayerClass.Chungus;
+		return PlayerClass.Chungus.toUpperCase();
 	} else if (player instanceof Teekkari) {
-		playerClass = PlayerClass.Teekkari;
+		return PlayerClass.Teekkari.toUpperCase();
 	} else if (player instanceof Spuge) {
-		playerClass = PlayerClass.Spuge;
+		return PlayerClass.Spuge.toUpperCase();
 	} else if (player instanceof Assassin) {
-		playerClass = PlayerClass.Assassin;
+		return PlayerClass.Assassin.toUpperCase();
 	} else {
-		playerClass = PlayerClass.Fighter;
+		return PlayerClass.Fighter.toUpperCase();
 	}
-
-	return findClassLabelForLanguage(language, playerClass).toUpperCase();
 };

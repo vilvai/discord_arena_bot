@@ -16,14 +16,10 @@ import BeerCan from "./playerClasses/BeerCan";
 import Assassin from "./playerClasses/Assassin";
 import ParticleHandler from "./ParticleHandler";
 import GameOverOverlay from "./GameOverOverlay";
-import { DEFAULT_LANGUAGE, Language, languages } from "../../bot/languages";
 
 export default class Game {
-	constructor(private ctx: CanvasRenderingContext2D) {
-		this.language = DEFAULT_LANGUAGE;
-	}
+	constructor(private ctx: CanvasRenderingContext2D) {}
 
-	language: Language;
 	players!: BasePlayer[];
 	bloodStains!: Blood[];
 	sidebar!: Sidebar;
@@ -44,7 +40,7 @@ export default class Game {
 		return { x, y };
 	}
 
-	async initializeGame(players: PlayerData[], language: Language) {
+	async initializeGame(players: PlayerData[]) {
 		this.players = [];
 		for (const [i, playerData] of players.entries()) {
 			const { x, y } = Game.calculatePlayerStartingPosition(players.length, i);
@@ -93,7 +89,6 @@ export default class Game {
 		this.sidebar = new Sidebar(this.players);
 		this.particleHandler = new ParticleHandler();
 		this.gameOverOverlay = undefined;
-		this.language = language;
 	}
 
 	isGameOver = () =>
@@ -162,20 +157,18 @@ export default class Game {
 	}
 
 	initializeGameOverOverlay(gameEndReason: GameEndReason) {
-		const { messageTranslations } = languages[this.language];
-
 		let gameOverText: string = "";
 		let winnerName: string | undefined = undefined;
 		let winnerAvatar: CanvasImageSource | undefined = undefined;
 
 		if (gameEndReason === GameEndReason.TimeUp) {
-			gameOverText = messageTranslations.fightEndedTimesUp().toUpperCase();
+			gameOverText = "TIME'S UP!";
 		} else if (gameEndReason === GameEndReason.PlayerWon) {
 			const winner = this.getWinner();
 			if (winner === null) {
-				gameOverText = messageTranslations.fightEndedTie().toUpperCase();
+				gameOverText = "TIE!";
 			} else {
-				gameOverText = messageTranslations.fightEndedWinner().toUpperCase();
+				gameOverText = "WINNER:";
 				winnerName = winner.name;
 				winnerAvatar = winner.avatar;
 			}
@@ -211,7 +204,7 @@ export default class Game {
 
 		this.players.forEach((player) => player.drawHealthbar(this.ctx));
 		this.ctx.restore();
-		this.sidebar.draw(this.ctx, this.players, this.language);
+		this.sidebar.draw(this.ctx, this.players);
 		if (this.gameOverOverlay) this.gameOverOverlay.draw(this.ctx);
 	}
 

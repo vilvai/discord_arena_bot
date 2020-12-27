@@ -1,8 +1,8 @@
 import { PngConfig as CanvasPngConfig } from "canvas";
 
 export enum PlayerClass {
-	Spuge = "spuge",
-	Teekkari = "teekkari",
+	Spuge = "drunk",
+	Teekkari = "engineer",
 	Chungus = "chungus",
 	Assassin = "assassin",
 	Fighter = "fighter",

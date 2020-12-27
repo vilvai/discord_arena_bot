@@ -19,7 +19,6 @@ import {
 import { PlayerClass, GameEndReason } from "../shared/types";
 import { loadFonts } from "./loadFonts";
 import { startTimer, logTimer } from "../shared/timer";
-import { Language } from "./languages";
 
 import type {
 	PlayerData,
@@ -74,11 +73,10 @@ export default class GameRunner {
 
 	runGame = async (
 		inputFolder: string,
-		outputFolder: string,
-		language: Language
+		outputFolder: string
 	): Promise<GameEndData | null> => {
 		if (!this.game) return null;
-		await this.initializePlayers(language);
+		await this.initializePlayers();
 
 		const gameUpdateTimerString =
 			"Game update, draw and image buffer generation";
@@ -104,14 +102,14 @@ export default class GameRunner {
 		return gameEndData;
 	};
 
-	initializePlayers = async (language: Language) => {
+	initializePlayers = async () => {
 		if (!this.game) return;
 		const players = this.playersInGame.map((player) => ({
 			...player,
 			playerClass: this.playerClassesById[player.id] || defaultClass,
 		}));
 
-		await this.game.initializeGame(players, language);
+		await this.game.initializeGame(players);
 	};
 
 	createFolders = (inputFolder: string, outputFolder: string) => {
@@ -177,7 +175,7 @@ export default class GameRunner {
 	writeInputFiles = async (inputFolder: string, imageBuffers: Buffer[]) =>
 		await Promise.all(
 			imageBuffers.map(
-				(imageBuffer, i) =>
+				(imageBuffer, i): Promise<void> =>
 					new Promise((resolve, reject) => {
 						const stream = fs.createWriteStream(
 							`${inputFolder}/${i.toString().padStart(3, "0")}.jpeg`
@@ -197,7 +195,10 @@ export default class GameRunner {
 			)
 		);
 
-	renderVideo = async (inputFolder: string, outputFolder: string) =>
+	renderVideo = async (
+		inputFolder: string,
+		outputFolder: string
+	): Promise<void> =>
 		new Promise((resolve, reject) => {
 			const timerAction = "FFMpeg render";
 			startTimer(timerAction);

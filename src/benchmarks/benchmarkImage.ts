@@ -38,7 +38,7 @@ const renderGame = async (config: PNGConfig | JPEGConfig) => {
 		];
 	}
 
-	await gameRunner.initializePlayers("suomi");
+	await gameRunner.initializePlayers();
 
 	if (!gameRunner.game) return;
 
