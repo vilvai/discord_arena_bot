@@ -16,7 +16,7 @@ const runRenderTest = async () => {
 		gameRunner.setPlayerClass(botPlayer.id, playerClass);
 	});
 
-	await gameRunner.runGame(INPUT_FOLDER, OUTPUT_FOLDER, "suomi");
+	await gameRunner.runGame(INPUT_FOLDER, OUTPUT_FOLDER);
 };
 
 runRenderTest();
