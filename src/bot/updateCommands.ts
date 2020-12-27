@@ -7,6 +7,11 @@ if (process.argv[2] !== "dev" && process.argv[2] !== "prod") {
 	process.exit(1);
 }
 
+if (!process.env.DISCORD_TEST_SERVER_ID) {
+	console.log("DISCORD_TEST_SERVER_ID env variable not set");
+	process.exit(1);
+}
+
 const commands = {
 	data: {
 		name: "arena",
