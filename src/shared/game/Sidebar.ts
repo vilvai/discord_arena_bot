@@ -1,5 +1,4 @@
 import { createCanvas } from "canvas";
-import { Language } from "../../bot/languages";
 import {
 	SIDEBAR_WIDTH,
 	SCREEN_HEIGHT,
@@ -57,31 +56,24 @@ export default class Sidebar {
 	playerDeathStates: boolean[];
 	cachedSidebar?: OffscreenCanvas;
 
-	draw(
-		ctx: CanvasRenderingContext2D,
-		players: BasePlayer[],
-		language: Language
-	) {
+	draw(ctx: CanvasRenderingContext2D, players: BasePlayer[]) {
 		if (
 			this.cachedSidebar === undefined ||
 			players.some((player, i) => player.isDead() !== this.playerDeathStates[i])
 		) {
-			this.cachedSidebar = this.createCachedSidebar(players, language);
+			this.cachedSidebar = this.createCachedSidebar(players);
 			this.playerDeathStates = players.map((player) => player.isDead());
 		}
 		ctx.drawImage(this.cachedSidebar, 0, 0);
 	}
 
-	createCachedSidebar = (
-		players: BasePlayer[],
-		language: Language
-	): OffscreenCanvas => {
+	createCachedSidebar = (players: BasePlayer[]): OffscreenCanvas => {
 		const canvas = createCanvas(SIDEBAR_WIDTH, SCREEN_HEIGHT);
 		const ctx = canvas.getContext("2d");
 
 		this.drawBackground(ctx);
 		players.slice(0, 7).forEach((player) => {
-			this.drawPlayer(ctx, player, language);
+			this.drawPlayer(ctx, player);
 			ctx.translate(0, 42);
 		});
 		ctx.resetTransform();
@@ -93,15 +85,11 @@ export default class Sidebar {
 		ctx.fillRect(0, 0, SIDEBAR_WIDTH, SCREEN_HEIGHT);
 	}
 
-	drawPlayer(
-		ctx: CanvasRenderingContext2D,
-		player: BasePlayer,
-		language: Language
-	) {
+	drawPlayer(ctx: CanvasRenderingContext2D, player: BasePlayer) {
 		this.drawPlayerIcon(ctx, player);
 		if (player.isDead()) this.drawPlayerDeathOverlay(ctx);
 		this.drawPlayerName(ctx, player.name);
-		this.drawPlayerClass(ctx, player, language);
+		this.drawPlayerClass(ctx, player);
 	}
 
 	drawPlayerIcon(ctx: CanvasRenderingContext2D, player: BasePlayer) {
@@ -132,12 +120,8 @@ export default class Sidebar {
 		ctx.fillText(truncatedName, textStartX, iconCenterY - 4);
 	}
 
-	drawPlayerClass(
-		ctx: CanvasRenderingContext2D,
-		player: BasePlayer,
-		language: Language
-	) {
-		const className = getPlayerClassName(player, language);
+	drawPlayerClass(ctx: CanvasRenderingContext2D, player: BasePlayer) {
+		const className = getPlayerClassName(player);
 		ctx.fillStyle = "#bbbbbb";
 		ctx.font = `italic ${FONT_WEIGHT} 11px ${FONT_FAMILY}`;
 		ctx.fillText(className, textStartX, iconCenterY + 12);

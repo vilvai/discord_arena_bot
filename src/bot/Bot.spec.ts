@@ -3,9 +3,8 @@ import type { Message } from "discord.js";
 import { MAX_PLAYER_COUNT } from "../shared/constants";
 import { PlayerClass } from "../shared/types";
 import Bot, { BotState } from "./Bot";
-import { DEFAULT_LANGUAGE } from "./languages";
 import { BOT_PREFIX } from "./messages/commands";
-import { messagesByLanguage } from "./messages/messages";
+import { messages } from "./messages/messages";
 
 type MockMessage = Partial<Omit<Message, "channel" | "author" | "valueOf">> & {
 	channel: Partial<Omit<Message["channel"], "send" | "valueOf">> & {
@@ -45,10 +44,6 @@ describe("Bot", () => {
 		it("creates a gameRunner for the bot", () => {
 			expect(bot.gameRunner).not.toEqual(undefined);
 		});
-
-		it("sets the default language", () => {
-			expect(bot.language).toEqual(DEFAULT_LANGUAGE);
-		});
 	});
 
 	describe("handling messages", () => {
@@ -59,10 +54,9 @@ describe("Bot", () => {
 			describe("and the bot is in Idle state", () => {
 				beforeEach(() => {
 					bot = new Bot("fooUserId", "fooChannelId");
-					bot.language = "suomi";
 
 					mockMessage = constructMockMessage({
-						content: "aloita",
+						content: "start",
 						author: {
 							username: "someUser",
 							id: "someId",
@@ -100,8 +94,7 @@ describe("Bot", () => {
 			describe("and a bot is in Waiting state", () => {
 				beforeEach(() => {
 					bot = new Bot("fooUserId", "fooChannelId");
-					bot.language = "suomi";
-					mockMessage = constructMockMessage({ content: "aloita" });
+					mockMessage = constructMockMessage({ content: "start" });
 					bot.state = BotState.Waiting;
 					bot.runGame = jest.fn();
 					bot.handleMessage(mockMessage as any);
@@ -116,7 +109,7 @@ describe("Bot", () => {
 		describe("when handling a join game command", () => {
 			beforeAll(() => {
 				mockMessage = constructMockMessage({
-					content: "liity",
+					content: "join",
 					author: {
 						username: "someUser",
 						id: "someId",
@@ -128,13 +121,12 @@ describe("Bot", () => {
 			describe("and the bot is in Idle state", () => {
 				beforeEach(() => {
 					bot = new Bot("fooUserId", "fooChannelId");
-					bot.language = "suomi";
 					bot.handleMessage(mockMessage as any);
 				});
 
 				it("sends noFightInProgress message", () => {
 					expect(mockMessage.channel.send).toHaveBeenCalledWith(
-						messagesByLanguage[bot.language].noFightInProgress()
+						messages.noFightInProgress()
 					);
 				});
 			});
@@ -142,7 +134,6 @@ describe("Bot", () => {
 			describe("and player is already in the game", () => {
 				beforeEach(() => {
 					bot = new Bot("fooUserId", "fooChannelId");
-					bot.language = "suomi";
 
 					bot.gameRunner = {
 						addPlayer: jest.fn(),
@@ -167,7 +158,6 @@ describe("Bot", () => {
 			describe("and player is not already in the game", () => {
 				beforeEach(() => {
 					bot = new Bot("fooUserId", "fooChannelId");
-					bot.language = "suomi";
 
 					bot.gameRunner = {
 						addPlayer: jest.fn(),
@@ -192,7 +182,6 @@ describe("Bot", () => {
 			describe("and the game already has max players", () => {
 				beforeEach(() => {
 					bot = new Bot("fooUserId", "fooChannelId");
-					bot.language = "suomi";
 
 					bot.gameRunner = {
 						addPlayer: jest.fn(),
@@ -272,9 +261,7 @@ describe("Bot", () => {
 		});
 
 		it("sends a message saying the rendering failed", () => {
-			expect(channel.send).toHaveBeenCalledWith(
-				messagesByLanguage[bot.language].renderingFailed()
-			);
+			expect(channel.send).toHaveBeenCalledWith(messages.renderingFailed());
 		});
 	});
 });
