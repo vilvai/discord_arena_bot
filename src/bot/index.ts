@@ -2,9 +2,10 @@ import Discord from "discord.js";
 import rimraf from "rimraf";
 import fs from "fs";
 
+import type { TextChannel } from "discord.js";
+
 import Bot from "./Bot";
 import { INPUT_FILE_DIRECTORY, RENDER_DIRECTORY } from "../shared/constants";
-import { messageStartsWithBotPrefix } from "./messages/commands";
 
 require("dotenv").config();
 
@@ -28,13 +29,16 @@ client.on("ready", () => {
 	console.log(`Logged in as ${client.user.tag}!`);
 });
 
-client.on("message", async (msg: Discord.Message) => {
-	const channel = msg.channel;
-	if (
-		client.user === null ||
-		channel.type !== "text" ||
-		!messageStartsWithBotPrefix(msg.content)
-	) {
+client.ws.on("INTERACTION_CREATE" as any, async (interaction) => {
+	if (client.user === null) return;
+
+	let channel: TextChannel;
+	try {
+		const anyChannel = await client.channels.fetch(interaction.channel_id);
+		if (!anyChannel || anyChannel.type !== "text") return;
+		channel = anyChannel as TextChannel;
+	} catch (error) {
+		console.log(error);
 		return;
 	}
 
@@ -45,5 +49,8 @@ client.on("message", async (msg: Discord.Message) => {
 		);
 		botsByChannel[channelId] = new Bot(client.user.id, channelId);
 	}
-	await botsByChannel[channelId].handleMessage(msg);
+
+	console.log(interaction);
+
+	//await botsByChannel[channelId].handleInteraction(interaction, channel);
 });
