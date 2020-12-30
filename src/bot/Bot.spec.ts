@@ -281,7 +281,7 @@ describe("Bot", () => {
 
 		beforeEach(() => {
 			bot = new Bot("fooUserId", "fooChannelId");
-			bot.sendMessage(brokenMockChannel as any, "Lorem ipsum");
+			bot.sendMessageRaw(brokenMockChannel as any, "Lorem ipsum");
 		});
 
 		it("logs the error", () => {
