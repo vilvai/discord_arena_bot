@@ -10,7 +10,7 @@ import {
 	RENDER_FILE_NAME,
 } from "../shared/constants";
 import { startTimer, logTimer } from "../shared/timer";
-import { commands, parseCommand } from "./messages/commands";
+import { BOT_PREFIX, commands, parseCommand } from "./messages/commands";
 import { messages, Messages, getAcceptedCommands } from "./messages/messages";
 import { CommandType } from "./messages/types";
 import { cooldownLeftForUser, setCooldownForUser } from "./cooldown";
@@ -252,7 +252,7 @@ export default class Bot {
 		const messagesToDelete = messages.filter((message) => {
 			return (
 				message.author.id === this.botUserId ||
-				parseCommand(message.content) !== null
+				message.content.startsWith(BOT_PREFIX)
 			);
 		});
 		startTimer("Deleting messages");
