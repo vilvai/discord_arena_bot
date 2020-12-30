@@ -1,3 +1,4 @@
 export const setCooldownForUser = () => {};
 
-export const cooldownLeftForUser = () => 0;
+export const cooldownLeftForUser = (userId: string) =>
+	userId === "mockCooldown" ? 9000 : 0;
