@@ -258,6 +258,90 @@ describe("Bot", () => {
 				});
 			});
 		});
+
+		describe("when handling change class command", () => {
+			describe("and the user doesn't specify a class", () => {
+				beforeEach(() => {
+					bot = new Bot("fooUserId", "fooChannelId");
+
+					mockMessage = constructMockMessage({
+						content: "class",
+						author: {
+							username: "someUser",
+							id: "someId",
+							displayAvatarURL: () => "foo.com/foobar.png",
+						},
+					});
+
+					bot.handleMessage(mockMessage as any);
+				});
+
+				it("sends a selectableClasses message", () => {
+					expect(mockMessage.channel.send).toHaveBeenCalledWith(
+						messages.selectableClasses()
+					);
+				});
+			});
+
+			describe("and the user tries to change to a non-existing class", () => {
+				beforeEach(() => {
+					bot = new Bot("fooUserId", "fooChannelId");
+
+					mockMessage = constructMockMessage({
+						content: "class foobarfighter123",
+						author: {
+							username: "someUser",
+							id: "someId",
+							displayAvatarURL: () => "foo.com/foobar.png",
+						},
+					});
+
+					bot.handleMessage(mockMessage as any);
+				});
+
+				it("sends a selectableClasses message", () => {
+					expect(mockMessage.channel.send).toHaveBeenCalledWith(
+						messages.selectableClasses()
+					);
+				});
+			});
+
+			describe("and the user tries to change to an existing class", () => {
+				const newPlayerClass = "drunk";
+				beforeEach(() => {
+					bot = new Bot("fooUserId", "fooChannelId");
+
+					mockMessage = constructMockMessage({
+						content: `class ${newPlayerClass}`,
+						author: {
+							username: "someUser",
+							id: "someId",
+							displayAvatarURL: () => "foo.com/foobar.png",
+						},
+					});
+
+					bot.gameRunner = {
+						setPlayerClass: jest.fn(),
+					} as any;
+
+					bot.handleMessage(mockMessage as any);
+				});
+
+				it("calls setPlayerClass with the correct class", () => {
+					expect(bot.gameRunner.setPlayerClass).toHaveBeenCalledTimes(1);
+					expect((bot.gameRunner.setPlayerClass as any).mock.calls[0]).toEqual([
+						mockMessage.author!.id,
+						newPlayerClass,
+					]);
+				});
+
+				it("sends a classSelected message", () => {
+					expect(mockMessage.channel.send).toHaveBeenCalledWith(
+						messages.classSelected(mockMessage.author!.username, newPlayerClass)
+					);
+				});
+			});
+		});
 	});
 
 	describe("error handling for sending messages", () => {
