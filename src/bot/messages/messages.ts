@@ -1,4 +1,5 @@
 import { MessageEmbed } from "discord.js";
+import type { Message } from "discord.js";
 
 import { MAX_PLAYER_COUNT } from "../../shared/constants";
 import {
@@ -31,6 +32,7 @@ export interface Messages {
 		authorAvatarURL: string,
 		cooldownLeft: number
 	) => MessageEmbed;
+	welcomeMessage: () => MessageEmbed;
 }
 
 export const getPlayersWithClassesAsString = (
@@ -46,11 +48,14 @@ const formattedStartCommand = formattedCommandWithPrefix(CommandType.Start);
 const formattedJoinCommand = formattedCommandWithPrefix(CommandType.Join);
 const formattedBotCommand = formattedCommandWithPrefix(CommandType.Bot);
 const formattedClassCommand = formattedCommandWithPrefix(CommandType.Class);
+const formattedInfoCommand = formattedCommandWithPrefix(CommandType.Info);
 const exampleClassCommand = formattedWithBotPrefix(
 	`class ${PlayerClass.Spuge}`
 );
 
 const startNewFightMessage = `Start a new fight with ${formattedStartCommand}.`;
+
+const welcomeMessageTitle = "Thanks for adding me to your server! 👋";
 
 export const messages: Messages = {
 	fightInitiated: (playersWithClasses: Array<[string, PlayerClass]>) =>
@@ -97,11 +102,23 @@ export const messages: Messages = {
 		new MessageEmbed()
 			.setColor(MESSAGE_EMBED_COLOR)
 			.setAuthor(`${userName}'s cooldown ⏳`, authorAvatarURL)
-			.addFields({
-				name: "\u200B",
-				value: `You must wait **${cooldownLeft} seconds** before you can initiate a new fight.`,
-			}),
+			.setDescription(
+				`You must wait **${cooldownLeft} seconds** before you can initiate a new fight.`
+			),
+	welcomeMessage: () =>
+		new MessageEmbed()
+			.setColor(MESSAGE_EMBED_COLOR)
+			.setTitle(welcomeMessageTitle)
+			.setDescription(
+				`You can start a new arena battle with ${formattedStartCommand}. ` +
+					`Change your class with ${formattedClassCommand} (for example: ${exampleClassCommand}). ` +
+					`For a full list of commands and classes, type ${formattedInfoCommand}.`
+			),
 };
+
+export const messageIsWelcomeMessage = (message: Message) =>
+	message.embeds.length === 1 &&
+	message.embeds[0].title === welcomeMessageTitle;
 
 export const getAcceptedCommands = (): MessageEmbed =>
 	new MessageEmbed().setColor(MESSAGE_EMBED_COLOR).addFields({

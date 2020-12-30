@@ -11,7 +11,12 @@ import {
 } from "../shared/constants";
 import { startTimer, logTimer } from "../shared/timer";
 import { BOT_PREFIX, commands, parseCommand } from "./messages/commands";
-import { messages, Messages, getAcceptedCommands } from "./messages/messages";
+import {
+	messages,
+	Messages,
+	getAcceptedCommands,
+	messageIsWelcomeMessage,
+} from "./messages/messages";
 import { CommandType } from "./messages/types";
 import { cooldownLeftForUser, setCooldownForUser } from "./cooldown";
 
@@ -249,12 +254,12 @@ export default class Bot {
 		startTimer("Fetching messages");
 		const messages = await channel.messages.fetch({ limit: 100 });
 		logTimer("Fetching messages");
-		const messagesToDelete = messages.filter((message) => {
-			return (
-				message.author.id === this.botUserId ||
+		const messagesToDelete = messages.filter(
+			(message) =>
+				(message.author.id === this.botUserId &&
+					!messageIsWelcomeMessage(message)) ||
 				message.content.startsWith(BOT_PREFIX)
-			);
-		});
+		);
 		startTimer("Deleting messages");
 		try {
 			await channel.bulkDelete(messagesToDelete, true);
