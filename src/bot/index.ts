@@ -5,6 +5,7 @@ import fs from "fs";
 import Bot from "./Bot";
 import { INPUT_FILE_DIRECTORY, RENDER_DIRECTORY } from "../shared/constants";
 import { messageStartsWithBotPrefix } from "./messages/commands";
+import { messages } from "./messages/messages";
 
 require("dotenv").config();
 
@@ -46,6 +47,21 @@ client.on("message", async (msg: Discord.Message) => {
 		botsByChannel[channelId] = new Bot(client.user.id, channelId);
 	}
 	await botsByChannel[channelId].handleMessage(msg);
+});
+
+client.on("guildCreate", async (guild: Discord.Guild) => {
+	const user = client.user;
+	if (user === null) return;
+	console.log(`Bot added to guild ${guild.name} (${guild.id})`);
+	const firstChannel = guild.channels.cache.find(
+		(channel) =>
+			channel.type === "text" &&
+			channel.permissionsFor(user)!.has("SEND_MESSAGES")
+	) as Discord.TextChannel | undefined;
+
+	if (firstChannel === undefined) return;
+
+	firstChannel.send(messages.welcomeMessage());
 });
 
 client.on("rateLimit", (rateLimitData) =>
