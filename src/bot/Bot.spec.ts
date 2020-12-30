@@ -6,6 +6,8 @@ import Bot, { BotState } from "./Bot";
 import { BOT_PREFIX } from "./messages/commands";
 import { messages } from "./messages/messages";
 
+jest.mock("./cooldown");
+
 type MockMessage = Partial<Omit<Message, "channel" | "author" | "valueOf">> & {
 	channel: Partial<Omit<Message["channel"], "send" | "valueOf">> & {
 		type: Message["channel"]["type"];
