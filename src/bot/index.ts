@@ -51,3 +51,7 @@ client.on("message", async (msg: Discord.Message) => {
 client.on("rateLimit", (rateLimitData) =>
 	console.log(`Ratelimited on: ${rateLimitData.path}`)
 );
+
+client.on("error", (error) =>
+	console.error(`Encountered an error: ${error.message}`)
+);
