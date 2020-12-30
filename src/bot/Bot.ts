@@ -62,7 +62,7 @@ export default class Bot {
 							format: "png",
 							size: 128,
 						});
-						await this.sendTranslatedMessage(
+						await this.sendMessage(
 							msg.channel,
 							"cooldown",
 							msg.author.username,
@@ -85,10 +85,10 @@ export default class Bot {
 			case CommandType.Join:
 			case CommandType.Bot: {
 				if (this.state === BotState.Idle) {
-					await this.sendTranslatedMessage(msg.channel, "noFightInProgress");
+					await this.sendMessage(msg.channel, "noFightInProgress");
 				} else if (this.state === BotState.Waiting) {
 					if (this.gameRunner.getPlayerCount() >= MAX_PLAYER_COUNT) {
-						await this.sendTranslatedMessage(msg.channel, "gameIsFull");
+						await this.sendMessage(msg.channel, "gameIsFull");
 						return;
 					}
 
@@ -113,19 +113,19 @@ export default class Bot {
 						msg.author.id,
 						newPlayerClass as PlayerClass
 					);
-					await this.sendTranslatedMessage(
+					await this.sendMessage(
 						msg.channel,
 						"classSelected",
 						msg.author.username,
 						possibleClass
 					);
 				} else {
-					await this.sendTranslatedMessage(msg.channel, "selectableClasses");
+					await this.sendMessage(msg.channel, "selectableClasses");
 				}
 				return;
 			}
 			case CommandType.Info: {
-				await this.sendMessage(msg.channel, getAcceptedCommands());
+				await this.sendMessageRaw(msg.channel, getAcceptedCommands());
 				return;
 			}
 		}
@@ -156,14 +156,14 @@ export default class Bot {
 		await this.deleteBotMessages(channel);
 
 		if (this.gameRunner.getPlayerCount() <= 1) {
-			await this.sendTranslatedMessage(channel, "notEnoughPlayers");
-			await this.sendTranslatedMessage(channel, "startNewFight");
+			await this.sendMessage(channel, "notEnoughPlayers");
+			await this.sendMessage(channel, "startNewFight");
 			this.state = BotState.Idle;
 			return;
 		}
 
 		this.state = BotState.Rendering;
-		const gameStartMessage = await this.sendTranslatedMessage(
+		const gameStartMessage = await this.sendMessage(
 			channel,
 			"fightStarting",
 			this.gameRunner.getCurrentPlayersWithClasses()
@@ -182,7 +182,7 @@ export default class Bot {
 			);
 		} catch (error) {
 			this.state = BotState.Idle;
-			await this.sendTranslatedMessage(channel, "renderingFailed");
+			await this.sendMessage(channel, "renderingFailed");
 			return;
 		}
 
@@ -198,21 +198,21 @@ export default class Bot {
 			console.error(`Error when posting fight:\n${error}`);
 		}
 
-		await this.sendTranslatedMessage(channel, "startNewFight");
+		await this.sendMessage(channel, "startNewFight");
 		this.state = BotState.Idle;
 	};
 
-	sendTranslatedMessage = async <M extends keyof Messages>(
+	sendMessage = async <M extends keyof Messages>(
 		channel: TextChannel,
 		messageFunctionKey: M,
 		...messageFunctionParameters: Parameters<Messages[M]>
 	) =>
-		await this.sendMessage(
+		await this.sendMessageRaw(
 			channel,
 			(messages[messageFunctionKey] as any)(...messageFunctionParameters)
 		);
 
-	sendMessage = async (
+	sendMessageRaw = async (
 		channel: TextChannel,
 		message: string | MessageEmbed
 	) => {
@@ -226,7 +226,7 @@ export default class Bot {
 	updatePlayersInGameText = async (channel: TextChannel) => {
 		await this.deleteSingleMessage(this.currentParticipantsMessage);
 
-		this.currentParticipantsMessage = await this.sendTranslatedMessage(
+		this.currentParticipantsMessage = await this.sendMessage(
 			channel,
 			"fightInitiated",
 			this.gameRunner.getCurrentPlayersWithClasses()
