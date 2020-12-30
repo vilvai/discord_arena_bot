@@ -25,24 +25,25 @@ export const BOT_PREFIX = "/arena ";
 export const messageStartsWithBotPrefix = (message: string): boolean =>
 	message.toLowerCase().startsWith(BOT_PREFIX);
 
-const formattedWithBotPrefix = (command: string) =>
+export const formattedWithBotPrefix = (command: string) =>
 	`\`${BOT_PREFIX}${command}\``;
 
-export const formattedCommandWithPrefix = (commandType: CommandType): string =>
-	formattedWithBotPrefix(
-		commands.find((command) => command.type === commandType)!.label
-	);
+export const formattedCommandWithPrefix = (
+	commandType: CommandType
+): string => {
+	let label = commands.find((command) => command.type === commandType)!.label;
+	if (commandType === CommandType.Class) {
+		label += ` [${label}]`;
+	}
+	return formattedWithBotPrefix(label);
+};
 
 export const getCommandsAsString = (): string =>
 	commands
-		.map((command) => {
-			let commandLabel = command.label;
-			if (command.type === CommandType.Class) {
-				commandLabel += ` [${command.label}]`;
-			}
-
-			return "🔹" + `${formattedWithBotPrefix(commandLabel)} - ${command.info}`;
-		})
+		.map(
+			(command) =>
+				"🔹" + `${formattedCommandWithPrefix(command.type)} - ${command.info}`
+		)
 		.join("\n");
 
 export const parseCommand = (message: string): string[] | null => {

@@ -1,3 +1,4 @@
+import { MessageEmbed } from "discord.js";
 import type { Message } from "discord.js";
 
 import { MAX_PLAYER_COUNT } from "../shared/constants";
@@ -5,6 +6,8 @@ import { PlayerClass } from "../shared/types";
 import Bot, { BotState } from "./Bot";
 import { BOT_PREFIX } from "./messages/commands";
 import { messages } from "./messages/messages";
+
+jest.mock("./cooldown");
 
 type MockMessage = Partial<Omit<Message, "channel" | "author" | "valueOf">> & {
 	channel: Partial<Omit<Message["channel"], "send" | "valueOf">> & {
@@ -88,6 +91,58 @@ describe("Bot", () => {
 
 				it("calls updatePlayersInGameText", () => {
 					expect(bot.updatePlayersInGameText).toHaveBeenCalledTimes(1);
+				});
+			});
+
+			describe("and the user has cooldown left", () => {
+				beforeEach(() => {
+					bot = new Bot("fooUserId", "fooChannelId");
+
+					mockMessage = constructMockMessage({
+						content: "start",
+						author: {
+							username: "someUser",
+							id: "mockCooldown",
+							displayAvatarURL: () => "foo.com/foobar.png",
+						},
+					});
+
+					bot.updatePlayersInGameText = jest.fn();
+					bot.gameRunner = {
+						initializeGame: jest.fn(),
+						addPlayer: jest.fn(),
+						playerInGame: () => false,
+					} as any;
+
+					bot.handleMessage(mockMessage as any);
+				});
+
+				it("doesn't initialize a game", () => {
+					expect(bot.gameRunner.initializeGame).toHaveBeenCalledTimes(0);
+				});
+
+				it("doesn't add a player to the game", () => {
+					expect(bot.gameRunner.addPlayer).toHaveBeenCalledTimes(0);
+				});
+
+				it("doesn't change the bot state", () => {
+					expect(bot.state).toEqual(BotState.Idle);
+				});
+
+				it("doesn't call updatePlayersInGameText", () => {
+					expect(bot.updatePlayersInGameText).toHaveBeenCalledTimes(0);
+				});
+
+				it("sends cooldown message", () => {
+					expect(mockMessage.channel.send).toHaveBeenCalledTimes(1);
+					const cooldownMessageEmbed: MessageEmbed =
+						mockMessage.channel.send.mock.calls[0][0];
+					expect(cooldownMessageEmbed instanceof MessageEmbed).toBe(true);
+					expect(
+						cooldownMessageEmbed.author?.name?.startsWith(
+							mockMessage.author!.username
+						)
+					).toBe(true);
 				});
 			});
 

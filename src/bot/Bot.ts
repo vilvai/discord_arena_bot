@@ -13,6 +13,7 @@ import { startTimer, logTimer } from "../shared/timer";
 import { commands, parseCommand } from "./messages/commands";
 import { messages, Messages, getAcceptedCommands } from "./messages/messages";
 import { CommandType } from "./messages/types";
+import { cooldownLeftForUser, setCooldownForUser } from "./cooldown";
 
 export enum BotState {
 	Idle = "idle",
@@ -54,6 +55,24 @@ export default class Bot {
 		switch (command.type) {
 			case CommandType.Start: {
 				if (this.state === BotState.Idle) {
+					const userId = msg.author.id;
+					const cooldownLeft = cooldownLeftForUser(userId);
+					if (cooldownLeft > 0) {
+						const avatarURL = msg.author.displayAvatarURL({
+							format: "png",
+							size: 128,
+						});
+						await this.sendTranslatedMessage(
+							msg.channel,
+							"cooldown",
+							msg.author.username,
+							avatarURL,
+							cooldownLeft
+						);
+						return;
+					}
+
+					setCooldownForUser(userId);
 					this.gameRunner.initializeGame();
 					this.addPlayerToGame(msg.author);
 					this.updatePlayersInGameText(msg.channel);
