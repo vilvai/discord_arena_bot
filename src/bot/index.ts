@@ -47,3 +47,7 @@ client.on("message", async (msg: Discord.Message) => {
 	}
 	await botsByChannel[channelId].handleMessage(msg);
 });
+
+client.on("rateLimit", (rateLimitData) =>
+	console.log(`Ratelimited on: ${rateLimitData.path}`)
+);
