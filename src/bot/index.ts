@@ -1,21 +1,11 @@
 import Discord from "discord.js";
-import rimraf from "rimraf";
-import fs from "fs";
 
 import Bot from "./Bot";
-import { INPUT_FILE_DIRECTORY, RENDER_DIRECTORY } from "../shared/constants";
+import { createRootFolders } from "./createRootFolders";
 import { messageStartsWithBotPrefix } from "./messages/commands";
 import { messages } from "./messages/messages";
 
 require("dotenv").config();
-
-const createRootFolders = () => {
-	rimraf.sync(INPUT_FILE_DIRECTORY);
-	rimraf.sync(RENDER_DIRECTORY);
-
-	fs.mkdirSync(INPUT_FILE_DIRECTORY);
-	fs.mkdirSync(RENDER_DIRECTORY);
-};
 
 createRootFolders();
 

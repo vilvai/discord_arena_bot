@@ -1,8 +1,11 @@
 import GameRunner from "../bot/GameRunner";
+import { createRootFolders } from "../bot/createRootFolders";
 import { createUniqueBotPlayers } from "../shared/bots";
 import { INPUT_FILE_DIRECTORY, RENDER_DIRECTORY } from "../shared/constants";
 
 console.log("Starting render test");
+
+createRootFolders();
 
 const INPUT_FOLDER = `${INPUT_FILE_DIRECTORY}/render_test`;
 const OUTPUT_FOLDER = `${RENDER_DIRECTORY}/render_test`;
