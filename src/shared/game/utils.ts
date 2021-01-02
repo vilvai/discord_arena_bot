@@ -28,6 +28,8 @@ export const checkPlayerCollision = (
 	otherPlayers: BasePlayer[]
 ): BasePlayer | null => {
 	for (const player of otherPlayers) {
+		if (player.isDead()) continue;
+
 		const { x: playerX, y: playerY } = player;
 		const distance = Math.sqrt((playerX - x) ** 2 + (playerY - y) ** 2);
 		if (distance <= player.radius) return player;

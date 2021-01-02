@@ -109,24 +109,22 @@ export default class Bot {
 			}
 			case CommandType.Class: {
 				const possibleClass = commandWithArgs[1];
-				const newPlayerClass = Object.entries(PlayerClass).find(
-					([_playerClass, label]) => label === possibleClass
-				)?.[0];
+				const newPlayerClass = Object.values(PlayerClass).find(
+					(playerClass) => playerClass === possibleClass
+				);
 
-				if (newPlayerClass !== undefined) {
-					this.gameRunner.setPlayerClass(
-						msg.author.id,
-						newPlayerClass as PlayerClass
-					);
-					await this.sendMessage(
-						msg.channel,
-						"classSelected",
-						msg.author.username,
-						possibleClass
-					);
-				} else {
+				if (newPlayerClass === undefined) {
 					await this.sendMessage(msg.channel, "selectableClasses");
+					return;
 				}
+
+				this.gameRunner.setPlayerClass(msg.author.id, newPlayerClass);
+				await this.sendMessage(
+					msg.channel,
+					"classSelected",
+					msg.author.username,
+					newPlayerClass
+				);
 				return;
 			}
 			case CommandType.Info: {
