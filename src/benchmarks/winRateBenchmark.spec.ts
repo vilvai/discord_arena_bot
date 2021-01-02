@@ -1,10 +1,10 @@
 import { createCanvas } from "canvas";
 
-import { PlayerData, PlayerClass } from "../shared/types";
+import { PlayerData } from "../shared/types";
 import Game from "../shared/game/Game";
 import { SCREEN_WIDTH, SCREEN_HEIGHT } from "../shared/constants";
 import { createUniqueBotPlayers } from "../shared/bots";
-import { getPlayerClassName } from "../shared/game/playerClasses/getPlayerClassName";
+import { playerToPlayerClass } from "../shared/game/playerClasses/getPlayerClassName";
 
 const MAX_GAME_TICKS = 900;
 
@@ -39,31 +39,23 @@ describe("Win rate benchmark", () => {
 			[playerClass: string]: { wins: number; games: number; winRate: string };
 		} = {};
 
-		const playerClassToClassName = {
-			[PlayerClass.Fighter]: "FIGHTER",
-			[PlayerClass.Chungus]: "CHUNGUS",
-			[PlayerClass.Assassin]: "ASSASSIN",
-			[PlayerClass.Spuge]: "SPUGE",
-			[PlayerClass.Teekkari]: "TEEKKARI",
-		};
-
 		for (let i = 0; i < numberOfGames; i++) {
 			const randomPlayers = createUniqueBotPlayers(numberOfPlayers);
 			const winner = await runGame(randomPlayers);
 
 			randomPlayers.forEach((player) => {
-				if (!dataByClass[playerClassToClassName[player.playerClass]]) {
-					dataByClass[playerClassToClassName[player.playerClass]] = {
+				if (!dataByClass[player.playerClass]) {
+					dataByClass[player.playerClass] = {
 						wins: 0,
 						games: 0,
 						winRate: "0",
 					};
 				}
-				dataByClass[playerClassToClassName[player.playerClass]].games += 1;
+				dataByClass[player.playerClass].games += 1;
 			});
 
 			if (winner !== null) {
-				dataByClass[getPlayerClassName(winner)].wins += 1;
+				dataByClass[playerToPlayerClass(winner)].wins += 1;
 			}
 		}
 
