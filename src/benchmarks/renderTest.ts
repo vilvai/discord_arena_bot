@@ -16,7 +16,12 @@ const runRenderTest = async () => {
 		gameRunner.setPlayerClass(botPlayer.id, playerClass);
 	});
 
-	await gameRunner.runGame(INPUT_FOLDER, OUTPUT_FOLDER);
+	try {
+		await gameRunner.runGame(INPUT_FOLDER, OUTPUT_FOLDER);
+	} catch (error) {
+		console.error(error);
+		process.exit(1);
+	}
 };
 
 runRenderTest();
