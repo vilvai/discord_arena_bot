@@ -18,7 +18,7 @@
     "benchmark-draw": "ts-node ./src/benchmarks/benchmarkDraw.ts",
     "lint": "eslint . --ext .tsx,.ts,.js",
     "test": "jest",
-    "heroku-postbuild": "yarn test-render && yarn build-bot && yarn build-preview",
+    "heroku-postbuild": "yarn build-bot && yarn build-preview",
     "test-render": "ts-node ./src/benchmarks/renderTest.ts",
     "update-commands": "ts-node ./src/bot/updateCommands.ts",
     "clear-commands": "ts-node ./src/bot/clearCommands.ts"
