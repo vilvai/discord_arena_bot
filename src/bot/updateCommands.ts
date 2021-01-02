@@ -69,8 +69,8 @@ const commands = {
 				],
 			},
 			{
-				name: "info",
-				description: "Display available commands and their info",
+				name: "help",
+				description: "Display available commands and their help",
 				type: 1,
 			},
 		],

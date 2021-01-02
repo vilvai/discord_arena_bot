@@ -3,5 +3,5 @@ export enum CommandType {
 	Join = 1,
 	Bot = 2,
 	Class = 3,
-	Info = 4,
+	Help = 4,
 }

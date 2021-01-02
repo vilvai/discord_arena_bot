@@ -48,7 +48,7 @@ const formattedStartCommand = formattedCommandWithPrefix(CommandType.Start);
 const formattedJoinCommand = formattedCommandWithPrefix(CommandType.Join);
 const formattedBotCommand = formattedCommandWithPrefix(CommandType.Bot);
 const formattedClassCommand = formattedCommandWithPrefix(CommandType.Class);
-const formattedInfoCommand = formattedCommandWithPrefix(CommandType.Info);
+const formattedInfoCommand = formattedCommandWithPrefix(CommandType.Help);
 const exampleClassCommand = formattedWithBotPrefix(
 	`class ${PlayerClass.Spuge}`
 );

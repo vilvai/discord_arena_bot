@@ -12,7 +12,7 @@ export const commands = [
 	{ type: CommandType.Start, label: "start", info: "start a fight" },
 	{ type: CommandType.Join, label: "join", info: "join a fight" },
 	{ type: CommandType.Bot, label: "bot", info: "add a bot to the fight" },
-	{ type: CommandType.Info, label: "info", info: "show available commands" },
+	{ type: CommandType.Help, label: "help", info: "show available commands" },
 	{
 		type: CommandType.Class,
 		label: "class",
