@@ -17,7 +17,7 @@ jobs:
         with:
           node-version: "14"
       - run: yarn install
-      - run: yarn heroku-postbuild
+      - run: yarn build-preview && yarn build-bot
   tests:
     runs-on: ubuntu-latest
     steps:
