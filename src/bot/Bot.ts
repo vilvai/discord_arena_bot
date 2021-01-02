@@ -127,7 +127,7 @@ export default class Bot {
 				);
 				return;
 			}
-			case CommandType.Info: {
+			case CommandType.Help: {
 				await this.sendMessageRaw(msg.channel, getAcceptedCommands());
 				return;
 			}
