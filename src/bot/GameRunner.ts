@@ -7,6 +7,7 @@ import {
 	PngConfig as CanvasPngConfig,
 	JpegConfig as CanvasJpegConfig,
 } from "canvas";
+import { Readable } from "stream";
 
 import Game from "../shared/game/Game";
 import {
@@ -94,11 +95,28 @@ export default class GameRunner {
 		const inputFileWriteTimerString = "Input file writing";
 		startTimer(inputFileWriteTimerString);
 
-		await this.writeInputFiles(inputFolder, imageBuffers);
+		//await this.writeInputFiles(inputFolder, imageBuffers);
+
+		const readable = new Readable();
+		readable._read = () => {};
+		//imageBuffers.forEach((buffer) => readable.push(buffer));
+		readable.push(Buffer.concat([imageBuffers[0]]));
+		//readable.push(imageBuffers[1]);
+		readable.push(null);
 
 		logTimer(inputFileWriteTimerString);
 
-		await this.renderVideo(inputFolder, outputFolder);
+		await this.renderVideo(
+			inputFolder,
+			outputFolder,
+			[imageBuffers[0], imageBuffers[1]].map((buffer) => {
+				const readable = new Readable();
+				readable._read = () => {};
+				readable.push(buffer);
+				readable.push(null);
+				return readable;
+			})
+		);
 		return gameEndData;
 	};
 
@@ -197,13 +215,16 @@ export default class GameRunner {
 
 	renderVideo = async (
 		inputFolder: string,
-		outputFolder: string
+		outputFolder: string,
+		readables: Readable[]
 	): Promise<void> =>
 		new Promise((resolve, reject) => {
 			const timerAction = "FFMpeg render";
 			startTimer(timerAction);
 			ffmpeg()
-				.addInput(`./${inputFolder}/%3d.jpeg`)
+				.addInput(readables[0])
+				.addInput(readables[1])
+				//.addInput(`./${inputFolder}/%3d.jpeg`)
 				.inputFPS(GAME_FPS)
 				.videoFilters([`fps=${GAME_FPS}`])
 				.videoCodec("libx264")
