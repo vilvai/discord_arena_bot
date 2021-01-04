@@ -19,8 +19,11 @@ export const calculateVector = (
 	return { x: deltaX / distance, y: deltaY / distance, distance };
 };
 
-export const isOutsideMap = (x: number, y: number) =>
-	x > SCREEN_WIDTH || x < SIDEBAR_WIDTH || y > SCREEN_HEIGHT || y < 0;
+export const isOutsideMap = (x: number, y: number, margin: number) =>
+	x > SCREEN_WIDTH + margin ||
+	x < SIDEBAR_WIDTH - margin ||
+	y > SCREEN_HEIGHT + margin ||
+	y < -margin;
 
 export const checkPlayerCollision = (
 	x: number,

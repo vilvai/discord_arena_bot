@@ -6,7 +6,13 @@ import {
 	randomizeAttributes,
 } from "../utils";
 
-export type CreateBloodStain = (x: number, y: number, size: number) => void;
+export type CreateBloodStain = (
+	x: number,
+	y: number,
+	size: number,
+	ySpeed: number,
+	xSpeed: number
+) => void;
 
 export default class BasePlayer {
 	constructor(
@@ -98,9 +104,19 @@ export default class BasePlayer {
 		this.knockbackXSpeed -= vector.x * damage;
 		this.knockbackYSpeed -= vector.y * damage;
 		this.chaseSpeed = 0;
-		const size = damage + Math.random() * 4;
-		this.createBloodStain(this.x, this.y, size);
 		this.health = Math.max(this.health - damage, 0);
+
+		const cappedDamage = Math.max(5, damage);
+		for (let i = 0; i < Math.floor(cappedDamage * 0.7); i++) {
+			const size = 2 + damage * 0.5 + Math.random() * 4;
+			this.createBloodStain(
+				this.x,
+				this.y,
+				size,
+				(1 + Math.random()) * (-vector.x * cappedDamage),
+				(1 + Math.random()) * (-vector.y * cappedDamage)
+			);
+		}
 	}
 
 	setTarget = (player: BasePlayer) => (this.target = player);
@@ -200,7 +216,7 @@ export default class BasePlayer {
 		const bleedChancePerTick = 0.4;
 		if (bleedChancePerTick > Math.random()) {
 			const size = 6 + Math.random() * 4;
-			this.createBloodStain(this.x, this.y, size);
+			this.createBloodStain(this.x, this.y, size, 0, 0);
 		}
 	}
 
