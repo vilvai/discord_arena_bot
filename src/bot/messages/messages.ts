@@ -20,7 +20,6 @@ export interface Messages {
 	fightStarting: (
 		playersWithClasses: Array<[string, PlayerClass]>
 	) => MessageEmbed;
-	startNewFight: () => string;
 	gameIsFull: () => string;
 	selectableClasses: () => string;
 	renderingFailed: () => string;
@@ -33,6 +32,7 @@ export interface Messages {
 		cooldownLeft: number
 	) => MessageEmbed;
 	welcomeMessage: () => MessageEmbed;
+	voteMessage: () => MessageEmbed;
 }
 
 export const getPlayersWithClassesAsString = (
@@ -93,8 +93,8 @@ export const messages: Messages = {
 		`Selectable classes: ${selectableClassesAsString}. Example: ${exampleClassCommand}.`,
 	classSelected: (userName: string, selectedClass: string) =>
 		`${userName} is now \`${selectedClass}\`.`,
-	notEnoughPlayers: () => "Not enough players in the fight.",
-	startNewFight: () => startNewFightMessage,
+	notEnoughPlayers: () =>
+		`Not enough players in the fight.\n${startNewFightMessage}`,
 	renderingFailed: () =>
 		`Rendering the video failed 😢\n${startNewFightMessage}`,
 	noFightInProgress: () => `No fight in progress.\n${startNewFightMessage}`,
@@ -114,6 +114,16 @@ export const messages: Messages = {
 					`Change your class with ${formattedClassCommand} (for example: ${exampleClassCommand}). ` +
 					`For a full list of commands and classes, type ${formattedInfoCommand}.`
 			),
+	voteMessage: () =>
+		new MessageEmbed()
+			.setColor(MESSAGE_EMBED_COLOR)
+			.setDescription(
+				"If you enjoy Arena bot, consider upvoting it at: https://top.gg/bot/710161541059575864"
+			)
+			.addFields({
+				name: "\u200B",
+				value: startNewFightMessage,
+			}),
 };
 
 export const messageIsWelcomeMessage = (message: Message) =>

@@ -160,7 +160,6 @@ export default class Bot {
 
 		if (this.gameRunner.getPlayerCount() <= 1) {
 			await this.sendMessage(channel, "notEnoughPlayers");
-			await this.sendMessage(channel, "startNewFight");
 			this.state = BotState.Idle;
 			return;
 		}
@@ -197,11 +196,10 @@ export default class Bot {
 			await channel.send("", {
 				files: [`./${outputDirectory}/${RENDER_FILE_NAME}.mp4`],
 			});
+			await this.sendMessage(channel, "voteMessage");
 		} catch (error) {
 			console.error(`Error when posting fight:\n${error}`);
 		}
-
-		await this.sendMessage(channel, "startNewFight");
 		this.state = BotState.Idle;
 	};
 
