@@ -117,6 +117,21 @@ export default class BasePlayer {
 				(1 + Math.random()) * (-vector.y * cappedDamage)
 			);
 		}
+
+		if (this.health === 0) {
+			this.createDeathBloodParticles();
+		}
+	}
+
+	createDeathBloodParticles() {
+		for (let i = 0; i < 10; i++) {
+			const size = 8 * (0.6 + Math.random() * 0.8);
+			const xDirection = Math.round(Math.random()) * 2 - 1;
+			const yDirection = Math.round(Math.random()) * 2 - 1;
+			const xSpeed = xDirection * (1 + Math.random() * 4);
+			const ySpeed = yDirection * (1 + Math.random() * 4);
+			this.createBloodStain(this.x, this.y, size, xSpeed, ySpeed);
+		}
 	}
 
 	setTarget = (player: BasePlayer) => (this.target = player);
