@@ -108,7 +108,7 @@ export default class BasePlayer {
 
 		const cappedDamage = Math.max(5, damage);
 		for (let i = 0; i < Math.floor(cappedDamage * 0.7); i++) {
-			const size = 2 + damage * 0.5 + Math.random() * 4;
+			const size = cappedDamage * (0.6 + Math.random() * 0.8);
 			this.createBloodStain(
 				this.x,
 				this.y,
@@ -130,7 +130,6 @@ export default class BasePlayer {
 		if (!this.isDead() && alivePlayersLeft) this.updateAI(otherPlayers);
 
 		this.constrainIntoArena();
-		this.updateBleeding();
 	}
 
 	updateAI(otherPlayers: BasePlayer[]) {
@@ -204,20 +203,6 @@ export default class BasePlayer {
 			this.y <= this.radius ||
 			this.y >= SCREEN_HEIGHT - this.radius
 		);
-	}
-
-	updateBleeding() {
-		if (
-			!this.isDead() ||
-			(this.knockbackXSpeed < 2 && this.knockbackYSpeed < 2)
-		) {
-			return;
-		}
-		const bleedChancePerTick = 0.4;
-		if (bleedChancePerTick > Math.random()) {
-			const size = 6 + Math.random() * 4;
-			this.createBloodStain(this.x, this.y, size, 0, 0);
-		}
 	}
 
 	draw(ctx: CanvasRenderingContext2D) {

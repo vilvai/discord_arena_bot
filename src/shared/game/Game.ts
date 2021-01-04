@@ -106,38 +106,15 @@ export default class Game {
 		size: number,
 		xSpeed: number,
 		ySpeed: number
-	) => {
+	) =>
 		this.bloodStains.push(
-			new Blood(x, y, size, xSpeed, ySpeed, this.updateBackgroundCanvas)
+			new Blood(x, y, size, xSpeed, ySpeed, this.onDeleteBlood)
 		);
-	};
 
-	checkForBloodMerge = (bloodToBeMerged: Blood) => {
-		const { x, y, size } = bloodToBeMerged;
-
-		const nearestBlood = this.bloodStains.find((bloodStain) => {
-			if (bloodStain === bloodToBeMerged) return false;
-			if (bloodStain.toBeDeleted) return false;
-
-			const distance = Math.sqrt(
-				(bloodStain.x - x) ** 2 + (bloodStain.y - y) ** 2
-			);
-			return distance < bloodStain.size + size;
-		});
-
-		if (nearestBlood === undefined) return;
-
-		nearestBlood.size = Math.sqrt(nearestBlood.size ** 2 + size);
-		nearestBlood.x = nearestBlood.x / 2 + x / 2;
-		nearestBlood.y = nearestBlood.y / 2 + y / 2;
-		//bloodToBeMerged.toBeDeleted = true;
-	};
-
-	onDeleteBlood = (bloodToBeDeleted: Blood) => {
-		this.bloodStains = this.bloodStains.filter(
+	onDeleteBlood = (bloodToBeDeleted: Blood) =>
+		(this.bloodStains = this.bloodStains.filter(
 			(bloodStain) => bloodStain !== bloodToBeDeleted
-		);
-	};
+		));
 
 	createTurret = (x: number, y: number, owner: BasePlayer) =>
 		this.turrets.push(new Turret(x, y, owner));
@@ -189,9 +166,6 @@ export default class Game {
 		this.particleHandler.update();
 
 		this.bloodStains.forEach((bloodStain) => bloodStain.update());
-		this.bloodStains = this.bloodStains.filter(
-			(bloodStain) => !bloodStain.toBeDeleted
-		);
 
 		if (this.isGameOver()) {
 			if (this.gameOverOverlay === undefined) {
@@ -204,6 +178,8 @@ export default class Game {
 
 		this.cachingCounter += 1;
 		if (this.cachingCounter === 50) {
+			this.cachingCounter = 0;
+
 			this.cachedBloodStains = [
 				...this.cachedBloodStains,
 				...this.bloodStains.filter(
@@ -214,7 +190,6 @@ export default class Game {
 				(bloodStain) => !this.cachedBloodStains.includes(bloodStain)
 			);
 			this.updateBackgroundCanvas();
-			this.cachingCounter = 0;
 		}
 	}
 
