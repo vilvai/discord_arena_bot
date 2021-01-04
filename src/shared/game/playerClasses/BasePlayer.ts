@@ -6,7 +6,13 @@ import {
 	randomizeAttributes,
 } from "../utils";
 
-export type CreateBloodStain = (x: number, y: number, size: number) => void;
+export type CreateBloodStain = (
+	x: number,
+	y: number,
+	size: number,
+	ySpeed: number,
+	xSpeed: number
+) => void;
 
 export default class BasePlayer {
 	constructor(
@@ -98,9 +104,19 @@ export default class BasePlayer {
 		this.knockbackXSpeed -= vector.x * damage;
 		this.knockbackYSpeed -= vector.y * damage;
 		this.chaseSpeed = 0;
-		const size = damage + Math.random() * 4;
-		this.createBloodStain(this.x, this.y, size);
 		this.health = Math.max(this.health - damage, 0);
+
+		const cappedDamage = Math.max(5, damage);
+		for (let i = 0; i < Math.floor(cappedDamage * 0.7); i++) {
+			const size = cappedDamage * (0.6 + Math.random() * 0.8);
+			this.createBloodStain(
+				this.x,
+				this.y,
+				size,
+				(1 + Math.random()) * (-vector.x * cappedDamage),
+				(1 + Math.random()) * (-vector.y * cappedDamage)
+			);
+		}
 	}
 
 	setTarget = (player: BasePlayer) => (this.target = player);
@@ -114,7 +130,6 @@ export default class BasePlayer {
 		if (!this.isDead() && alivePlayersLeft) this.updateAI(otherPlayers);
 
 		this.constrainIntoArena();
-		this.updateBleeding();
 	}
 
 	updateAI(otherPlayers: BasePlayer[]) {
@@ -188,20 +203,6 @@ export default class BasePlayer {
 			this.y <= this.radius ||
 			this.y >= SCREEN_HEIGHT - this.radius
 		);
-	}
-
-	updateBleeding() {
-		if (
-			!this.isDead() ||
-			(this.knockbackXSpeed < 2 && this.knockbackYSpeed < 2)
-		) {
-			return;
-		}
-		const bleedChancePerTick = 0.4;
-		if (bleedChancePerTick > Math.random()) {
-			const size = 6 + Math.random() * 4;
-			this.createBloodStain(this.x, this.y, size);
-		}
 	}
 
 	draw(ctx: CanvasRenderingContext2D) {

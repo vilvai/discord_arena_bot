@@ -200,7 +200,7 @@ export default class Assassin extends BasePlayer {
 			this.assassinationTargetPlayer.onHit(
 				this.x,
 				this.y,
-				this.assassinationTargetPlayer.health
+				Math.max(this.assassinationTargetPlayer.health, 12)
 			);
 			this.startSlowdown();
 		} else if (

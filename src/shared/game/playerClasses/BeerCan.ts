@@ -38,7 +38,9 @@ export default class BeerCan {
 		this.x += this.xSpeed;
 		this.y += this.ySpeed;
 		this.checkPlayerCollision(otherPlayers);
-		if (isOutsideMap(this.x, this.y)) this.onDelete(this);
+		if (isOutsideMap(this.x, this.y, BEER_CAN_IMAGE_HEIGHT / 2)) {
+			this.onDelete(this);
+		}
 		this.angle += 0.4;
 	}
 

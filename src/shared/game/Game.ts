@@ -16,17 +16,21 @@ import BeerCan from "./playerClasses/BeerCan";
 import Assassin from "./playerClasses/Assassin";
 import ParticleHandler from "./ParticleHandler";
 import GameOverOverlay from "./GameOverOverlay";
+import { createCanvas } from "canvas";
 
 export default class Game {
 	constructor(private ctx: CanvasRenderingContext2D) {}
 
 	players!: BasePlayer[];
 	bloodStains!: Blood[];
+	cachedBloodStains!: Blood[];
 	sidebar!: Sidebar;
 	gameOverOverlay?: GameOverOverlay;
 	turrets!: Turret[];
 	beerCans!: BeerCan[];
 	particleHandler!: ParticleHandler;
+	cachedBackgroundCanvas!: OffscreenCanvas;
+	cachingCounter: number = 0;
 
 	static calculatePlayerStartingPosition(numberOfPlayers: number, i: number) {
 		let x = SIDEBAR_WIDTH + (SCREEN_WIDTH - SIDEBAR_WIDTH) / 2;
@@ -84,18 +88,33 @@ export default class Game {
 			this.players.push(player);
 		}
 		this.bloodStains = [];
+		this.cachedBloodStains = [];
 		this.turrets = [];
 		this.beerCans = [];
 		this.sidebar = new Sidebar(this.players);
 		this.particleHandler = new ParticleHandler();
 		this.gameOverOverlay = undefined;
+		this.updateBackgroundCanvas();
 	}
 
 	isGameOver = () =>
 		this.players.filter((player) => !player.isDead()).length <= 1;
 
-	createBloodStain = (x: number, y: number, size: number) =>
-		this.bloodStains.push(new Blood(x, y, size));
+	createBloodStain = (
+		x: number,
+		y: number,
+		size: number,
+		xSpeed: number,
+		ySpeed: number
+	) =>
+		this.bloodStains.push(
+			new Blood(x, y, size, xSpeed, ySpeed, this.onDeleteBlood)
+		);
+
+	onDeleteBlood = (bloodToBeDeleted: Blood) =>
+		(this.bloodStains = this.bloodStains.filter(
+			(bloodStain) => bloodStain !== bloodToBeDeleted
+		));
 
 	createTurret = (x: number, y: number, owner: BasePlayer) =>
 		this.turrets.push(new Turret(x, y, owner));
@@ -146,6 +165,8 @@ export default class Game {
 		});
 		this.particleHandler.update();
 
+		this.bloodStains.forEach((bloodStain) => bloodStain.update());
+
 		if (this.isGameOver()) {
 			if (this.gameOverOverlay === undefined) {
 				this.initializeGameOverOverlay(GameEndReason.PlayerWon);
@@ -153,6 +174,22 @@ export default class Game {
 		}
 		if (this.gameOverOverlay !== undefined) {
 			this.gameOverOverlay.update();
+		}
+
+		this.cachingCounter += 1;
+		if (this.cachingCounter === 50) {
+			this.cachingCounter = 0;
+
+			this.cachedBloodStains = [
+				...this.cachedBloodStains,
+				...this.bloodStains.filter(
+					({ xSpeed, ySpeed }) => xSpeed === 0 && ySpeed === 0
+				),
+			];
+			this.bloodStains = this.bloodStains.filter(
+				(bloodStain) => !this.cachedBloodStains.includes(bloodStain)
+			);
+			this.updateBackgroundCanvas();
 		}
 	}
 
@@ -181,6 +218,19 @@ export default class Game {
 		);
 	}
 
+	updateBackgroundCanvas = () => {
+		const canvas = createCanvas(SCREEN_WIDTH - SIDEBAR_WIDTH, SCREEN_HEIGHT);
+		const ctx = canvas.getContext("2d");
+
+		ctx.fillStyle = "#36393F";
+		ctx.translate(-SIDEBAR_WIDTH, 0);
+		ctx.fillRect(SIDEBAR_WIDTH, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+
+		this.cachedBloodStains.forEach((stillBlood) => stillBlood.draw(ctx));
+
+		this.cachedBackgroundCanvas = canvas as any;
+	};
+
 	draw() {
 		this.ctx.resetTransform();
 
@@ -193,8 +243,15 @@ export default class Game {
 		const deadPlayers = this.players.filter((player) => player.isDead());
 		const alivePlayers = this.players.filter((player) => !player.isDead());
 
+		const stillBlood = this.bloodStains.filter(
+			({ xSpeed, ySpeed }) => xSpeed === 0 && ySpeed === 0
+		);
+		const movingBlood = this.bloodStains.filter(
+			(bloodStain) => !stillBlood.includes(bloodStain)
+		);
+
 		this.drawBackground();
-		this.bloodStains.forEach((bloodStain) => bloodStain.draw(this.ctx));
+		stillBlood.forEach((bloodStain) => bloodStain.draw(this.ctx));
 
 		deadPlayers.forEach((player) => player.draw(this.ctx));
 		this.turrets.forEach((turret) => turret.draw(this.ctx));
@@ -203,13 +260,13 @@ export default class Game {
 		this.particleHandler.draw(this.ctx);
 
 		this.players.forEach((player) => player.drawHealthbar(this.ctx));
+		movingBlood.forEach((bloodStain) => bloodStain.draw(this.ctx));
 		this.ctx.restore();
 		this.sidebar.draw(this.ctx, this.players);
 		if (this.gameOverOverlay) this.gameOverOverlay.draw(this.ctx);
 	}
 
 	drawBackground() {
-		this.ctx.fillStyle = "#36393F";
-		this.ctx.fillRect(SIDEBAR_WIDTH, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+		this.ctx.drawImage(this.cachedBackgroundCanvas, SIDEBAR_WIDTH, 0);
 	}
 }
