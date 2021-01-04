@@ -118,7 +118,7 @@ export const messages: Messages = {
 		new MessageEmbed()
 			.setColor(MESSAGE_EMBED_COLOR)
 			.setDescription(
-				"If you enjoy Arena bot, consider upvoting it at: https://top.gg/bot/710161541059575864"
+				"If you enjoy Arena bot, consider upvoting and/or reviewing it at: https://top.gg/bot/710161541059575864"
 			)
 			.addFields({
 				name: "\u200B",
