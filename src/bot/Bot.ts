@@ -37,7 +37,10 @@ export default class Bot {
 	currentParticipantsMessage?: Message;
 
 	handleMessage = async (msg: Message) => {
-		if (this.state === BotState.Rendering || msg.channel.type !== "text") {
+		if (
+			this.state === BotState.Rendering ||
+			msg.channel.type !== "GUILD_TEXT"
+		) {
 			return;
 		}
 
@@ -52,7 +55,7 @@ export default class Bot {
 		msg: Message,
 		commandWithArgs: string[]
 	): Promise<void> => {
-		if (msg.channel.type !== "text") return;
+		if (msg.channel.type !== "GUILD_TEXT") return;
 		const commandLabel = commandWithArgs[0];
 		const command = commands.find((command) => command.label === commandLabel);
 		if (command === undefined) return;
@@ -193,7 +196,7 @@ export default class Bot {
 		if (gameEndData === null) return;
 
 		try {
-			await channel.send("", {
+			await channel.send({
 				files: [`./${outputDirectory}/${RENDER_FILE_NAME}.mp4`],
 			});
 			await this.sendMessage(channel, "voteMessage");
@@ -218,7 +221,11 @@ export default class Bot {
 		message: string | MessageEmbed
 	) => {
 		try {
-			return await channel.send(message);
+			if (typeof message === "string") {
+				return await channel.send(message);
+			} else {
+				return await channel.send({ embeds: [message] });
+			}
 		} catch (error) {
 			console.error(`Error when sending message: ${message}\n${error}`);
 		}

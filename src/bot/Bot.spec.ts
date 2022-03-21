@@ -1,4 +1,3 @@
-import { MessageEmbed } from "discord.js";
 import type { Message } from "discord.js";
 
 import { MAX_PLAYER_COUNT } from "../shared/constants";
@@ -14,7 +13,9 @@ type MockMessage = Partial<Omit<Message, "channel" | "author" | "valueOf">> & {
 		type: Message["channel"]["type"];
 		send: jest.Mock;
 	};
-	author?: Partial<Omit<Message["author"], "displayAvatarURL" | "valueOf">> & {
+	author?: Partial<
+		Omit<Message["author"], "displayAvatarURL" | "valueOf" | "toString">
+	> & {
 		displayAvatarURL: () => string;
 		username: string;
 		id: string;
@@ -25,9 +26,9 @@ const constructMockMessage = (
 	mockMessage: Omit<MockMessage, "channel">
 ): MockMessage => ({
 	channel: {
-		type: "text",
+		type: "GUILD_TEXT",
 		send: jest.fn(),
-	},
+	} as any,
 	...mockMessage,
 	content: BOT_PREFIX + mockMessage.content,
 });
@@ -135,11 +136,11 @@ describe("Bot", () => {
 
 				it("sends cooldown message", () => {
 					expect(mockMessage.channel.send).toHaveBeenCalledTimes(1);
-					const cooldownMessageEmbed: MessageEmbed =
+					const cooldownMessageEmbed =
 						mockMessage.channel.send.mock.calls[0][0];
-					expect(cooldownMessageEmbed instanceof MessageEmbed).toBe(true);
+					expect(cooldownMessageEmbed.embeds.length).toEqual(1);
 					expect(
-						cooldownMessageEmbed.author?.name?.startsWith(
+						cooldownMessageEmbed.embeds?.[0].author?.name?.startsWith(
 							mockMessage.author!.username
 						)
 					).toBe(true);

@@ -38,11 +38,11 @@ export default class GameOverOverlay {
 		this.cachedOverlay = this.createCachedOverlay();
 	}
 	animationProgress: number = -15;
-	cachedOverlay: OffscreenCanvas;
+	cachedOverlay: any;
 	crownX: number = 0;
 	crownY: number = 0;
 
-	createCachedOverlay = (): OffscreenCanvas => {
+	createCachedOverlay = (): any => {
 		const canvas = createCanvas(SCREEN_WIDTH, SCREEN_HEIGHT);
 		const ctx = canvas.getContext("2d");
 
@@ -100,7 +100,7 @@ export default class GameOverOverlay {
 
 		ctx.textAlign = "start";
 
-		return canvas as any;
+		return canvas;
 	};
 
 	update() {

@@ -1,4 +1,4 @@
-let cooldownsPerUser: Record<string, number> = {};
+const cooldownsPerUser: Record<string, number> = {};
 
 const COOLDOWN_MS = 30000;
 

@@ -29,7 +29,7 @@ export default class Game {
 	turrets!: Turret[];
 	beerCans!: BeerCan[];
 	particleHandler!: ParticleHandler;
-	cachedBackgroundCanvas!: OffscreenCanvas;
+	cachedBackgroundCanvas!: any;
 	cachingCounter: number = 0;
 
 	static calculatePlayerStartingPosition(numberOfPlayers: number, i: number) {
@@ -220,7 +220,7 @@ export default class Game {
 
 	updateBackgroundCanvas = () => {
 		const canvas = createCanvas(SCREEN_WIDTH - SIDEBAR_WIDTH, SCREEN_HEIGHT);
-		const ctx = canvas.getContext("2d");
+		const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
 
 		ctx.fillStyle = "#36393F";
 		ctx.translate(-SIDEBAR_WIDTH, 0);

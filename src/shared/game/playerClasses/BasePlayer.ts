@@ -42,8 +42,8 @@ export default class BasePlayer {
 	}
 
 	avatar?: CanvasImageSource;
-	cachedAvatarImage?: OffscreenCanvas;
-	cachedDeadAvatarImage?: OffscreenCanvas;
+	cachedAvatarImage?: any;
+	cachedDeadAvatarImage?: any;
 	radius: number;
 	target?: BasePlayer;
 	chaseSpeed: number;
@@ -71,15 +71,15 @@ export default class BasePlayer {
 	}
 
 	createCachedAvatars = (): {
-		avatarCanvas: OffscreenCanvas;
-		deadAvatarCanvas: OffscreenCanvas;
+		avatarCanvas: any;
+		deadAvatarCanvas: any;
 	} => {
 		const avatarCanvas = this.createCanvasAvatar(false);
 		const deadAvatarCanvas = this.createCanvasAvatar(true);
 		return { avatarCanvas, deadAvatarCanvas };
 	};
 
-	createCanvasAvatar = (dead: boolean): OffscreenCanvas => {
+	createCanvasAvatar = (dead: boolean): any => {
 		const SIZE = this.radius * 4;
 		const canvas = createCanvas(SIZE, SIZE);
 		const ctx = canvas.getContext("2d");
@@ -91,7 +91,7 @@ export default class BasePlayer {
 			ctx.fillStyle = "rgba(255,0,0,0.5)";
 			ctx.fillRect(0, 0, SIZE, SIZE);
 		}
-		return canvas as any;
+		return canvas;
 	};
 
 	onHit(

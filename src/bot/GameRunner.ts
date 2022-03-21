@@ -40,7 +40,7 @@ export default class GameRunner {
 	initializeGame() {
 		this.playersInGame = [];
 		const ctx = this.canvas.getContext("2d");
-		this.game = new Game(ctx);
+		this.game = new Game(ctx as CanvasRenderingContext2D);
 	}
 
 	game?: Game;

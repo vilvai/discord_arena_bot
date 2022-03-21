@@ -54,7 +54,7 @@ export default class Sidebar {
 	}
 
 	playerDeathStates: boolean[];
-	cachedSidebar?: OffscreenCanvas;
+	cachedSidebar?: any;
 
 	draw(ctx: CanvasRenderingContext2D, players: BasePlayer[]) {
 		if (
@@ -67,7 +67,7 @@ export default class Sidebar {
 		ctx.drawImage(this.cachedSidebar, 0, 0);
 	}
 
-	createCachedSidebar = (players: BasePlayer[]): OffscreenCanvas => {
+	createCachedSidebar = (players: BasePlayer[]): any => {
 		const canvas = createCanvas(SIDEBAR_WIDTH, SCREEN_HEIGHT);
 		const ctx = canvas.getContext("2d");
 
@@ -77,7 +77,7 @@ export default class Sidebar {
 			ctx.translate(0, 42);
 		});
 		ctx.resetTransform();
-		return canvas as any;
+		return canvas;
 	};
 
 	drawBackground(ctx: CanvasRenderingContext2D) {

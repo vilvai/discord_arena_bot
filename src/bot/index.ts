@@ -1,4 +1,4 @@
-import Discord from "discord.js";
+import Discord, { Intents } from "discord.js";
 
 import Bot from "./Bot";
 import { createRootFolders } from "./createRootFolders";
@@ -11,7 +11,7 @@ createRootFolders();
 
 const botsByChannel: { [channelId: string]: Bot } = {};
 
-const client = new Discord.Client();
+const client = new Discord.Client({ intents: [Intents.FLAGS.GUILDS] });
 client.login(process.env.TOKEN);
 
 client.on("ready", () => {
@@ -23,7 +23,7 @@ client.on("message", async (msg: Discord.Message) => {
 	const channel = msg.channel;
 	if (
 		client.user === null ||
-		channel.type !== "text" ||
+		channel.type !== "GUILD_TEXT" ||
 		!messageStartsWithBotPrefix(msg.content)
 	) {
 		return;
@@ -45,13 +45,13 @@ client.on("guildCreate", async (guild: Discord.Guild) => {
 	console.log(`Bot added to guild ${guild.name} (${guild.id})`);
 	const firstChannel = guild.channels.cache.find(
 		(channel) =>
-			channel.type === "text" &&
+			channel.type === "GUILD_TEXT" &&
 			channel.permissionsFor(user)!.has("SEND_MESSAGES")
 	) as Discord.TextChannel | undefined;
 
 	if (firstChannel === undefined) return;
 
-	firstChannel.send(messages.welcomeMessage());
+	firstChannel.send({ embeds: [messages.welcomeMessage()] });
 });
 
 client.on("rateLimit", (rateLimitData) =>
