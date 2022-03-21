@@ -13,7 +13,7 @@ if (!process.env.DISCORD_TEST_SERVER_ID) {
 }
 
 const clearCommands = async (mode: "dev" | "prod") => {
-	const client = new Discord.Client();
+	const client = new Discord.Client({ intents: [] });
 	await client.login(process.env.TOKEN);
 
 	const userId = client.user!.id;
