@@ -1,4 +1,9 @@
-import type { Message, MessageEmbed, TextChannel, User } from "discord.js";
+import type {
+	CommandInteraction,
+	MessageEmbed,
+	TextChannel,
+	User,
+} from "discord.js";
 
 import { GameEndData, PlayerClass } from "../shared/types";
 import GameRunner from "./GameRunner";
@@ -9,14 +14,8 @@ import {
 	RENDER_DIRECTORY,
 	RENDER_FILE_NAME,
 } from "../shared/constants";
-import { startTimer, logTimer } from "../shared/timer";
-import { BOT_PREFIX, commands, parseCommand } from "./messages/commands";
-import {
-	messages,
-	Messages,
-	getAcceptedCommands,
-	messageIsWelcomeMessage,
-} from "./messages/messages";
+import { commands } from "./messages/commands";
+import { messages, Messages, getAcceptedCommands } from "./messages/messages";
 import { CommandType } from "./messages/types";
 import { cooldownLeftForUser, setCooldownForUser } from "./cooldown";
 
@@ -34,46 +33,47 @@ export default class Bot {
 
 	gameRunner: GameRunner;
 	state: BotState;
-	currentParticipantsMessage?: Message;
 
-	handleMessage = async (msg: Message) => {
+	handleInteraction = async (interaction: CommandInteraction) => {
 		if (
 			this.state === BotState.Rendering ||
-			msg.channel.type !== "GUILD_TEXT"
+			interaction.channel?.type !== "GUILD_TEXT"
 		) {
 			return;
 		}
 
-		const commandWithArgs = parseCommand(msg.content);
+		const commandName = interaction.commandName;
+		const command = commands.find((command) => command.label === commandName);
+		if (command === undefined) return;
+		const option = interaction.options.data[0]?.value;
 
-		if (commandWithArgs !== null) {
-			await this.executeCommand(msg, commandWithArgs);
-		}
+		await this.executeCommand(interaction, command, option);
 	};
 
 	executeCommand = async (
-		msg: Message,
-		commandWithArgs: string[]
+		interaction: CommandInteraction,
+		command: typeof commands[0],
+		possibleClass: string | number | boolean | undefined
 	): Promise<void> => {
-		if (msg.channel.type !== "GUILD_TEXT") return;
-		const commandLabel = commandWithArgs[0];
-		const command = commands.find((command) => command.label === commandLabel);
-		if (command === undefined) return;
+		if (interaction.channel?.type !== "GUILD_TEXT") {
+			return;
+		}
+		const { user: author, channel } = interaction;
 
 		switch (command.type) {
 			case CommandType.Start: {
 				if (this.state === BotState.Idle) {
-					const userId = msg.author.id;
+					const userId = author.id;
 					const cooldownLeft = cooldownLeftForUser(userId);
 					if (cooldownLeft > 0) {
-						const avatarURL = msg.author.displayAvatarURL({
+						const avatarURL = author.displayAvatarURL({
 							format: "png",
 							size: 128,
 						});
-						await this.sendMessage(
-							msg.channel,
+						await this.replyToInteraction(
+							interaction,
 							"cooldown",
-							msg.author.username,
+							author.username,
 							avatarURL,
 							cooldownLeft
 						);
@@ -82,56 +82,67 @@ export default class Bot {
 
 					setCooldownForUser(userId);
 					this.gameRunner.initializeGame();
-					this.addPlayerToGame(msg.author);
-					this.updatePlayersInGameText(msg.channel);
+					this.addPlayerToGame(author);
+					await this.replyToInteraction(
+						interaction,
+						"fightInitiated",
+						author.username
+					);
 					this.state = BotState.Waiting;
 				} else if (this.state === BotState.Waiting) {
-					await this.runGame(msg.channel);
+					await this.runGame(interaction, channel);
 				}
 				return;
 			}
 			case CommandType.Join:
 			case CommandType.Bot: {
 				if (this.state === BotState.Idle) {
-					await this.sendMessage(msg.channel, "noFightInProgress");
+					await this.replyToInteraction(interaction, "noFightInProgress");
 				} else if (this.state === BotState.Waiting) {
 					if (this.gameRunner.getPlayerCount() >= MAX_PLAYER_COUNT) {
-						await this.sendMessage(msg.channel, "gameIsFull");
+						await this.replyToInteraction(interaction, "gameIsFull");
 						return;
 					}
 
+					let playerWhoJoined: string;
 					if (command.type === CommandType.Join) {
-						this.addPlayerToGame(msg.author);
-					} else if (command.type === CommandType.Bot) {
-						this.addBotToGame();
+						this.addPlayerToGame(author);
+						playerWhoJoined = author.username;
+					} else {
+						const botName = this.addBotToGame();
+						playerWhoJoined = botName;
 					}
 
-					await this.updatePlayersInGameText(msg.channel);
+					await this.replyToInteraction(
+						interaction,
+						"updatedParticipants",
+						playerWhoJoined,
+						this.gameRunner.getCurrentPlayersWithClasses()
+					);
 				}
 				return;
 			}
 			case CommandType.Class: {
-				const possibleClass = commandWithArgs[1];
 				const newPlayerClass = Object.values(PlayerClass).find(
 					(playerClass) => playerClass === possibleClass
 				);
 
 				if (newPlayerClass === undefined) {
-					await this.sendMessage(msg.channel, "selectableClasses");
+					console.error("Didn't find a class for option: " + possibleClass);
 					return;
 				}
 
-				this.gameRunner.setPlayerClass(msg.author.id, newPlayerClass);
-				await this.sendMessage(
-					msg.channel,
+				this.gameRunner.setPlayerClass(author.id, newPlayerClass);
+				await this.replyToInteraction(
+					interaction,
 					"classSelected",
-					msg.author.username,
+					author.username,
 					newPlayerClass
 				);
 				return;
 			}
 			case CommandType.Help: {
-				await this.sendMessageRaw(msg.channel, getAcceptedCommands());
+				await this.replyToInteractionRaw(interaction, getAcceptedCommands());
 				return;
 			}
 		}
@@ -152,24 +163,23 @@ export default class Bot {
 		});
 	};
 
-	addBotToGame = () => {
+	addBotToGame = (): string => {
 		const { playerClass, ...botPlayer } = createNewBotPlayer();
 		this.gameRunner.addPlayer(botPlayer);
 		this.gameRunner.setPlayerClass(botPlayer.id, playerClass);
+		return botPlayer.name;
 	};
 
-	runGame = async (channel: TextChannel) => {
-		await this.deleteBotMessages(channel);
-
+	runGame = async (interaction: CommandInteraction, channel: TextChannel) => {
 		if (this.gameRunner.getPlayerCount() <= 1) {
-			await this.sendMessage(channel, "notEnoughPlayers");
+			await this.replyToInteraction(interaction, "notEnoughPlayers");
 			this.state = BotState.Idle;
 			return;
 		}
 
 		this.state = BotState.Rendering;
-		const gameStartMessage = await this.sendMessage(
-			channel,
+		await this.replyToInteraction(
+			interaction,
 			"fightStarting",
 			this.gameRunner.getCurrentPlayersWithClasses()
 		);
@@ -191,8 +201,6 @@ export default class Bot {
 			return;
 		}
 
-		await this.deleteSingleMessage(gameStartMessage);
-
 		if (gameEndData === null) return;
 
 		try {
@@ -204,6 +212,33 @@ export default class Bot {
 			console.error(`Error when posting fight:\n${error}`);
 		}
 		this.state = BotState.Idle;
+	};
+
+	replyToInteraction = async <M extends keyof Messages>(
+		interaction: CommandInteraction,
+		messageFunctionKey: M,
+		...messageFunctionParameters: Parameters<Messages[M]>
+	) =>
+		await this.replyToInteractionRaw(
+			interaction,
+			(messages[messageFunctionKey] as any)(...messageFunctionParameters)
+		);
+
+	replyToInteractionRaw = async (
+		interaction: CommandInteraction,
+		message: string | MessageEmbed
+	) => {
+		try {
+			if (typeof message === "string") {
+				return await interaction.reply(message);
+			} else {
+				return await interaction.reply({ embeds: [message] });
+			}
+		} catch (error) {
+			console.error(
+				`Error when replying to interaction with message: ${message}\n${error}`
+			);
+		}
 	};
 
 	sendMessage = async <M extends keyof Messages>(
@@ -229,46 +264,5 @@ export default class Bot {
 		} catch (error) {
 			console.error(`Error when sending message: ${message}\n${error}`);
 		}
-	};
-
-	updatePlayersInGameText = async (channel: TextChannel) => {
-		await this.deleteSingleMessage(this.currentParticipantsMessage);
-
-		this.currentParticipantsMessage = await this.sendMessage(
-			channel,
-			"fightInitiated",
-			this.gameRunner.getCurrentPlayersWithClasses()
-		);
-	};
-
-	deleteSingleMessage = async (message: Message | undefined) => {
-		if (message === undefined || !message.deletable) return;
-
-		try {
-			return await message.delete();
-		} catch (error) {
-			console.error(
-				`Error when deleting message: ${message.content}\n${error}`
-			);
-		}
-	};
-
-	deleteBotMessages = async (channel: TextChannel) => {
-		startTimer("Fetching messages");
-		const messages = await channel.messages.fetch({ limit: 100 });
-		logTimer("Fetching messages");
-		const messagesToDelete = messages.filter(
-			(message) =>
-				(message.author.id === this.botUserId &&
-					!messageIsWelcomeMessage(message)) ||
-				message.content.startsWith(BOT_PREFIX)
-		);
-		startTimer("Deleting messages");
-		try {
-			await channel.bulkDelete(messagesToDelete, true);
-		} catch (error) {
-			console.error(error);
-		}
-		logTimer("Deleting messages");
 	};
 }

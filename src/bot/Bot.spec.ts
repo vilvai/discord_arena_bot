@@ -1,36 +1,37 @@
-import type { Message } from "discord.js";
+import type { CommandInteraction, User } from "discord.js";
 
 import { MAX_PLAYER_COUNT } from "../shared/constants";
 import { PlayerClass } from "../shared/types";
 import Bot, { BotState } from "./Bot";
-import { BOT_PREFIX } from "./messages/commands";
 import { messages } from "./messages/messages";
 
 jest.mock("./cooldown");
 
-type MockMessage = Partial<Omit<Message, "channel" | "author" | "valueOf">> & {
-	channel: Partial<Omit<Message["channel"], "send" | "valueOf">> & {
-		type: Message["channel"]["type"];
+type MockInteraction = Partial<
+	Omit<CommandInteraction, "channel" | "user" | "valueOf">
+> & {
+	channel: Partial<Omit<CommandInteraction["channel"], "send" | "valueOf">> & {
+		type: "GUILD_TEXT";
 		send: jest.Mock;
 	};
-	author?: Partial<
-		Omit<Message["author"], "displayAvatarURL" | "valueOf" | "toString">
-	> & {
+	user?: Partial<Omit<User, "displayAvatarURL" | "valueOf" | "toString">> & {
 		displayAvatarURL: () => string;
 		username: string;
 		id: string;
 	};
+	reply: jest.Mock;
 };
 
-const constructMockMessage = (
-	mockMessage: Omit<MockMessage, "channel">
-): MockMessage => ({
+const constructMockInteraction = (
+	mockInteraction: Omit<MockInteraction, "channel" | "reply">
+): MockInteraction => ({
 	channel: {
 		type: "GUILD_TEXT",
 		send: jest.fn(),
 	} as any,
-	...mockMessage,
-	content: BOT_PREFIX + mockMessage.content,
+	reply: jest.fn(),
+	options: { data: [] } as any,
+	...mockInteraction,
 });
 
 describe("Bot", () => {
@@ -52,30 +53,29 @@ describe("Bot", () => {
 
 	describe("handling messages", () => {
 		let bot: Bot;
-		let mockMessage: MockMessage;
+		let mockInteraction: MockInteraction;
 
 		describe("when handling a start game command", () => {
 			describe("and the bot is in Idle state", () => {
 				beforeEach(() => {
 					bot = new Bot("fooUserId", "fooChannelId");
 
-					mockMessage = constructMockMessage({
-						content: "start",
-						author: {
+					mockInteraction = constructMockInteraction({
+						commandName: "start",
+						user: {
 							username: "someUser",
 							id: "someId",
 							displayAvatarURL: () => "foo.com/foobar.png",
 						},
 					});
 
-					bot.updatePlayersInGameText = jest.fn();
 					bot.gameRunner = {
 						initializeGame: jest.fn(),
 						addPlayer: jest.fn(),
 						playerInGame: () => false,
 					} as any;
 
-					bot.handleMessage(mockMessage as any);
+					bot.handleInteraction(mockInteraction as any);
 				});
 
 				it("initializes a game", () => {
@@ -89,33 +89,28 @@ describe("Bot", () => {
 				it("changes the bot state to Waiting", () => {
 					expect(bot.state).toEqual(BotState.Waiting);
 				});
-
-				it("calls updatePlayersInGameText", () => {
-					expect(bot.updatePlayersInGameText).toHaveBeenCalledTimes(1);
-				});
 			});
 
 			describe("and the user has cooldown left", () => {
 				beforeEach(() => {
 					bot = new Bot("fooUserId", "fooChannelId");
 
-					mockMessage = constructMockMessage({
-						content: "start",
-						author: {
+					mockInteraction = constructMockInteraction({
+						commandName: "start",
+						user: {
 							username: "someUser",
 							id: "mockCooldown",
 							displayAvatarURL: () => "foo.com/foobar.png",
 						},
 					});
 
-					bot.updatePlayersInGameText = jest.fn();
 					bot.gameRunner = {
 						initializeGame: jest.fn(),
 						addPlayer: jest.fn(),
 						playerInGame: () => false,
 					} as any;
 
-					bot.handleMessage(mockMessage as any);
+					bot.handleInteraction(mockInteraction as any);
 				});
 
 				it("doesn't initialize a game", () => {
@@ -130,18 +125,13 @@ describe("Bot", () => {
 					expect(bot.state).toEqual(BotState.Idle);
 				});
 
-				it("doesn't call updatePlayersInGameText", () => {
-					expect(bot.updatePlayersInGameText).toHaveBeenCalledTimes(0);
-				});
-
 				it("sends cooldown message", () => {
-					expect(mockMessage.channel.send).toHaveBeenCalledTimes(1);
-					const cooldownMessageEmbed =
-						mockMessage.channel.send.mock.calls[0][0];
+					expect(mockInteraction.reply).toHaveBeenCalledTimes(1);
+					const cooldownMessageEmbed = mockInteraction.reply.mock.calls[0][0];
 					expect(cooldownMessageEmbed.embeds.length).toEqual(1);
 					expect(
 						cooldownMessageEmbed.embeds?.[0].author?.name?.startsWith(
-							mockMessage.author!.username
+							mockInteraction.user!.username
 						)
 					).toBe(true);
 				});
@@ -150,10 +140,10 @@ describe("Bot", () => {
 			describe("and a bot is in Waiting state", () => {
 				beforeEach(() => {
 					bot = new Bot("fooUserId", "fooChannelId");
-					mockMessage = constructMockMessage({ content: "start" });
+					mockInteraction = constructMockInteraction({ commandName: "start" });
 					bot.state = BotState.Waiting;
 					bot.runGame = jest.fn();
-					bot.handleMessage(mockMessage as any);
+					bot.handleInteraction(mockInteraction as any);
 				});
 
 				it("starts the game", () => {
@@ -164,9 +154,9 @@ describe("Bot", () => {
 
 		describe("when handling a join game command", () => {
 			beforeAll(() => {
-				mockMessage = constructMockMessage({
-					content: "join",
-					author: {
+				mockInteraction = constructMockInteraction({
+					commandName: "join",
+					user: {
 						username: "someUser",
 						id: "someId",
 						displayAvatarURL: () => "foo.com/foobar.png",
@@ -177,11 +167,11 @@ describe("Bot", () => {
 			describe("and the bot is in Idle state", () => {
 				beforeEach(() => {
 					bot = new Bot("fooUserId", "fooChannelId");
-					bot.handleMessage(mockMessage as any);
+					bot.handleInteraction(mockInteraction as any);
 				});
 
 				it("sends noFightInProgress message", () => {
-					expect(mockMessage.channel.send).toHaveBeenCalledWith(
+					expect(mockInteraction.reply).toHaveBeenCalledWith(
 						messages.noFightInProgress()
 					);
 				});
@@ -195,19 +185,15 @@ describe("Bot", () => {
 						addPlayer: jest.fn(),
 						playerInGame: () => true,
 						getPlayerCount: () => 0,
+						getCurrentPlayersWithClasses: () => [["foo", PlayerClass.Chungus]],
 					} as any;
 
 					bot.state = BotState.Waiting;
-					bot.updatePlayersInGameText = jest.fn();
-					bot.handleMessage(mockMessage as any);
+					bot.handleInteraction(mockInteraction as any);
 				});
 
 				it("doesn't add player to the game", () => {
 					expect(bot.gameRunner.addPlayer).toHaveBeenCalledTimes(0);
-				});
-
-				it("calls updatePlayersInGameText", () => {
-					expect(bot.updatePlayersInGameText).toHaveBeenCalledTimes(1);
 				});
 			});
 
@@ -219,19 +205,15 @@ describe("Bot", () => {
 						addPlayer: jest.fn(),
 						playerInGame: () => false,
 						getPlayerCount: () => 0,
+						getCurrentPlayersWithClasses: () => [["foo", PlayerClass.Chungus]],
 					} as any;
 
 					bot.state = BotState.Waiting;
-					bot.updatePlayersInGameText = jest.fn();
-					bot.handleMessage(mockMessage as any);
+					bot.handleInteraction(mockInteraction as any);
 				});
 
 				it("adds player to the game", () => {
 					expect(bot.gameRunner.addPlayer).toHaveBeenCalledTimes(1);
-				});
-
-				it("calls updatePlayersInGameText", () => {
-					expect(bot.updatePlayersInGameText).toHaveBeenCalledTimes(1);
 				});
 			});
 
@@ -246,75 +228,27 @@ describe("Bot", () => {
 					} as any;
 
 					bot.state = BotState.Waiting;
-					bot.updatePlayersInGameText = jest.fn();
-					bot.handleMessage(mockMessage as any);
+					bot.handleInteraction(mockInteraction as any);
 				});
 
 				it("doesn't add player to the game", () => {
 					expect(bot.gameRunner.addPlayer).toHaveBeenCalledTimes(0);
 				});
-
-				it("doesn't call updatePlayersInGameText", () => {
-					expect(bot.updatePlayersInGameText).toHaveBeenCalledTimes(0);
-				});
 			});
 		});
 
 		describe("when handling change class command", () => {
-			describe("and the user doesn't specify a class", () => {
-				beforeEach(() => {
-					bot = new Bot("fooUserId", "fooChannelId");
-
-					mockMessage = constructMockMessage({
-						content: "class",
-						author: {
-							username: "someUser",
-							id: "someId",
-							displayAvatarURL: () => "foo.com/foobar.png",
-						},
-					});
-
-					bot.handleMessage(mockMessage as any);
-				});
-
-				it("sends a selectableClasses message", () => {
-					expect(mockMessage.channel.send).toHaveBeenCalledWith(
-						messages.selectableClasses()
-					);
-				});
-			});
-
-			describe("and the user tries to change to a non-existing class", () => {
-				beforeEach(() => {
-					bot = new Bot("fooUserId", "fooChannelId");
-
-					mockMessage = constructMockMessage({
-						content: "class foobarfighter123",
-						author: {
-							username: "someUser",
-							id: "someId",
-							displayAvatarURL: () => "foo.com/foobar.png",
-						},
-					});
-
-					bot.handleMessage(mockMessage as any);
-				});
-
-				it("sends a selectableClasses message", () => {
-					expect(mockMessage.channel.send).toHaveBeenCalledWith(
-						messages.selectableClasses()
-					);
-				});
-			});
-
 			describe("and the user tries to change to an existing class", () => {
 				const newPlayerClass = "drunk";
 				beforeEach(() => {
 					bot = new Bot("fooUserId", "fooChannelId");
 
-					mockMessage = constructMockMessage({
-						content: `class ${newPlayerClass}`,
-						author: {
+					mockInteraction = constructMockInteraction({
+						commandName: "class",
+						options: {
+							data: [{ value: newPlayerClass }],
+						} as any,
+						user: {
 							username: "someUser",
 							id: "someId",
 							displayAvatarURL: () => "foo.com/foobar.png",
@@ -325,20 +259,23 @@ describe("Bot", () => {
 						setPlayerClass: jest.fn(),
 					} as any;
 
-					bot.handleMessage(mockMessage as any);
+					bot.handleInteraction(mockInteraction as any);
 				});
 
 				it("calls setPlayerClass with the correct class", () => {
 					expect(bot.gameRunner.setPlayerClass).toHaveBeenCalledTimes(1);
 					expect((bot.gameRunner.setPlayerClass as any).mock.calls[0]).toEqual([
-						mockMessage.author!.id,
+						mockInteraction.user!.id,
 						newPlayerClass,
 					]);
 				});
 
 				it("sends a classSelected message", () => {
-					expect(mockMessage.channel.send).toHaveBeenCalledWith(
-						messages.classSelected(mockMessage.author!.username, newPlayerClass)
+					expect(mockInteraction.reply).toHaveBeenCalledWith(
+						messages.classSelected(
+							mockInteraction.user!.username,
+							newPlayerClass
+						)
 					);
 				});
 			});
@@ -379,12 +316,13 @@ describe("Bot", () => {
 
 	describe("error handling for rendering video", () => {
 		let bot: Bot;
-		let channel: MockMessage["channel"];
+		let channel: MockInteraction["channel"];
+		let interaction: MockInteraction;
 
 		beforeEach(() => {
-			channel = constructMockMessage({}).channel;
+			interaction = constructMockInteraction({});
+			channel = constructMockInteraction({}).channel;
 			bot = new Bot("fooUserId", "fooChannelId");
-			bot.deleteBotMessages = jest.fn();
 			bot.gameRunner = {
 				getPlayerCount: () => 2,
 				getCurrentPlayersWithClasses: () => ["fooPlayer", PlayerClass.Chungus],
@@ -393,7 +331,7 @@ describe("Bot", () => {
 				},
 			} as any;
 
-			bot.runGame(channel as any);
+			bot.runGame(interaction as any, channel as any);
 		});
 
 		it("sets the bot state to Idle", () => {

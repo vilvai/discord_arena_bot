@@ -2,7 +2,6 @@ import Discord, { Intents } from "discord.js";
 
 import Bot from "./Bot";
 import { createRootFolders } from "./createRootFolders";
-import { messageStartsWithBotPrefix } from "./messages/commands";
 import { messages } from "./messages/messages";
 
 require("dotenv").config();
@@ -19,13 +18,18 @@ client.on("ready", () => {
 	console.log(`Logged in as ${client.user.tag}!`);
 });
 
-client.on("message", async (msg: Discord.Message) => {
-	const channel = msg.channel;
+client.on("interactionCreate", async (interaction) => {
+	if (!interaction.isCommand()) return;
+	const channel = interaction.channel;
+
 	if (
-		client.user === null ||
+		channel === null ||
 		channel.type !== "GUILD_TEXT" ||
-		!messageStartsWithBotPrefix(msg.content)
+		client.user === null
 	) {
+		console.error(
+			"Tried to reply to an interaction but channel or client.user was null or channel type not GUILD_TEXT"
+		);
 		return;
 	}
 
@@ -36,7 +40,7 @@ client.on("message", async (msg: Discord.Message) => {
 		);
 		botsByChannel[channelId] = new Bot(client.user.id, channelId);
 	}
-	await botsByChannel[channelId].handleMessage(msg);
+	await botsByChannel[channelId].handleInteraction(interaction);
 });
 
 client.on("guildCreate", async (guild: Discord.Guild) => {

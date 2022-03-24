@@ -20,13 +20,7 @@ export const commands = [
 	},
 ];
 
-export const BOT_PREFIX = "/arena ";
-
-export const messageStartsWithBotPrefix = (message: string): boolean =>
-	message.toLowerCase().startsWith(BOT_PREFIX);
-
-export const formattedWithBotPrefix = (command: string) =>
-	`\`${BOT_PREFIX}${command}\``;
+export const formattedWithBotPrefix = (command: string) => `\`/${command}\``;
 
 export const formattedCommandWithPrefix = (
 	commandType: CommandType
@@ -45,13 +39,3 @@ export const getCommandsAsString = (): string =>
 				"🔹" + `${formattedCommandWithPrefix(command.type)} - ${command.info}`
 		)
 		.join("\n");
-
-export const parseCommand = (message: string): string[] | null => {
-	if (!messageStartsWithBotPrefix(message)) return null;
-
-	const messageWithoutPrefix = message.slice(BOT_PREFIX.length);
-	const commandWithArgs = messageWithoutPrefix.split(" ");
-	return commands.some((command) => command.label === commandWithArgs[0])
-		? commandWithArgs
-		: null;
-};

@@ -13,7 +13,9 @@ import { CommandType } from "./types";
 import { PlayerClass } from "../../shared/types";
 
 export interface Messages {
-	fightInitiated: (
+	fightInitiated: (playerWhoInitiated: string) => MessageEmbed;
+	updatedParticipants: (
+		playerWhoJoined: string,
 		playersWithClasses: Array<[string, PlayerClass]>
 	) => MessageEmbed;
 	fightStartsIn: (countdownLeft: number) => MessageEmbed;
@@ -21,11 +23,10 @@ export interface Messages {
 		playersWithClasses: Array<[string, PlayerClass]>
 	) => MessageEmbed;
 	gameIsFull: () => string;
-	selectableClasses: () => string;
 	renderingFailed: () => string;
 	noFightInProgress: () => string;
 	classSelected: (userName: string, selectedClass: string) => string;
-	notEnoughPlayers: () => string;
+	notEnoughPlayers: () => MessageEmbed;
 	cooldown: (
 		userName: string,
 		authorAvatarURL: string,
@@ -58,24 +59,29 @@ const startNewFightMessage = `Start a new fight with ${formattedStartCommand}.`;
 const welcomeMessageTitle = "Thanks for adding me to your server! 👋";
 
 export const messages: Messages = {
-	fightInitiated: (playersWithClasses: Array<[string, PlayerClass]>) =>
+	fightInitiated: (playerWhoInitiated: string) =>
 		new MessageEmbed()
 			.setColor(MESSAGE_EMBED_COLOR)
-			.setTitle("⚔️ Fight initiated ⚔️")
-			.addFields(
-				{
-					name: "Participants:",
-					value: getPlayersWithClassesAsString(playersWithClasses),
-				},
-				{
-					name: "\u200B",
-					value:
-						`Other players can join with ${formattedJoinCommand}. ` +
-						`You can also add bots with ${formattedBotCommand}. ` +
-						`Change your class with ${formattedClassCommand} (e.g. ${exampleClassCommand}). ` +
-						`When everyone is ready, write ${formattedStartCommand} again to start the fight.`,
-				}
-			),
+			.setTitle(`⚔️ ${playerWhoInitiated} initiated a fight ⚔️`)
+			.addFields({
+				name: "\u200B",
+				value:
+					`Other players can join with ${formattedJoinCommand}. ` +
+					`You can also add bots with ${formattedBotCommand}. ` +
+					`Change your class with ${formattedClassCommand} (e.g. ${exampleClassCommand}). ` +
+					`When everyone is ready, write ${formattedStartCommand} again to start the fight.`,
+			}),
+	updatedParticipants: (
+		playerWhoJoined: string,
+		playersWithClasses: Array<[string, PlayerClass]>
+	) =>
+		new MessageEmbed()
+			.setColor(MESSAGE_EMBED_COLOR)
+			.setTitle(`⚔️ ${playerWhoJoined} joined ⚔️`)
+			.addFields({
+				name: "Participants:",
+				value: getPlayersWithClassesAsString(playersWithClasses),
+			}),
 	fightStartsIn: (countdownLeft: number) =>
 		new MessageEmbed()
 			.setColor(MESSAGE_EMBED_COLOR)
@@ -89,12 +95,16 @@ export const messages: Messages = {
 				value: getPlayersWithClassesAsString(playersWithClasses),
 			}),
 	gameIsFull: () => `Game is already full (${MAX_PLAYER_COUNT} players).`,
-	selectableClasses: () =>
-		`Selectable classes: ${selectableClassesAsString}. Example: ${exampleClassCommand}.`,
 	classSelected: (userName: string, selectedClass: string) =>
 		`${userName} is now \`${selectedClass}\`.`,
 	notEnoughPlayers: () =>
-		`Not enough players in the fight.\n${startNewFightMessage}`,
+		new MessageEmbed()
+			.setColor(MESSAGE_EMBED_COLOR)
+			.setTitle("Not enough players in the fight 😢")
+			.addFields({
+				name: "\u200B",
+				value: startNewFightMessage,
+			}),
 	renderingFailed: () =>
 		`Rendering the video failed 😢\n${startNewFightMessage}`,
 	noFightInProgress: () => `No fight in progress.\n${startNewFightMessage}`,
