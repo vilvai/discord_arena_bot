@@ -20,8 +20,7 @@
     "test": "jest src",
     "heroku-postbuild": "yarn build-bot && yarn build-preview",
     "test-render": "ts-node ./src/benchmarks/renderTest.ts",
-    "update-commands": "ts-node ./src/bot/updateCommands.ts",
-    "clear-commands": "ts-node ./src/bot/clearCommands.ts"
+    "update-commands": "ts-node ./src/bot/updateCommands.ts"
   },
   "repository": "git@github.com:vilvai/discord_areena_bot.git",
   "author": "ville-pc <ville.vainio1@gmail.com>",

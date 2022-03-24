@@ -69,17 +69,21 @@ const commands = [
 
 (async () => {
 	try {
-		console.log(process.env.TOKEN);
 		const rest = new REST({ version: "9" }).setToken(
 			process.env.TOKEN as string
 		);
 
-		const clientId = "725053536949239829";
-		const guildId = "954077523023654942";
-
 		console.log("Started refreshing application (/) commands.");
 
+		const clientId = "725053536949239829";
+		const guildId = "954077523023654942";
+		/*
 		await rest.put(Routes.applicationGuildCommands(clientId, guildId), {
+			body: commands,
+		});
+*/
+
+		await rest.put(Routes.applicationCommands(clientId), {
 			body: commands,
 		});
 
