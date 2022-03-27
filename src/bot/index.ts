@@ -35,8 +35,14 @@ const sendMessageToEveryChannel = (msg: MessageEmbed) => {
 		const firstChannel = findFirstChannelOfGuild(guild);
 
 		if (firstChannel) {
-			console.log(`Sending message to: ${guild.name} - ${firstChannel.name}`);
-			firstChannel.send({ embeds: [msg] });
+			console.log(
+				`Sending message to: ${guild.name} - ${firstChannel.name} - ${firstChannel.id}`
+			);
+			try {
+				firstChannel.send({ embeds: [msg] });
+			} catch (error) {
+				console.error("Failed to send message to channel: " + firstChannel.id);
+			}
 		}
 	});
 };
