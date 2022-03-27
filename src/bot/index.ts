@@ -46,6 +46,39 @@ const splitToChunks = (
 const sleep = (timeMs: number): Promise<void> =>
 	new Promise((resolve) => setTimeout(() => resolve(), timeMs));
 
+const channelsAlreadySentTo = [
+	"792397349971427381",
+	"849139303686078464",
+	"796264800925646871",
+	"955557240608264246",
+	"947353859620233228",
+	"942968453101408256",
+	"888533698117525565",
+	"804114299336785960",
+	"790019515046953013",
+	"817888500187398144",
+	"864582066619940894",
+	"734367691040882690",
+	"573271095982161920",
+	"859552044875251759",
+	"942113111744344144",
+	"936338654429872172",
+	"728372433282793534",
+	"924822228091162645",
+	"828596362991108129",
+	"949365212107145236",
+	"948106159896809473",
+	"763239122961694762",
+	"902100120772948005",
+	"826109505519222786",
+	"839093709655900210",
+	"649677616923803668",
+	"927316429638885396",
+	"822579466328211456",
+	"831894006233301002",
+	"769214453027307540",
+];
+
 const sendMessageToEveryChannel = async (msg: MessageEmbed) => {
 	if (client.user === null) return;
 
@@ -66,13 +99,21 @@ const sendMessageToEveryChannel = async (msg: MessageEmbed) => {
 				console.log(
 					`Sending message to: ${guild.name} - ${firstChannel.name} - ${firstChannel.id}`
 				);
-				try {
-					firstChannel.send({ embeds: [msg] });
-				} catch (error) {
-					console.error(
-						"Failed to send message to channel: " + firstChannel.id
+
+				if (channelsAlreadySentTo.includes(firstChannel.id)) {
+					console.log(
+						"Already sent to channel " + firstChannel.id + ". Skipping sending."
 					);
 				}
+
+				firstChannel.send({ embeds: [msg] }).catch((e) => {
+					console.error(
+						"Failed to send message to channel: " +
+							firstChannel.id +
+							". Error: " +
+							e
+					);
+				});
 			}
 		});
 		await sleep(2000);
@@ -88,7 +129,7 @@ const findFirstChannelOfGuild = (guild: Guild): TextChannel | undefined => {
 	const potentialChannels = guild.channels.cache.filter(
 		(channel) =>
 			channel.type === "GUILD_TEXT" &&
-			channel.permissionsFor(user)!.has("SEND_MESSAGES")
+			!!channel.permissionsFor(user)?.has("SEND_MESSAGES")
 	) as Collection<string, TextChannel>;
 
 	if (potentialChannels.size === 0) return undefined;
