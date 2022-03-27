@@ -29,22 +29,56 @@ if (typeof process.env.TOKEN !== "string") {
 const client = new Discord.Client({ intents: [Intents.FLAGS.GUILDS] });
 client.login(process.env.TOKEN);
 
-const sendMessageToEveryChannel = (msg: MessageEmbed) => {
-	if (client.user === null) return;
-	client.guilds.cache.forEach((guild) => {
-		const firstChannel = findFirstChannelOfGuild(guild);
+const splitToChunks = (
+	guildsCollection: Collection<string, Guild>,
+	chunkSize: number
+): Guild[][] => {
+	const guilds = Array.from(guildsCollection).map(([_name, guild]) => guild);
+	const chunks = [];
+	for (let i = 0; i < guilds.length; i += chunkSize) {
+		const chunk = guilds.slice(i, i + chunkSize);
+		chunks.push(chunk);
+	}
 
-		if (firstChannel) {
-			console.log(
-				`Sending message to: ${guild.name} - ${firstChannel.name} - ${firstChannel.id}`
-			);
-			try {
-				firstChannel.send({ embeds: [msg] });
-			} catch (error) {
-				console.error("Failed to send message to channel: " + firstChannel.id);
+	return chunks;
+};
+
+const sleep = (timeMs: number): Promise<void> =>
+	new Promise((resolve) => setTimeout(() => resolve(), timeMs));
+
+const sendMessageToEveryChannel = async (msg: MessageEmbed) => {
+	if (client.user === null) return;
+
+	const guilds = client.guilds.cache;
+
+	const chunkedGuilds = splitToChunks(guilds, 40);
+
+	console.log(`Split channels into ${chunkedGuilds.length} chunks`);
+
+	for (let i = 0; i < chunkedGuilds.length; i++) {
+		const chunk = chunkedGuilds[i];
+		console.log(`Sending messages to chunks ${i}`);
+
+		chunk.forEach((guild) => {
+			const firstChannel = findFirstChannelOfGuild(guild);
+
+			if (firstChannel) {
+				console.log(
+					`Sending message to: ${guild.name} - ${firstChannel.name} - ${firstChannel.id}`
+				);
+				try {
+					firstChannel.send({ embeds: [msg] });
+				} catch (error) {
+					console.error(
+						"Failed to send message to channel: " + firstChannel.id
+					);
+				}
 			}
-		}
-	});
+		});
+		await sleep(2000);
+	}
+
+	console.log("Sent all messages");
 };
 
 const findFirstChannelOfGuild = (guild: Guild): TextChannel | undefined => {
