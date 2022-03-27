@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
-          node-version: "14"
+          node-version: "16"
       - run: yarn install
       - run: yarn build-preview && yarn build-bot
   tests:
@@ -24,7 +24,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
-          node-version: "14"
+          node-version: "16"
       - run: yarn install
       - run: yarn test
   lint:
@@ -33,6 +33,6 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
-          node-version: "14"
+          node-version: "16"
       - run: yarn install
       - run: yarn lint
