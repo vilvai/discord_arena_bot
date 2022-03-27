@@ -203,13 +203,18 @@ export default class Bot {
 
 		if (gameEndData === null) return;
 
+		const onError = (error: any) =>
+			console.error(`Error when posting fight:\n${error}`);
+
 		try {
-			await channel.send({
-				files: [`./${outputDirectory}/${RENDER_FILE_NAME}.mp4`],
-			});
+			await channel
+				.send({
+					files: [`./${outputDirectory}/${RENDER_FILE_NAME}.mp4`],
+				})
+				.catch(onError);
 			await this.sendMessage(channel, "voteMessage");
 		} catch (error) {
-			console.error(`Error when posting fight:\n${error}`);
+			onError(error);
 		}
 		this.state = BotState.Idle;
 	};
@@ -228,16 +233,19 @@ export default class Bot {
 		interaction: CommandInteraction,
 		message: string | MessageEmbed
 	) => {
-		try {
-			if (typeof message === "string") {
-				return await interaction.reply(message);
-			} else {
-				return await interaction.reply({ embeds: [message] });
-			}
-		} catch (error) {
+		const onError = (error: any) =>
 			console.error(
 				`Error when replying to interaction with message: ${message}\n${error}`
 			);
+
+		try {
+			if (typeof message === "string") {
+				return await interaction.reply(message).catch(onError);
+			} else {
+				return await interaction.reply({ embeds: [message] }).catch(onError);
+			}
+		} catch (error) {
+			onError(error);
 		}
 	};
 
@@ -255,14 +263,16 @@ export default class Bot {
 		channel: TextChannel,
 		message: string | MessageEmbed
 	) => {
+		const onError = (error: any) =>
+			console.error(`Error when sending message: ${message}\n${error}`);
 		try {
 			if (typeof message === "string") {
-				return await channel.send(message);
+				return await channel.send(message).catch(onError);
 			} else {
-				return await channel.send({ embeds: [message] });
+				return await channel.send({ embeds: [message] }).catch(onError);
 			}
 		} catch (error) {
-			console.error(`Error when sending message: ${message}\n${error}`);
+			onError(error);
 		}
 	};
 }
