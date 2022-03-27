@@ -4,9 +4,7 @@ import { CommandType } from "./types";
 const optionsToString = (options: string[]): string =>
 	`${options.map((option) => `\`${option}\``).join(", ")}`;
 
-export const selectableClassesAsString = optionsToString(
-	Object.values(PlayerClass)
-);
+const selectableClassesAsString = optionsToString(Object.values(PlayerClass));
 
 export const commands = [
 	{ type: CommandType.Start, label: "start", info: "start a fight" },

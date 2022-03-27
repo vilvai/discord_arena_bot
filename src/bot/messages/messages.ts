@@ -6,7 +6,6 @@ import {
 	formattedCommandWithPrefix,
 	formattedWithBotPrefix,
 	getCommandsAsString,
-	selectableClassesAsString,
 } from "./commands";
 import { CommandType } from "./types";
 

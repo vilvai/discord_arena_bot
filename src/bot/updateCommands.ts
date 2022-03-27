@@ -76,7 +76,7 @@ const commands = [
 		console.log("Started refreshing application (/) commands.");
 
 		const clientId = "725053536949239829";
-		const guildId = "954077523023654942";
+		//const guildId = "954077523023654942";
 		/*
 		await rest.put(Routes.applicationGuildCommands(clientId, guildId), {
 			body: commands,
