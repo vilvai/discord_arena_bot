@@ -51,7 +51,7 @@ const sendMessageToEveryChannel = async (msg: MessageEmbed) => {
 
 	const guilds = client.guilds.cache;
 
-	const chunkedGuilds = splitToChunks(guilds, 40);
+	const chunkedGuilds = splitToChunks(guilds, 10);
 
 	console.log(`Split channels into ${chunkedGuilds.length} chunks`);
 
@@ -169,9 +169,10 @@ client.on("guildCreate", async (guild: Discord.Guild) => {
 	firstChannel.send({ embeds: [messages.welcomeMessage()] });
 });
 
-client.on("rateLimit", (rateLimitData) =>
-	console.log(`Ratelimited on: ${rateLimitData.path}`)
-);
+client.on("rateLimit", (rateLimitData) => {
+	console.log(`Ratelimited on: ${rateLimitData.path}`);
+	console.log(`Full ratelimit data: ${JSON.stringify(rateLimitData)}`);
+});
 
 client.on("error", (error) =>
 	console.error(`Encountered an error: ${error.message}`)
