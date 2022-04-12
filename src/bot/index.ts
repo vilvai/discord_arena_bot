@@ -85,7 +85,11 @@ client.on("guildCreate", async (guild: Discord.Guild) => {
 
 	if (firstChannel === undefined) return;
 
-	firstChannel.send({ embeds: [messages.welcomeMessage()] });
+	firstChannel
+		.send({ embeds: [messages.welcomeMessage()] })
+		.catch((error) =>
+			console.error(`Error when sending welcome message:\n${error}`)
+		);
 });
 
 client.on("rateLimit", (rateLimitData) => {
